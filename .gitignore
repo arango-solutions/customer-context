@@ -1,0 +1,32 @@
+# Secrets — never commit
+.env
+.env.*
+!.env.example
+
+# GSD planning + agent state — internal, not tracked
+.planning/
+.claude/worktrees/
+
+# Internal dev tooling — not for the shared repo
+infra/
+
+# Customer documents — never commit to a shared repo
+*.pdf
+
+# Sensitive — internal/customer references (Zscaler, MetaCX, prod host, personal
+# links, local paths). Untracked pending sanitization. Re-add CLEAN versions only.
+/CLAUDE.md
+/docs/research/
+/docs/initial-meeting-notes.md
+
+# OS / editor cruft
+.DS_Store
+
+# Node / Python (in case app code lands later)
+node_modules/
+.venv/
+__pycache__/
+*.pyc
+.next/
+dist/
+build/
