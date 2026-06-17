@@ -227,6 +227,30 @@ def build_alias_dict() -> dict[str, str]:
     """
     alias_dict: dict[str, str] = {}
 
+    def _safe_alias_set(key: str, incoming: str, source: str) -> None:
+        """
+        Conflict-detecting alias_dict assignment.
+
+        Raises ValueError if the same surface form is already mapped to a
+        DIFFERENT entity_id — surfaced before any DB write (D-04, ENT-01).
+        Idempotent re-assignment of the same key to the same value is silent.
+        New keys assign normally.
+
+        Parameters
+        ----------
+        key:      lowercased surface form
+        incoming: entity_id being assigned
+        source:   human-readable description for the error message
+        """
+        existing = alias_dict.get(key)
+        if existing is not None and existing != incoming:
+            raise ValueError(
+                f"Alias conflict: surface form {key!r} maps to both "
+                f"{existing!r} and {incoming!r} "
+                f"(source: {source}) — resolve in ground_truth_mentions"
+            )
+        alias_dict[key] = incoming
+
     # ------------------------------------------------------------------
     # Source A — canonical Contact names + entity_ids from structured JSON
     # ------------------------------------------------------------------
@@ -242,10 +266,10 @@ def build_alias_dict() -> dict[str, str]:
             eid  = rec.get("entity_id")
             name = rec.get("full_name")
             if eid and name:
-                alias_dict[name.lower()] = eid
+                _safe_alias_set(name.lower(), eid, f"contact full_name from {path.name}")
                 # Last name alone (Contact only — avoids account name collision)
                 last = name.split()[-1]
-                alias_dict[last.lower()] = eid
+                _safe_alias_set(last.lower(), eid, f"contact last_name from {path.name}")
 
     # ------------------------------------------------------------------
     # Source A — canonical Account names + account_ids from structured JSON
@@ -263,7 +287,7 @@ def build_alias_dict() -> dict[str, str]:
             eid  = rec.get("account_id")    # account_id == entity_id for accounts
             name = rec.get("account_name")
             if eid and name:
-                alias_dict[name.lower()] = eid
+                _safe_alias_set(name.lower(), eid, f"account_name from {path.name}")
 
     # ------------------------------------------------------------------
     # Source B — coref_hard ground_truth_mentions from manifest.json
@@ -276,7 +300,10 @@ def build_alias_dict() -> dict[str, str]:
             if not isinstance(meta, dict) or not meta.get("coref_hard"):
                 continue
             for mention_text, expected_id in meta.get("ground_truth_mentions", {}).items():
-                alias_dict[mention_text.lower()] = expected_id
+                _safe_alias_set(
+                    mention_text.lower(), expected_id,
+                    "ground_truth_mentions from manifest.json"
+                )
 
     return alias_dict
 
@@ -548,6 +575,31 @@ def main() -> None:
     unmatched_kg_entities: list[dict] = []
     name_to_id: dict[str, str] = {}   # {exact_kg_entity_name: entity_id}
 
+    def _safe_name_to_id_set(entity_name: str, matched_id: str, pass_label: str) -> None:
+        """
+        Conflict-detecting name_to_id assignment.
+
+        Raises ValueError if the same entity_name is about to be assigned a
+        second, different canonical id (e.g., deterministic vs. embedding pass
+        disagree, or two KG entities with the same name map to different hubs).
+        Idempotent re-assignment of the same entity_name to the same id is silent.
+        New keys assign normally.
+
+        Parameters
+        ----------
+        entity_name: exact KG entity name (original case)
+        matched_id:  canonical entity_id being assigned
+        pass_label:  human-readable description for the error message
+        """
+        existing = name_to_id.get(entity_name)
+        if existing is not None and existing != matched_id:
+            raise ValueError(
+                f"name_to_id conflict: entity_name {entity_name!r} maps to both "
+                f"{existing!r} and {matched_id!r} "
+                f"(pass: {pass_label}) — resolve in ground_truth_mentions or alias dict"
+            )
+        name_to_id[entity_name] = matched_id
+
     for entity in kg_entities:
         entity_name = entity.get("entity_name", "")
         matched_id  = match_alias(entity_name, alias_dict)
@@ -558,7 +610,7 @@ def main() -> None:
                 "entity_id":           matched_id,
                 "matched_surface_form": entity_name.strip(),
             })
-            name_to_id[entity_name] = matched_id
+            _safe_name_to_id_set(entity_name, matched_id, "Pass 1 deterministic")
         else:
             unmatched_kg_entities.append(entity)
 
@@ -640,7 +692,7 @@ def main() -> None:
                         "matched_surface_form": entity_name.strip(),
                         "confidence":          best_score,
                     })
-                    name_to_id[entity_name] = best_eid
+                    _safe_name_to_id_set(entity_name, best_eid, "Pass 2 embedding")
                 else:
                     print(
                         f"[bridge]   unmatched (below threshold): '{entity_name}' "
