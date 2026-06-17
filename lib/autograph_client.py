@@ -354,7 +354,9 @@ class AutographClient:
         )
         return response, latency_ms
 
-    def upload_rag_input(self, database: str, name: str, content: bytes) -> str:
+    def upload_rag_input(
+        self, database: str, name: str, content: bytes, content_type: str = "text/plain"
+    ) -> str:
         """Upload one file to the platform File Manager; return its ``file_id``.
 
         ``POST {arango_url}/_platform/filemanager/_db/{database}/rag-input``
@@ -363,6 +365,10 @@ class AutographClient:
         persist nothing on this cluster), the File Manager is durable platform
         storage; the returned id is passed to ``create_corpus_build(file_ids=…)``.
         Re-uploading the same name in the same database creates a new version.
+
+        ``content_type`` lets the caller upload non-text files (e.g.
+        ``application/pdf``, ``text/markdown``) so the server-side extractor
+        handles them correctly. customer360 ships a mixed .txt/.md/.pdf corpus.
         """
         self._ensure_authed()
         url = f"{self.arango_url}/_platform/filemanager/_db/{database}/rag-input"
@@ -371,7 +377,7 @@ class AutographClient:
                 url,
                 headers={"Authorization": f"Bearer {self._jwt}"},
                 data={"name": name},
-                files={"file": (name, content, "text/plain")},
+                files={"file": (name, content, content_type)},
                 verify=self.tls_verify,
                 timeout=self.upload_timeout_s,
             )
