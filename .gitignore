@@ -30,3 +30,6 @@ __pycache__/
 .next/
 dist/
 build/
+
+# AutoGraph service discovery (infra URLs/ids — never commit)
+service_discovery.json
