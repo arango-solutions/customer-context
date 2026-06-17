@@ -433,7 +433,10 @@ _noise_docs: list[DocEvent] = [
     _noise_doc("northwind_email", "support_ticket_closed_2023q1", date(2023, 1, 17)),
     _noise_doc("northwind_email", "qbr_recap_positive_2023q3", date(2023, 9, 12)),
     _noise_doc("northwind_email", "renewal_confirmation_2024q2", date(2024, 6, 5)),
-    _noise_doc("northwind_email", "renewal_success_2024", date(2024, 6, 20)),  # also Q2 near-miss for meridian
+    # CR-06 fix: "renewal_success_2024" noise entry removed — it collided with
+    # _nw_renewal_success_near_miss below (same event_id/file_name, last-write-wins).
+    # The near-miss role is the intended one; the noise slot is eliminated here.
+    # If a distinct noise email is needed at this date, give it a unique slug.
     # northwind_docs (8 entries, .md)
     _noise_doc("northwind_docs", "onboarding_runbook_2020q2", date(2020, 5, 1), "md"),
     _noise_doc("northwind_docs", "enterprise_feature_guide_2021q2", date(2021, 4, 20), "md"),

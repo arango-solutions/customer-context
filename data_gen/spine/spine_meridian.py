@@ -15,6 +15,7 @@ from datetime import date
 
 from data_gen.spine.entity_registry import (
     MERIDIAN_ACCOUNT_ID,
+    NORTHWIND_ACCOUNT_ID,
     GLOBAL_SEED,  # noqa: F401 — available for generators
     canonical_uuid,
     make_citable_url,
@@ -536,11 +537,14 @@ _near_miss_docs: list[DocEvent] = [
         spine_events=[],
     ),
     # Q2 near-miss: Northwind renewal success email (different account, positive renewal outcome)
-    # This is cross-account: uses northwind module — same renewal vocabulary, but Account A is healthy
+    # This is cross-account: uses northwind module — same renewal vocabulary, but Account A is healthy.
+    # CR-05 fix: account_id must match module (northwind_email → NORTHWIND_ACCOUNT_ID).
+    # The near-miss function — acting as a Q2 distractor for Meridian — is preserved via
+    # questions_served=["Q2"], NOT via a wrong account_id.
     DocEvent(
         event_id="nw_email_renewal_success_2024",
-        account_id=MERIDIAN_ACCOUNT_ID,  # NOTE: treated as near-miss in Meridian context
-        entity_id=canonical_uuid("northwind", "doc:nw_email_renewal_success_2024"),  # different account namespace
+        account_id=NORTHWIND_ACCOUNT_ID,  # CR-05: Northwind doc carries Northwind account_id
+        entity_id=canonical_uuid("northwind", "doc:nw_email_renewal_success_2024"),
         module="northwind_email",
         file_name=make_file_name("northwind_email", "nw_email_renewal_success_2024", "txt"),
         citable_url=make_citable_url("northwind", "email", "nw_email_renewal_success_2024"),
