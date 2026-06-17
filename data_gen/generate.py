@@ -49,6 +49,7 @@ from data_gen.generators.slack_generator import generate_slack
 from data_gen.generators.email_generator import generate_emails
 from data_gen.generators.docs_generator import generate_docs
 from data_gen.generators.pdf_generator import generate_pdfs
+from data_gen.llm.prose_client import get_prose_stats
 
 # ---------------------------------------------------------------------------
 # Directory constants
@@ -162,6 +163,21 @@ def main(clean: bool = False) -> None:
     # Structured file count
     structured_files = list((_OUTPUT_DIR / "structured").rglob("*.json"))
     print(f"  Structured JSON files: {len(structured_files)}")
+
+    # CR-02: prose generation statistics (real LLM vs stub fallback)
+    prose_stats = get_prose_stats()
+    total_prose = prose_stats["real_llm"] + prose_stats["stub"] + prose_stats["cache_hit"]
+    print("\n[generate] --- Prose Generation Statistics (CR-02) ---")
+    print(f"  Total prose calls:  {total_prose}")
+    print(f"  Real LLM prose:     {prose_stats['real_llm']}")
+    print(f"  Cache hits:         {prose_stats['cache_hit']}")
+    print(f"  Stub fallbacks:     {prose_stats['stub']}")
+    if prose_stats["stub"] > 0:
+        print(
+            f"  WARNING: {prose_stats['stub']} doc(s) used deterministic stub prose — "
+            "check stderr for details"
+        )
+
     print("[generate] Done.")
 
 

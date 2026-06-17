@@ -21,6 +21,7 @@ HTML/script in fact strings before they reach the LLM system prompt.
 import hashlib
 import json
 import os
+import sys
 from pathlib import Path
 from typing import Type, TypeVar
 
@@ -37,6 +38,21 @@ load_dotenv(_REPO_ROOT / ".env", override=True)
 T = TypeVar("T", bound=BaseModel)
 
 _DEFAULT_CACHE_DIR = Path(__file__).parent / "cache"
+
+# ---------------------------------------------------------------------------
+# Generation statistics (CR-02 — real-vs-stub tracking)
+# ---------------------------------------------------------------------------
+
+_PROSE_STATS: dict[str, int] = {
+    "real_llm": 0,   # LLM (Anthropic or OpenAI) returned real prose
+    "stub": 0,       # deterministic stub fallback was used
+    "cache_hit": 0,  # returned from prompt-hash cache (no LLM call)
+}
+
+
+def get_prose_stats() -> dict[str, int]:
+    """Return a snapshot of prose generation statistics."""
+    return dict(_PROSE_STATS)
 
 # ---------------------------------------------------------------------------
 # Internal helpers
@@ -481,15 +497,25 @@ def generate_prose(
     if cache_dir is not None:
         cached = _load_cache(cache_dir, phash, output_schema)
         if cached is not None:
+            _PROSE_STATS["cache_hit"] += 1
             return cached
 
-    # 4. Try LLM providers, fall back to deterministic stub on auth failure
+    # 4. Try LLM providers, fall back to deterministic stub on auth failure.
+    # CR-02: failures are logged loudly to stderr so no stub substitution is silent.
     result = None
+    used_provider = None
+
     anthropic_key = os.environ.get("ANTHROPIC_API_KEY")
     if anthropic_key:
         try:
             result = _generate_with_anthropic(rendered_system_prompt, output_schema)
-        except Exception:
+            used_provider = "anthropic"
+        except Exception as exc:
+            print(
+                f"[prose_client] WARNING: Anthropic call failed for hash={phash} "
+                f"template={Path(template_path).name!r} — {type(exc).__name__}: {exc}",
+                file=sys.stderr,
+            )
             result = None
 
     if result is None:
@@ -497,15 +523,34 @@ def generate_prose(
         if openai_key:
             try:
                 result = _generate_with_openai(rendered_system_prompt, output_schema)
-            except Exception:
+                used_provider = "openai"
+            except Exception as exc:
+                print(
+                    f"[prose_client] WARNING: OpenAI call failed for hash={phash} "
+                    f"template={Path(template_path).name!r} — {type(exc).__name__}: {exc}",
+                    file=sys.stderr,
+                )
                 result = None
 
     if result is None:
-        # Deterministic stub fallback (plan execution note: use stub when API unavailable)
+        # Deterministic stub fallback — only reached when all LLM providers fail.
+        # CR-02: always warn visibly so stub use is never silent.
+        print(
+            f"[prose_client] STUB FALLBACK: using deterministic stub for hash={phash} "
+            f"template={Path(template_path).name!r} schema={output_schema.__name__}",
+            file=sys.stderr,
+        )
         # Pass template_path so _generate_stub selects the correct noise/signal stub pool.
         result = _generate_stub(rendered_system_prompt, output_schema, phash, template_name=template_path)
+        used_provider = "stub"
 
-    # 5. Write to cache
+    # 5. Record statistics (CR-02)
+    if used_provider == "stub":
+        _PROSE_STATS["stub"] += 1
+    else:
+        _PROSE_STATS["real_llm"] += 1
+
+    # 6. Write to cache
     if cache_dir is not None:
         _save_cache(cache_dir, phash, result)
 

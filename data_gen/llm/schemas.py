@@ -24,7 +24,11 @@ from pydantic import BaseModel, model_validator
 # Shared validator logic
 # ---------------------------------------------------------------------------
 
-_DOLLAR_PATTERN = re.compile(r"\$[\d,]+")
+# CR-08: expanded to also reject abbreviated amounts the LLM commonly emits:
+# $1M, $500K, $1.5M, $120k, $2.3B, $45.6k, etc.
+# Pattern: $ followed by one or more digits (with optional decimal) then optional K/M/B suffix,
+# OR $ followed by digits/commas (original numeric pattern).
+_DOLLAR_PATTERN = re.compile(r"\$[\d,]+|\$\d+(?:\.\d+)?[KkMmBb]\b")
 _DATE_PATTERN = re.compile(r"\d{4}-\d{2}-\d{2}")
 _MONTH_DATE_PATTERN = re.compile(
     r"\b(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},\s+\d{4}\b",
