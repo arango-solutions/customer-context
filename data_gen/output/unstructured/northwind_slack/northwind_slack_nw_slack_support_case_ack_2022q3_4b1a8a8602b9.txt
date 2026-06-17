@@ -1,0 +1,7 @@
+<!-- module=northwind_slack account_id=0d5b5863-d3da-51e3-b117-ddbfa7ba2d16 entity_id=cfe89861-4e99-54cf-b7ba-6d91c121628e citable_url=https://arangodb.com/demo/northwind/slack/nw_slack_support_case_ack_2022q3 -->
+
+[August 2022] Sarah Chen: Quick heads-up: we are seeing some signals from this account that warrant a closer look.
+
+[August 2022] Sarah Chen: There are unresolved items from the last business review that have not been formally closed. The customer has brought these up in multiple interactions, and our current plan does not address them adequately. We should schedule a dedicated session to work through these concerns.
+
+[August 2022] Sarah Chen: Please loop in the account executive — this needs coordinated action across the team.

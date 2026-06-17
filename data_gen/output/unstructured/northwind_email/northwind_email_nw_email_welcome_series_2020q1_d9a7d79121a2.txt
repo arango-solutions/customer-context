@@ -1,0 +1,17 @@
+<!-- module=northwind_email account_id=0d5b5863-d3da-51e3-b117-ddbfa7ba2d16 entity_id=7bbe665c-5a3d-5070-b23b-0847b42b2c90 citable_url=https://arangodb.com/demo/northwind/email/nw_email_welcome_series_2020q1 -->
+
+From: Alex Rivera
+To: Sarah Chen
+Date: March 2020
+Subject: Customer Engagement Update — Immediate Attention
+
+Hi there,
+
+Following up on our recent conversations, I want to ensure we are aligned on the current state of this partnership.
+
+There are a few outstanding items from our last business review that have not been formally addressed. The customer has referenced these in multiple interactions, and we should proactively close them out.
+
+Please review the attached context and let me know if you are available for a call this week to discuss our approach.
+
+Regards,
+Alex Rivera

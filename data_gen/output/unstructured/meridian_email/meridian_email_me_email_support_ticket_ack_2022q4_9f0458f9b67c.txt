@@ -1,0 +1,17 @@
+<!-- module=meridian_email account_id=9eff6d7b-7311-5525-be75-5b82a855ece7 entity_id=18bb83b0-4fd4-546f-9307-6de2a867a4a3 citable_url=https://arangodb.com/demo/meridian/email/me_email_support_ticket_ack_2022q4 -->
+
+From: Alex Rivera
+To: James Okafor
+Date: October 2022
+Subject: Account Review — Action Required
+
+Hi team,
+
+I am reaching out to flag some concerns that have surfaced in our recent customer interactions. The partnership is showing signs of strain that require our immediate attention and a coordinated response.
+
+The primary points of concern center on unmet expectations and a shift in how the customer perceives the value we are delivering. While technical metrics remain strong, the relationship health tells a different story.
+
+I would recommend we schedule an executive review to assess the situation and develop a clear action plan before the renewal window approaches.
+
+Best regards,
+Alex Rivera

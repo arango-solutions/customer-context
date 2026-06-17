@@ -1,0 +1,17 @@
+<!-- module=meridian_email account_id=9eff6d7b-7311-5525-be75-5b82a855ece7 entity_id=0ef4f487-0bf9-54cc-89f0-aa1cf958b4ed citable_url=https://arangodb.com/demo/meridian/email/me_email_license_renewal_confirmed_2022q1 -->
+
+From: Alex Rivera
+To: James Okafor
+Date: January 2022
+Subject: Renewal Discussion — Outstanding Concerns
+
+Hello,
+
+I am reaching out to flag some concerns that have surfaced in our recent customer interactions. The partnership is showing signs of strain that require our immediate attention and a coordinated response.
+
+The primary points of concern center on unmet expectations and a shift in how the customer perceives the value we are delivering. While technical metrics remain strong, the relationship health tells a different story.
+
+I would recommend we schedule an executive review to assess the situation and develop a clear action plan before the renewal window approaches.
+
+Kind regards,
+Alex Rivera

@@ -1,0 +1,17 @@
+<!-- module=meridian_email account_id=9eff6d7b-7311-5525-be75-5b82a855ece7 entity_id=89e5102c-a4f0-5553-b25d-e66672137fac citable_url=https://arangodb.com/demo/meridian/email/me_email_promise_2023q2 -->
+
+From: Jordan Kim
+To: James Okafor
+Date: May 2023
+Subject: Partnership Health Update — Follow-Up Needed
+
+Dear colleague,
+
+Following up on our recent conversations, I want to ensure we are aligned on the current state of this partnership.
+
+There are a few outstanding items from our last business review that have not been formally addressed. The customer has referenced these in multiple interactions, and we should proactively close them out.
+
+Please review the attached context and let me know if you are available for a call this week to discuss our approach.
+
+Thanks,
+Jordan Kim

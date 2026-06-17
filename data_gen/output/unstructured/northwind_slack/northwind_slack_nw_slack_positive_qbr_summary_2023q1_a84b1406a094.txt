@@ -1,0 +1,7 @@
+<!-- module=northwind_slack account_id=0d5b5863-d3da-51e3-b117-ddbfa7ba2d16 entity_id=ac4001cc-8973-5d22-8e05-6360e33d3c32 citable_url=https://arangodb.com/demo/northwind/slack/nw_slack_positive_qbr_summary_2023q1 -->
+
+[February 2023] Sarah Chen: Reaching out to flag a pattern that has come up in recent customer communications.
+
+[February 2023] Sarah Chen: Over the past few months, the communication patterns have shifted noticeably. The champion is less responsive, and newer contacts appear to have less context on the product value we have delivered. This is a signal we should investigate proactively before it becomes a renewal risk.
+
+[February 2023] Sarah Chen: Can we schedule a team sync to align on our approach before the next customer touchpoint?

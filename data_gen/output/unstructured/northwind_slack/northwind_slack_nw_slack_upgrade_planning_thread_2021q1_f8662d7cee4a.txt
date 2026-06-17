@@ -1,0 +1,7 @@
+<!-- module=northwind_slack account_id=0d5b5863-d3da-51e3-b117-ddbfa7ba2d16 entity_id=f65dce70-9efc-5cf5-8ea8-ed85f7555696 citable_url=https://arangodb.com/demo/northwind/slack/nw_slack_upgrade_planning_thread_2021q1 -->
+
+[January 2021] Sarah Chen: Flagging this account for immediate attention — our latest review has surfaced some concerning patterns.
+
+[January 2021] Sarah Chen: There are unresolved items from the last business review that have not been formally closed. The customer has brought these up in multiple interactions, and our current plan does not address them adequately. We should schedule a dedicated session to work through these concerns.
+
+[January 2021] Sarah Chen: Please loop in the account executive — this needs coordinated action across the team.

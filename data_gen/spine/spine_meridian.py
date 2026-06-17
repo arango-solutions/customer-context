@@ -563,6 +563,61 @@ _near_miss_docs: list[DocEvent] = [
         questions_served=["Q8"],
         spine_events=[],
     ),
+    # Q12 near-miss 2: Positive QBR notes from Q2 2022 — partnership health mentioned as good
+    # Same vocabulary as Q12 signal QBR but positive outcome
+    DocEvent(
+        event_id="me_docs_qbr_2022q2_positive",
+        account_id=MERIDIAN_ACCOUNT_ID,
+        entity_id=canonical_uuid("meridian", "doc:me_docs_qbr_2022q2_positive"),
+        module="meridian_docs",
+        file_name=make_file_name("meridian_docs", "me_docs_qbr_2022q2_positive", "md"),
+        citable_url=make_citable_url("meridian", "docs", "me_docs_qbr_2022q2_positive"),
+        event_date=date(2022, 5, 20),
+        role="near-miss",
+        questions_served=["Q12"],
+        spine_events=[],
+    ),
+    # Q2 near-miss 2: Internal renewal planning doc with positive renewal outlook (wrong outcome)
+    DocEvent(
+        event_id="me_docs_renewal_positive_2023q3",
+        account_id=MERIDIAN_ACCOUNT_ID,
+        entity_id=canonical_uuid("meridian", "doc:me_docs_renewal_positive_2023q3"),
+        module="meridian_docs",
+        file_name=make_file_name("meridian_docs", "me_docs_renewal_positive_2023q3", "md"),
+        citable_url=make_citable_url("meridian", "docs", "me_docs_renewal_positive_2023q3"),
+        event_date=date(2023, 9, 5),
+        role="near-miss",
+        questions_served=["Q2"],
+        spine_events=[],
+    ),
+    # Q9 near-miss 2: Slack note about champion engagement — James active in 2023
+    # Same champion, same Slack channel as Q9 signals but from an earlier engaged period
+    DocEvent(
+        event_id="me_slack_champion_engaged_2022q4",
+        account_id=MERIDIAN_ACCOUNT_ID,
+        entity_id=canonical_uuid("meridian", "doc:me_slack_champion_engaged_2022q4"),
+        module="meridian_slack",
+        file_name=make_file_name("meridian_slack", "me_slack_champion_engaged_2022q4", "txt"),
+        citable_url=make_citable_url("meridian", "slack", "me_slack_champion_engaged_2022q4"),
+        event_date=date(2022, 11, 15),
+        role="near-miss",
+        questions_served=["Q9"],
+        spine_events=[],
+    ),
+    # Q8 near-miss 2: Email thread discussing product roadmap with no unlogged promise
+    # Same AE, same customer, same roadmap vocabulary but commitment is explicit and logged
+    DocEvent(
+        event_id="me_email_roadmap_logged_2023q4",
+        account_id=MERIDIAN_ACCOUNT_ID,
+        entity_id=canonical_uuid("meridian", "doc:me_email_roadmap_logged_2023q4"),
+        module="meridian_email",
+        file_name=make_file_name("meridian_email", "me_email_roadmap_logged_2023q4", "txt"),
+        citable_url=make_citable_url("meridian", "email", "me_email_roadmap_logged_2023q4"),
+        event_date=date(2023, 11, 10),
+        role="near-miss",
+        questions_served=["Q8"],
+        spine_events=[],
+    ),
 ]
 
 # ---- Noise docs (40 entries across all 4 Meridian modules) ----

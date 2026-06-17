@@ -1,0 +1,7 @@
+<!-- module=northwind_slack account_id=0d5b5863-d3da-51e3-b117-ddbfa7ba2d16 entity_id=b804e5ed-e59b-5958-9283-1b8a571fec5b citable_url=https://arangodb.com/demo/northwind/slack/nw_slack_deployment_status_2020q3 -->
+
+[July 2020] Sarah Chen: Flagging this account for immediate attention — our latest review has surfaced some concerning patterns.
+
+[July 2020] Sarah Chen: Over the past few months, the communication patterns have shifted noticeably. The champion is less responsive, and newer contacts appear to have less context on the product value we have delivered. This is a signal we should investigate proactively before it becomes a renewal risk.
+
+[July 2020] Sarah Chen: Can we schedule a team sync to align on our approach before the next customer touchpoint?

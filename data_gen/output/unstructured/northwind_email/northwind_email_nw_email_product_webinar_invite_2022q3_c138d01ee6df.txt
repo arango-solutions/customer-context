@@ -1,0 +1,17 @@
+<!-- module=northwind_email account_id=0d5b5863-d3da-51e3-b117-ddbfa7ba2d16 entity_id=b983d3e4-1e98-5bfe-9fdb-34f37c912fc2 citable_url=https://arangodb.com/demo/northwind/email/nw_email_product_webinar_invite_2022q3 -->
+
+From: Alex Rivera
+To: Sarah Chen
+Date: September 2022
+Subject: Partnership Health Update — Follow-Up Needed
+
+Dear colleague,
+
+Following up on our recent conversations, I want to ensure we are aligned on the current state of this partnership.
+
+There are a few outstanding items from our last business review that have not been formally addressed. The customer has referenced these in multiple interactions, and we should proactively close them out.
+
+Please review the attached context and let me know if you are available for a call this week to discuss our approach.
+
+Thanks,
+Alex Rivera

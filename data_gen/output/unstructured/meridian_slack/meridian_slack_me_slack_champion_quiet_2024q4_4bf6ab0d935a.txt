@@ -1,0 +1,7 @@
+<!-- module=meridian_slack account_id=9eff6d7b-7311-5525-be75-5b82a855ece7 entity_id=5b9a7140-ea4a-5ecc-8aed-be0421b2fa9d citable_url=https://arangodb.com/demo/meridian/slack/me_slack_champion_quiet_2024q4 -->
+
+[November 2024] Alex Rivera: Wanted to surface a few concerns from recent customer interactions that need follow-up.
+
+[November 2024] Alex Rivera: The customer team has been raising concerns that we have not fully addressed in our last few touchpoints. The primary contact seems less engaged than in prior quarters, and recent conversations have had a different tone. We need to assess whether there is a broader issue with the partnership.
+
+[November 2024] Alex Rivera: Recommending an executive call within the next two weeks to address these concerns directly.

@@ -1,0 +1,17 @@
+<!-- module=northwind_email account_id=0d5b5863-d3da-51e3-b117-ddbfa7ba2d16 entity_id=95521190-bc4e-557b-aaac-bd98d2606fdc citable_url=https://arangodb.com/demo/northwind/email/nw_email_support_ticket_closed_2023q1 -->
+
+From: Alex Rivera
+To: Sarah Chen
+Date: January 2023
+Subject: Renewal Discussion — Outstanding Concerns
+
+Hello,
+
+I am reaching out to flag some concerns that have surfaced in our recent customer interactions. The partnership is showing signs of strain that require our immediate attention and a coordinated response.
+
+The primary points of concern center on unmet expectations and a shift in how the customer perceives the value we are delivering. While technical metrics remain strong, the relationship health tells a different story.
+
+I would recommend we schedule an executive review to assess the situation and develop a clear action plan before the renewal window approaches.
+
+Kind regards,
+Alex Rivera

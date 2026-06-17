@@ -1,0 +1,1107 @@
+{
+  "northwind_slack_nw_slack_scale_limit_2024q2_9d47baa3df04.txt": {
+    "module": "northwind_slack",
+    "account_id": "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",
+    "entity_id": "1ae61c52-95c7-5429-8ac5-eb0d16a3a382",
+    "citable_url": "https://arangodb.com/demo/northwind/slack/nw_slack_scale_limit_2024q2",
+    "role": "signal",
+    "questions_served": [
+      "Q5"
+    ],
+    "spine_events": [
+      "nw_usage_2024_q2",
+      "nw_contact_sarah_chen"
+    ],
+    "event_date": "2024-04-15"
+  },
+  "northwind_slack_nw_slack_scale_mention_2022q2_b884e6a4cdb7.txt": {
+    "module": "northwind_slack",
+    "account_id": "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",
+    "entity_id": "192d9a4c-4079-5603-b12d-fc6e75ad67d4",
+    "citable_url": "https://arangodb.com/demo/northwind/slack/nw_slack_scale_mention_2022q2",
+    "role": "near-miss",
+    "questions_served": [
+      "Q5"
+    ],
+    "spine_events": [],
+    "event_date": "2022-05-10"
+  },
+  "northwind_slack_nw_slack_onboarding_welcome_2020q2_f96677b000bc.txt": {
+    "module": "northwind_slack",
+    "account_id": "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",
+    "entity_id": "7be9ccd0-4425-5b62-87ee-8d2953068fd1",
+    "citable_url": "https://arangodb.com/demo/northwind/slack/nw_slack_onboarding_welcome_2020q2",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2020-04-05"
+  },
+  "northwind_slack_nw_slack_deployment_status_2020q3_1f3eba5d8a4c.txt": {
+    "module": "northwind_slack",
+    "account_id": "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",
+    "entity_id": "b804e5ed-e59b-5958-9283-1b8a571fec5b",
+    "citable_url": "https://arangodb.com/demo/northwind/slack/nw_slack_deployment_status_2020q3",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2020-07-12"
+  },
+  "northwind_slack_nw_slack_community_setup_questions_2020q4_ffeea27af605.txt": {
+    "module": "northwind_slack",
+    "account_id": "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",
+    "entity_id": "b9c62fcb-c757-5702-859f-7c24783a9fb6",
+    "citable_url": "https://arangodb.com/demo/northwind/slack/nw_slack_community_setup_questions_2020q4",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2020-10-03"
+  },
+  "northwind_slack_nw_slack_upgrade_planning_thread_2021q1_f8662d7cee4a.txt": {
+    "module": "northwind_slack",
+    "account_id": "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",
+    "entity_id": "f65dce70-9efc-5cf5-8ea8-ed85f7555696",
+    "citable_url": "https://arangodb.com/demo/northwind/slack/nw_slack_upgrade_planning_thread_2021q1",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2021-01-20"
+  },
+  "northwind_slack_nw_slack_enterprise_kickoff_2021q2_e0cfbc6dd993.txt": {
+    "module": "northwind_slack",
+    "account_id": "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",
+    "entity_id": "69624094-0f70-597c-a7ba-e16ae3f545a9",
+    "citable_url": "https://arangodb.com/demo/northwind/slack/nw_slack_enterprise_kickoff_2021q2",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2021-04-08"
+  },
+  "northwind_slack_nw_slack_smartgraphs_enablement_2021q3_3687f5b1a88e.txt": {
+    "module": "northwind_slack",
+    "account_id": "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",
+    "entity_id": "c7b81401-e5e2-540c-92b9-b173b179f336",
+    "citable_url": "https://arangodb.com/demo/northwind/slack/nw_slack_smartgraphs_enablement_2021q3",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2021-07-22"
+  },
+  "northwind_slack_nw_slack_qbr_prep_notes_2022q1_dba3f52d8615.txt": {
+    "module": "northwind_slack",
+    "account_id": "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",
+    "entity_id": "b9e7f1b9-72a6-57b9-b753-e164621b2f1f",
+    "citable_url": "https://arangodb.com/demo/northwind/slack/nw_slack_qbr_prep_notes_2022q1",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2022-02-14"
+  },
+  "northwind_slack_nw_slack_product_changelog_v3_9_2022q2_9c677d7701e5.txt": {
+    "module": "northwind_slack",
+    "account_id": "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",
+    "entity_id": "5548a8fb-1a73-551d-8d35-53b5ee29f465",
+    "citable_url": "https://arangodb.com/demo/northwind/slack/nw_slack_product_changelog_v3_9_2022q2",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2022-05-18"
+  },
+  "northwind_slack_nw_slack_support_case_ack_2022q3_4b1a8a8602b9.txt": {
+    "module": "northwind_slack",
+    "account_id": "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",
+    "entity_id": "cfe89861-4e99-54cf-b7ba-6d91c121628e",
+    "citable_url": "https://arangodb.com/demo/northwind/slack/nw_slack_support_case_ack_2022q3",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2022-08-30"
+  },
+  "northwind_slack_nw_slack_positive_qbr_summary_2023q1_a84b1406a094.txt": {
+    "module": "northwind_slack",
+    "account_id": "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",
+    "entity_id": "ac4001cc-8973-5d22-8e05-6360e33d3c32",
+    "citable_url": "https://arangodb.com/demo/northwind/slack/nw_slack_positive_qbr_summary_2023q1",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2023-02-28"
+  },
+  "northwind_slack_nw_slack_arangograph_migration_checklist_2023q2_faec85845b05.txt": {
+    "module": "northwind_slack",
+    "account_id": "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",
+    "entity_id": "d04891ea-86ac-55da-8ec1-1502b3475737",
+    "citable_url": "https://arangodb.com/demo/northwind/slack/nw_slack_arangograph_migration_checklist_2023q2",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2023-05-05"
+  },
+  "northwind_slack_nw_slack_cluster_health_check_2024q1_60e2e4561411.txt": {
+    "module": "northwind_slack",
+    "account_id": "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",
+    "entity_id": "fe6f8139-51c5-5217-b1d1-ca375b297781",
+    "citable_url": "https://arangodb.com/demo/northwind/slack/nw_slack_cluster_health_check_2024q1",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2024-01-15"
+  },
+  "meridian_slack_me_slack_escalation_2024q3_a243d414ac6d.txt": {
+    "module": "meridian_slack",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "entity_id": "7d970202-0644-5511-be59-23809cc99d5f",
+    "citable_url": "https://arangodb.com/demo/meridian/slack/me_slack_escalation_2024q3",
+    "role": "signal",
+    "questions_served": [
+      "Q12",
+      "Q2"
+    ],
+    "spine_events": [
+      "me_contact_james_okafor",
+      "me_nps_2024_q3"
+    ],
+    "event_date": "2024-09-10"
+  },
+  "meridian_slack_me_slack_nps_verbatim_2024q4_dc4271b61933.txt": {
+    "module": "meridian_slack",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "entity_id": "f6338be8-7576-5848-93e4-bb7d7c53627b",
+    "citable_url": "https://arangodb.com/demo/meridian/slack/me_slack_nps_verbatim_2024q4",
+    "role": "signal",
+    "questions_served": [
+      "Q12"
+    ],
+    "spine_events": [
+      "me_nps_2024_q4"
+    ],
+    "event_date": "2024-11-20"
+  },
+  "meridian_slack_me_slack_renewal_risk_2025q1_b10c86219073.txt": {
+    "module": "meridian_slack",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "entity_id": "dd6fd13b-5545-530c-bb7a-28ba6fa5e92f",
+    "citable_url": "https://arangodb.com/demo/meridian/slack/me_slack_renewal_risk_2025q1",
+    "role": "signal",
+    "questions_served": [
+      "Q2"
+    ],
+    "spine_events": [
+      "me_opp_renewal_2025",
+      "me_contact_taylor_brooks"
+    ],
+    "event_date": "2025-01-10"
+  },
+  "meridian_slack_me_slack_champion_quiet_2024q4_4bf6ab0d935a.txt": {
+    "module": "meridian_slack",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "entity_id": "5b9a7140-ea4a-5ecc-8aed-be0421b2fa9d",
+    "citable_url": "https://arangodb.com/demo/meridian/slack/me_slack_champion_quiet_2024q4",
+    "role": "signal",
+    "questions_served": [
+      "Q9"
+    ],
+    "spine_events": [
+      "me_contact_james_okafor",
+      "me_contact_taylor_brooks"
+    ],
+    "event_date": "2024-11-05"
+  },
+  "meridian_slack_me_slack_near_miss_q12_2023q1_0f5ff0af0d8e.txt": {
+    "module": "meridian_slack",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "entity_id": "39fbe544-0b69-58e0-8a9a-586e180d09b2",
+    "citable_url": "https://arangodb.com/demo/meridian/slack/me_slack_near_miss_q12_2023q1",
+    "role": "near-miss",
+    "questions_served": [
+      "Q12"
+    ],
+    "spine_events": [],
+    "event_date": "2023-02-14"
+  },
+  "meridian_slack_me_slack_champion_engaged_2022q4_93cd7e676320.txt": {
+    "module": "meridian_slack",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "entity_id": "11dbdef1-32ea-5bfa-9c06-9d668961b2d6",
+    "citable_url": "https://arangodb.com/demo/meridian/slack/me_slack_champion_engaged_2022q4",
+    "role": "near-miss",
+    "questions_served": [
+      "Q9"
+    ],
+    "spine_events": [],
+    "event_date": "2022-11-15"
+  },
+  "meridian_slack_me_slack_onboarding_welcome_2021q1_5aafc750f72b.txt": {
+    "module": "meridian_slack",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "entity_id": "7574481f-2658-5dbb-a810-f892b7a351da",
+    "citable_url": "https://arangodb.com/demo/meridian/slack/me_slack_onboarding_welcome_2021q1",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2021-02-01"
+  },
+  "meridian_slack_me_slack_deployment_checklist_2021q2_3cd32e785ccb.txt": {
+    "module": "meridian_slack",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "entity_id": "6748155f-88d1-5615-8f26-09739f84895b",
+    "citable_url": "https://arangodb.com/demo/meridian/slack/me_slack_deployment_checklist_2021q2",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2021-04-12"
+  },
+  "meridian_slack_me_slack_enterprise_features_kickoff_2021q3_aef0b1153b77.txt": {
+    "module": "meridian_slack",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "entity_id": "499cc7a2-c16a-5ced-b2e0-6caaa7e91c69",
+    "citable_url": "https://arangodb.com/demo/meridian/slack/me_slack_enterprise_features_kickoff_2021q3",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2021-07-08"
+  },
+  "meridian_slack_me_slack_smartgraphs_training_2021q4_b761d9557519.txt": {
+    "module": "meridian_slack",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "entity_id": "fbd95a0b-983a-57f2-9791-bec304439433",
+    "citable_url": "https://arangodb.com/demo/meridian/slack/me_slack_smartgraphs_training_2021q4",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2021-10-20"
+  },
+  "meridian_slack_me_slack_product_changelog_v3_8_2022q1_eae1ae33e3e2.txt": {
+    "module": "meridian_slack",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "entity_id": "a2c8797f-b154-56b6-a6e2-53367cb31b27",
+    "citable_url": "https://arangodb.com/demo/meridian/slack/me_slack_product_changelog_v3_8_2022q1",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2022-01-25"
+  },
+  "meridian_slack_me_slack_deployment_status_2022q2_deb3caeceeef.txt": {
+    "module": "meridian_slack",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "entity_id": "a9ca9bb8-6b9e-54a2-ba23-eae4f37304d4",
+    "citable_url": "https://arangodb.com/demo/meridian/slack/me_slack_deployment_status_2022q2",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2022-05-03"
+  },
+  "meridian_slack_me_slack_positive_qbr_prep_2022q3_bf63ba45513e.txt": {
+    "module": "meridian_slack",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "entity_id": "a5873dfd-2f05-517f-9f70-fe0bbc9d58f4",
+    "citable_url": "https://arangodb.com/demo/meridian/slack/me_slack_positive_qbr_prep_2022q3",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2022-08-15"
+  },
+  "meridian_slack_me_slack_support_case_resolved_2022q4_32d18b5fe81a.txt": {
+    "module": "meridian_slack",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "entity_id": "5ca9a57d-dd3d-5f81-987b-1fdbe12f8693",
+    "citable_url": "https://arangodb.com/demo/meridian/slack/me_slack_support_case_resolved_2022q4",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2022-11-07"
+  },
+  "meridian_slack_me_slack_renewal_thanks_2023q1_1af784f52415.txt": {
+    "module": "meridian_slack",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "entity_id": "bf88c90e-59cf-5d18-b596-acb099892e71",
+    "citable_url": "https://arangodb.com/demo/meridian/slack/me_slack_renewal_thanks_2023q1",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2023-01-20"
+  },
+  "meridian_slack_me_slack_cluster_growth_plan_2023q2_78d302d8a243.txt": {
+    "module": "meridian_slack",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "entity_id": "012e2aec-4643-5a21-b7a2-a13e62443fca",
+    "citable_url": "https://arangodb.com/demo/meridian/slack/me_slack_cluster_growth_plan_2023q2",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2023-04-18"
+  },
+  "meridian_slack_me_slack_product_release_discussion_2023q3_37db496a8dba.txt": {
+    "module": "meridian_slack",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "entity_id": "264cb865-4d9d-52a1-b5cb-b2670facc274",
+    "citable_url": "https://arangodb.com/demo/meridian/slack/me_slack_product_release_discussion_2023q3",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2023-07-14"
+  },
+  "meridian_slack_me_slack_health_check_routine_2024q1_062cf6a2922d.txt": {
+    "module": "meridian_slack",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "entity_id": "9fa75469-277a-5258-b804-e89cae09c6da",
+    "citable_url": "https://arangodb.com/demo/meridian/slack/me_slack_health_check_routine_2024q1",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2024-01-30"
+  },
+  "northwind_email_nw_email_genai_intent_2025q1_3e4644a86876.txt": {
+    "module": "northwind_email",
+    "account_id": "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",
+    "entity_id": "afc65e37-c72f-58a6-82f7-794bc591d7f5",
+    "citable_url": "https://arangodb.com/demo/northwind/email/nw_email_genai_intent_2025q1",
+    "role": "signal",
+    "questions_served": [
+      "Q5"
+    ],
+    "spine_events": [
+      "nw_contact_michael_torres",
+      "nw_opp_renewal_2025"
+    ],
+    "event_date": "2025-01-20"
+  },
+  "northwind_email_nw_email_welcome_series_2020q1_d9a7d79121a2.txt": {
+    "module": "northwind_email",
+    "account_id": "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",
+    "entity_id": "7bbe665c-5a3d-5070-b23b-0847b42b2c90",
+    "citable_url": "https://arangodb.com/demo/northwind/email/nw_email_welcome_series_2020q1",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2020-03-10"
+  },
+  "northwind_email_nw_email_quarterly_review_invite_2021q3_5f4a5a86f85a.txt": {
+    "module": "northwind_email",
+    "account_id": "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",
+    "entity_id": "9b0bbc8f-6ff5-5e6c-8873-430ee09091f2",
+    "citable_url": "https://arangodb.com/demo/northwind/email/nw_email_quarterly_review_invite_2021q3",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2021-07-06"
+  },
+  "northwind_email_nw_email_license_renewal_confirmation_2022q1_00a8f8f7b7ce.txt": {
+    "module": "northwind_email",
+    "account_id": "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",
+    "entity_id": "b74e8854-c8a9-516c-8ac9-df62efdb5cb0",
+    "citable_url": "https://arangodb.com/demo/northwind/email/nw_email_license_renewal_confirmation_2022q1",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2022-02-25"
+  },
+  "northwind_email_nw_email_product_webinar_invite_2022q3_c138d01ee6df.txt": {
+    "module": "northwind_email",
+    "account_id": "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",
+    "entity_id": "b983d3e4-1e98-5bfe-9fdb-34f37c912fc2",
+    "citable_url": "https://arangodb.com/demo/northwind/email/nw_email_product_webinar_invite_2022q3",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2022-09-02"
+  },
+  "northwind_email_nw_email_support_ticket_closed_2023q1_40fb577d830f.txt": {
+    "module": "northwind_email",
+    "account_id": "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",
+    "entity_id": "95521190-bc4e-557b-aaac-bd98d2606fdc",
+    "citable_url": "https://arangodb.com/demo/northwind/email/nw_email_support_ticket_closed_2023q1",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2023-01-17"
+  },
+  "northwind_email_nw_email_qbr_recap_positive_2023q3_0f102efeb997.txt": {
+    "module": "northwind_email",
+    "account_id": "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",
+    "entity_id": "66038951-e3e3-50cd-8254-5cc49854de77",
+    "citable_url": "https://arangodb.com/demo/northwind/email/nw_email_qbr_recap_positive_2023q3",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2023-09-12"
+  },
+  "northwind_email_nw_email_renewal_confirmation_2024q2_8a47ad3197ad.txt": {
+    "module": "northwind_email",
+    "account_id": "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",
+    "entity_id": "ad1b9ef0-3d46-57c5-8128-ab018bb46a19",
+    "citable_url": "https://arangodb.com/demo/northwind/email/nw_email_renewal_confirmation_2024q2",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2024-06-05"
+  },
+  "northwind_email_nw_email_renewal_success_2024_a945f62d3053.txt": {
+    "module": "northwind_email",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "entity_id": "b12f190a-6768-53c5-8b9c-ed918b7aca72",
+    "citable_url": "https://arangodb.com/demo/northwind/email/nw_email_renewal_success_2024",
+    "role": "near-miss",
+    "questions_served": [
+      "Q2"
+    ],
+    "spine_events": [],
+    "event_date": "2024-06-20"
+  },
+  "meridian_email_me_email_exec_2024q4_a86d25157cf8.txt": {
+    "module": "meridian_email",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "entity_id": "b17fef9b-b7ff-5f9a-b01e-ccbb1506f614",
+    "citable_url": "https://arangodb.com/demo/meridian/email/me_email_exec_2024q4",
+    "role": "signal",
+    "questions_served": [
+      "Q12"
+    ],
+    "spine_events": [
+      "me_contact_james_okafor",
+      "me_contract_enterprise_2024"
+    ],
+    "event_date": "2024-10-05"
+  },
+  "meridian_email_me_email_renewal_2025q1_f8cb3838c624.txt": {
+    "module": "meridian_email",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "entity_id": "68f981e5-a773-56c9-958f-bc8b216b8b79",
+    "citable_url": "https://arangodb.com/demo/meridian/email/me_email_renewal_2025q1",
+    "role": "signal",
+    "questions_served": [
+      "Q2"
+    ],
+    "spine_events": [
+      "me_opp_renewal_2025",
+      "me_contract_enterprise_2024"
+    ],
+    "event_date": "2025-01-25"
+  },
+  "meridian_email_me_email_champion_2024q4_20473ec87bee.txt": {
+    "module": "meridian_email",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "entity_id": "01b720b0-2b89-5fbc-9dc2-ab58ac257056",
+    "citable_url": "https://arangodb.com/demo/meridian/email/me_email_champion_2024q4",
+    "role": "signal",
+    "questions_served": [
+      "Q9"
+    ],
+    "spine_events": [
+      "me_contact_james_okafor"
+    ],
+    "event_date": "2024-10-20"
+  },
+  "meridian_email_me_email_promise_2023q2_6d0ce30dff3f.txt": {
+    "module": "meridian_email",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "entity_id": "89e5102c-a4f0-5553-b25d-e66672137fac",
+    "citable_url": "https://arangodb.com/demo/meridian/email/me_email_promise_2023q2",
+    "role": "signal",
+    "questions_served": [
+      "Q8"
+    ],
+    "spine_events": [],
+    "event_date": "2023-05-12"
+  },
+  "meridian_email_me_email_champion_active_2023q1_a768966aaf78.txt": {
+    "module": "meridian_email",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "entity_id": "555723ad-35fd-549d-9763-2d691b1aa32f",
+    "citable_url": "https://arangodb.com/demo/meridian/email/me_email_champion_active_2023q1",
+    "role": "near-miss",
+    "questions_served": [
+      "Q9"
+    ],
+    "spine_events": [],
+    "event_date": "2023-02-08"
+  },
+  "meridian_email_me_email_roadmap_logged_2023q4_539624a6f426.txt": {
+    "module": "meridian_email",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "entity_id": "976a9753-67b1-519f-a8d8-d680e9987cf2",
+    "citable_url": "https://arangodb.com/demo/meridian/email/me_email_roadmap_logged_2023q4",
+    "role": "near-miss",
+    "questions_served": [
+      "Q8"
+    ],
+    "spine_events": [],
+    "event_date": "2023-11-10"
+  },
+  "meridian_email_me_email_welcome_onboarding_2021q1_201d107c13c9.txt": {
+    "module": "meridian_email",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "entity_id": "d9f66fb7-31ab-55f4-bfb0-e32af82cfe52",
+    "citable_url": "https://arangodb.com/demo/meridian/email/me_email_welcome_onboarding_2021q1",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2021-01-20"
+  },
+  "meridian_email_me_email_quarterly_check_in_2021q3_8faf81b5a892.txt": {
+    "module": "meridian_email",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "entity_id": "792fb758-d7c9-5f26-9090-768e4a6901c4",
+    "citable_url": "https://arangodb.com/demo/meridian/email/me_email_quarterly_check_in_2021q3",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2021-08-05"
+  },
+  "meridian_email_me_email_license_renewal_confirmed_2022q1_b168b6c86b19.txt": {
+    "module": "meridian_email",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "entity_id": "0ef4f487-0bf9-54cc-89f0-aa1cf958b4ed",
+    "citable_url": "https://arangodb.com/demo/meridian/email/me_email_license_renewal_confirmed_2022q1",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2022-01-18"
+  },
+  "meridian_email_me_email_product_update_webinar_2022q2_b777c1dcf980.txt": {
+    "module": "meridian_email",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "entity_id": "709deaf8-5786-5b40-9a61-980beda5d0ac",
+    "citable_url": "https://arangodb.com/demo/meridian/email/me_email_product_update_webinar_2022q2",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2022-04-28"
+  },
+  "meridian_email_me_email_support_ticket_ack_2022q4_9f0458f9b67c.txt": {
+    "module": "meridian_email",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "entity_id": "18bb83b0-4fd4-546f-9307-6de2a867a4a3",
+    "citable_url": "https://arangodb.com/demo/meridian/email/me_email_support_ticket_ack_2022q4",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2022-10-12"
+  },
+  "meridian_email_me_email_positive_qbr_recap_2023q1_fcc3c39359e9.txt": {
+    "module": "meridian_email",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "entity_id": "8797c27c-3d08-53d8-b6b9-6cde41d77708",
+    "citable_url": "https://arangodb.com/demo/meridian/email/me_email_positive_qbr_recap_2023q1",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2023-02-28"
+  },
+  "meridian_email_me_email_partnership_anniversary_note_2023q2_5b4b23563a45.txt": {
+    "module": "meridian_email",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "entity_id": "88c5b269-28f5-5472-a0c0-aafaef9dedbd",
+    "citable_url": "https://arangodb.com/demo/meridian/email/me_email_partnership_anniversary_note_2023q2",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2023-06-15"
+  },
+  "meridian_email_me_email_product_roadmap_share_2023q4_dfe4ee8c4b04.txt": {
+    "module": "meridian_email",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "entity_id": "c443975a-1150-5471-909b-21efc776f4bd",
+    "citable_url": "https://arangodb.com/demo/meridian/email/me_email_product_roadmap_share_2023q4",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2023-11-08"
+  },
+  "meridian_email_me_email_support_case_closed_2024q1_cca70b310cbe.txt": {
+    "module": "meridian_email",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "entity_id": "c67f6f53-3c02-5c86-b79a-1a44baa7a526",
+    "citable_url": "https://arangodb.com/demo/meridian/email/me_email_support_case_closed_2024q1",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2024-02-14"
+  },
+  "meridian_email_me_email_routine_checkin_2024q2_aa58dbec0969.txt": {
+    "module": "meridian_email",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "entity_id": "a4f5ce2a-1835-5b48-bb51-dbed65e74b1f",
+    "citable_url": "https://arangodb.com/demo/meridian/email/me_email_routine_checkin_2024q2",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2024-05-22"
+  },
+  "northwind_docs_nw_docs_success_plan_2024_1830839c4aa6.md": {
+    "module": "northwind_docs",
+    "account_id": "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",
+    "entity_id": "1a6c1034-323e-545a-97bd-c484bfcfdeac",
+    "citable_url": "https://arangodb.com/demo/northwind/docs/nw_docs_success_plan_2024",
+    "role": "signal",
+    "questions_served": [
+      "Q5"
+    ],
+    "spine_events": [
+      "nw_usage_2024_q2",
+      "nw_contract_arangograph_2024"
+    ],
+    "event_date": "2024-06-01"
+  },
+  "northwind_docs_nw_docs_arangograph_intro_2023q3_fa5320956fbc.md": {
+    "module": "northwind_docs",
+    "account_id": "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",
+    "entity_id": "c7168e63-bbbd-5e63-98dd-e57f474e1eb1",
+    "citable_url": "https://arangodb.com/demo/northwind/docs/nw_docs_arangograph_intro_2023q3",
+    "role": "near-miss",
+    "questions_served": [
+      "Q5"
+    ],
+    "spine_events": [],
+    "event_date": "2023-08-15"
+  },
+  "northwind_docs_nw_docs_onboarding_runbook_2020q2_5766a4a61e51.md": {
+    "module": "northwind_docs",
+    "account_id": "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",
+    "entity_id": "9ec4d503-e001-5e36-bcca-010b1ce3aebb",
+    "citable_url": "https://arangodb.com/demo/northwind/docs/nw_docs_onboarding_runbook_2020q2",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2020-05-01"
+  },
+  "northwind_docs_nw_docs_enterprise_feature_guide_2021q2_2b1b99f7c7a7.md": {
+    "module": "northwind_docs",
+    "account_id": "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",
+    "entity_id": "41d16800-d515-57c3-a49b-adc256d7ebc6",
+    "citable_url": "https://arangodb.com/demo/northwind/docs/nw_docs_enterprise_feature_guide_2021q2",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2021-04-20"
+  },
+  "northwind_docs_nw_docs_qbr_notes_2021q4_4e17d6761dbb.md": {
+    "module": "northwind_docs",
+    "account_id": "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",
+    "entity_id": "f3ad1ddd-2bf0-5c32-b582-289e79792b81",
+    "citable_url": "https://arangodb.com/demo/northwind/docs/nw_docs_qbr_notes_2021q4",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2021-12-08"
+  },
+  "northwind_docs_nw_docs_architecture_review_2022q2_95d56a32094d.md": {
+    "module": "northwind_docs",
+    "account_id": "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",
+    "entity_id": "c71b95a1-0e77-5aae-9350-46ff435eadd7",
+    "citable_url": "https://arangodb.com/demo/northwind/docs/nw_docs_architecture_review_2022q2",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2022-04-19"
+  },
+  "northwind_docs_nw_docs_security_audit_checklist_2022q4_a9ebd4fadc40.md": {
+    "module": "northwind_docs",
+    "account_id": "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",
+    "entity_id": "e3e4cfc3-51c3-5dce-9421-42c2e4058985",
+    "citable_url": "https://arangodb.com/demo/northwind/docs/nw_docs_security_audit_checklist_2022q4",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2022-11-14"
+  },
+  "northwind_docs_nw_docs_arangograph_migration_guide_2023q1_c622a161ab1b.md": {
+    "module": "northwind_docs",
+    "account_id": "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",
+    "entity_id": "599a8632-8d10-584c-a839-548e76f3f936",
+    "citable_url": "https://arangodb.com/demo/northwind/docs/nw_docs_arangograph_migration_guide_2023q1",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2023-02-07"
+  },
+  "northwind_docs_nw_docs_qbr_notes_positive_2024q1_2832b7c35828.md": {
+    "module": "northwind_docs",
+    "account_id": "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",
+    "entity_id": "d39e4ce3-bb4a-55e5-ab30-aff8eb959dda",
+    "citable_url": "https://arangodb.com/demo/northwind/docs/nw_docs_qbr_notes_positive_2024q1",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2024-02-20"
+  },
+  "northwind_docs_nw_docs_cluster_optimization_notes_2024q3_a99222980e64.md": {
+    "module": "northwind_docs",
+    "account_id": "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",
+    "entity_id": "e7cdefd8-c077-5098-9e63-5564a400fc09",
+    "citable_url": "https://arangodb.com/demo/northwind/docs/nw_docs_cluster_optimization_notes_2024q3",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2024-08-05"
+  },
+  "meridian_docs_me_docs_qbr_2024q3_f6452ec1a4e6.md": {
+    "module": "meridian_docs",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "entity_id": "4a8e48c1-1750-56c6-9473-45f863bb6985",
+    "citable_url": "https://arangodb.com/demo/meridian/docs/me_docs_qbr_2024q3",
+    "role": "signal",
+    "questions_served": [
+      "Q12",
+      "Q2"
+    ],
+    "spine_events": [
+      "me_nps_2024_q3",
+      "me_usage_2024_q3"
+    ],
+    "event_date": "2024-08-20"
+  },
+  "meridian_docs_me_docs_success_plan_2024_ba54b139f6a8.md": {
+    "module": "meridian_docs",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "entity_id": "d38d68b9-f480-5dd5-8b6d-5beeda848d11",
+    "citable_url": "https://arangodb.com/demo/meridian/docs/me_docs_success_plan_2024",
+    "role": "signal",
+    "questions_served": [
+      "Q2"
+    ],
+    "spine_events": [
+      "me_opp_renewal_2025"
+    ],
+    "event_date": "2024-07-15"
+  },
+  "meridian_docs_me_docs_meeting_2024q4_37117049b901.md": {
+    "module": "meridian_docs",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "entity_id": "cbda2eb0-815e-5a8e-9927-8e6e9fa6673b",
+    "citable_url": "https://arangodb.com/demo/meridian/docs/me_docs_meeting_2024q4",
+    "role": "signal",
+    "questions_served": [
+      "Q9"
+    ],
+    "spine_events": [
+      "me_contact_james_okafor"
+    ],
+    "event_date": "2024-10-30"
+  },
+  "meridian_docs_me_docs_commit_2023q2_ebcf50cb7f05.md": {
+    "module": "meridian_docs",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "entity_id": "f012711a-e672-5ac1-bbd1-2b1fcfe41ca4",
+    "citable_url": "https://arangodb.com/demo/meridian/docs/me_docs_commit_2023q2",
+    "role": "signal",
+    "questions_served": [
+      "Q8"
+    ],
+    "spine_events": [],
+    "event_date": "2023-05-15"
+  },
+  "meridian_docs_me_docs_logged_promise_2023q1_5858cd16d191.md": {
+    "module": "meridian_docs",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "entity_id": "f0eb54c8-1fb9-5047-86f9-3e2385bff561",
+    "citable_url": "https://arangodb.com/demo/meridian/docs/me_docs_logged_promise_2023q1",
+    "role": "near-miss",
+    "questions_served": [
+      "Q8"
+    ],
+    "spine_events": [],
+    "event_date": "2023-02-20"
+  },
+  "meridian_docs_me_docs_qbr_2022q2_positive_986ae681949e.md": {
+    "module": "meridian_docs",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "entity_id": "d165b5f2-feae-5667-97cf-460f74735bb9",
+    "citable_url": "https://arangodb.com/demo/meridian/docs/me_docs_qbr_2022q2_positive",
+    "role": "near-miss",
+    "questions_served": [
+      "Q12"
+    ],
+    "spine_events": [],
+    "event_date": "2022-05-20"
+  },
+  "meridian_docs_me_docs_renewal_positive_2023q3_9f9c472e614e.md": {
+    "module": "meridian_docs",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "entity_id": "33cd385e-fbc5-553b-ba48-8ad938370fcd",
+    "citable_url": "https://arangodb.com/demo/meridian/docs/me_docs_renewal_positive_2023q3",
+    "role": "near-miss",
+    "questions_served": [
+      "Q2"
+    ],
+    "spine_events": [],
+    "event_date": "2023-09-05"
+  },
+  "meridian_docs_me_docs_onboarding_runbook_2021q1_8cf21fdbf971.md": {
+    "module": "meridian_docs",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "entity_id": "f7b7c382-f3cb-5ecd-a0b5-1df12236de54",
+    "citable_url": "https://arangodb.com/demo/meridian/docs/me_docs_onboarding_runbook_2021q1",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2021-02-10"
+  },
+  "meridian_docs_me_docs_enterprise_feature_guide_2021q3_a57e39ccc25b.md": {
+    "module": "meridian_docs",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "entity_id": "4adaa230-b395-540c-9078-10c361ad8f5e",
+    "citable_url": "https://arangodb.com/demo/meridian/docs/me_docs_enterprise_feature_guide_2021q3",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2021-07-25"
+  },
+  "meridian_docs_me_docs_qbr_notes_2021q4_6efe04b70e0a.md": {
+    "module": "meridian_docs",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "entity_id": "20c6c222-f6fb-5e69-b71a-1108e33038fa",
+    "citable_url": "https://arangodb.com/demo/meridian/docs/me_docs_qbr_notes_2021q4",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2021-12-10"
+  },
+  "meridian_docs_me_docs_architecture_review_2022q1_d3eba069906b.md": {
+    "module": "meridian_docs",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "entity_id": "8366fc62-55c4-5b4f-933d-57853cae6d73",
+    "citable_url": "https://arangodb.com/demo/meridian/docs/me_docs_architecture_review_2022q1",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2022-02-08"
+  },
+  "meridian_docs_me_docs_security_audit_notes_2022q3_066c6df804c7.md": {
+    "module": "meridian_docs",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "entity_id": "8ac9564f-4940-5cc8-be77-4387e94121ef",
+    "citable_url": "https://arangodb.com/demo/meridian/docs/me_docs_security_audit_notes_2022q3",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2022-09-05"
+  },
+  "meridian_docs_me_docs_qbr_notes_positive_2023q2_3bc93ec6876d.md": {
+    "module": "meridian_docs",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "entity_id": "71cf0853-0bef-53d3-a063-afa21abbd149",
+    "citable_url": "https://arangodb.com/demo/meridian/docs/me_docs_qbr_notes_positive_2023q2",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2023-05-20"
+  },
+  "meridian_docs_me_docs_cluster_sizing_notes_2023q3_a33cf056a43c.md": {
+    "module": "meridian_docs",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "entity_id": "54779274-e791-50bb-be83-7cfe68856d41",
+    "citable_url": "https://arangodb.com/demo/meridian/docs/me_docs_cluster_sizing_notes_2023q3",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2023-08-18"
+  },
+  "meridian_docs_me_docs_renewal_planning_2024q1_2219277f069c.md": {
+    "module": "meridian_docs",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "entity_id": "7977d552-0c4b-5ac1-859e-3359108445e1",
+    "citable_url": "https://arangodb.com/demo/meridian/docs/me_docs_renewal_planning_2024q1",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2024-01-05"
+  },
+  "meridian_docs_me_docs_performance_benchmarks_2024q2_87a8bbc08218.md": {
+    "module": "meridian_docs",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "entity_id": "3d81ba53-fe09-577a-ad20-10df70529730",
+    "citable_url": "https://arangodb.com/demo/meridian/docs/me_docs_performance_benchmarks_2024q2",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2024-04-30"
+  },
+  "meridian_docs_me_docs_routine_qbr_2024q3_17281a8a0685.md": {
+    "module": "meridian_docs",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "entity_id": "2effef1b-9fe4-5fcc-8032-cb97486887b8",
+    "citable_url": "https://arangodb.com/demo/meridian/docs/me_docs_routine_qbr_2024q3",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2024-07-09"
+  },
+  "northwind_pdf_nw_pdf_roi_report_2021_dd5597cafcce.pdf": {
+    "module": "northwind_pdf",
+    "account_id": "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",
+    "entity_id": "8cee4a0d-2475-5230-9d9f-a988caa6bfa7",
+    "citable_url": "https://arangodb.com/demo/northwind/pdf/nw_pdf_roi_report_2021",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2021-12-15"
+  },
+  "northwind_pdf_nw_pdf_ebr_deck_2022q1_d0a10af09c86.pdf": {
+    "module": "northwind_pdf",
+    "account_id": "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",
+    "entity_id": "000d1549-4396-5c83-bfc8-42ef695b04f5",
+    "citable_url": "https://arangodb.com/demo/northwind/pdf/nw_pdf_ebr_deck_2022q1",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2022-03-10"
+  },
+  "northwind_pdf_nw_pdf_contract_enterprise_2022_signed_fe1666ab7992.pdf": {
+    "module": "northwind_pdf",
+    "account_id": "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",
+    "entity_id": "412d9a67-601a-595f-9b6b-2e129e6a212a",
+    "citable_url": "https://arangodb.com/demo/northwind/pdf/nw_pdf_contract_enterprise_2022_signed",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2022-03-01"
+  },
+  "northwind_pdf_nw_pdf_roi_report_2022_e5104e9fd2e4.pdf": {
+    "module": "northwind_pdf",
+    "account_id": "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",
+    "entity_id": "bf964975-0dc4-5ecb-a9cc-13d4147036a3",
+    "citable_url": "https://arangodb.com/demo/northwind/pdf/nw_pdf_roi_report_2022",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2022-12-10"
+  },
+  "northwind_pdf_nw_pdf_ebr_deck_2023q3_cd8a1ffbd172.pdf": {
+    "module": "northwind_pdf",
+    "account_id": "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",
+    "entity_id": "7e4e5f61-83c9-515b-b912-9db05188537b",
+    "citable_url": "https://arangodb.com/demo/northwind/pdf/nw_pdf_ebr_deck_2023q3",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2023-09-08"
+  },
+  "northwind_pdf_nw_pdf_arangograph_roi_report_2024_7aa8e22bcf44.pdf": {
+    "module": "northwind_pdf",
+    "account_id": "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",
+    "entity_id": "659c438a-7755-50b6-bf2d-43ce724eecf7",
+    "citable_url": "https://arangodb.com/demo/northwind/pdf/nw_pdf_arangograph_roi_report_2024",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2024-03-20"
+  },
+  "northwind_pdf_nw_pdf_ebr_deck_2024q3_9c9a9eb58c45.pdf": {
+    "module": "northwind_pdf",
+    "account_id": "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",
+    "entity_id": "b6732ae7-52ea-523c-97ed-73866f9e4de9",
+    "citable_url": "https://arangodb.com/demo/northwind/pdf/nw_pdf_ebr_deck_2024q3",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2024-09-15"
+  },
+  "meridian_pdf_me_pdf_ebr_2024q4_f0a2f790940a.pdf": {
+    "module": "meridian_pdf",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "entity_id": "476a4465-c1d5-5eb4-85f3-324f48b007fe",
+    "citable_url": "https://arangodb.com/demo/meridian/pdf/me_pdf_ebr_2024q4",
+    "role": "signal",
+    "questions_served": [
+      "Q12",
+      "Q2"
+    ],
+    "spine_events": [
+      "me_contract_enterprise_2024",
+      "me_nps_2024_q4"
+    ],
+    "event_date": "2024-11-01"
+  },
+  "meridian_pdf_me_pdf_ebr_2023q3_33208581393b.pdf": {
+    "module": "meridian_pdf",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "entity_id": "f4f68310-406a-5e35-a253-b07a55c31e26",
+    "citable_url": "https://arangodb.com/demo/meridian/pdf/me_pdf_ebr_2023q3",
+    "role": "signal",
+    "questions_served": [
+      "Q8"
+    ],
+    "spine_events": [],
+    "event_date": "2023-08-10"
+  },
+  "meridian_pdf_me_pdf_roi_report_2021_d688a0c05457.pdf": {
+    "module": "meridian_pdf",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "entity_id": "fa3456ee-5b97-57d7-99ab-18694ed228b2",
+    "citable_url": "https://arangodb.com/demo/meridian/pdf/me_pdf_roi_report_2021",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2021-12-20"
+  },
+  "meridian_pdf_me_pdf_ebr_deck_2022q1_positive_46362d740030.pdf": {
+    "module": "meridian_pdf",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "entity_id": "5a969e0e-071d-5549-acb0-222837ea992d",
+    "citable_url": "https://arangodb.com/demo/meridian/pdf/me_pdf_ebr_deck_2022q1_positive",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2022-03-15"
+  },
+  "meridian_pdf_me_pdf_contract_enterprise_2022_signed_25ea119cb943.pdf": {
+    "module": "meridian_pdf",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "entity_id": "10f98351-08e8-5320-b383-53b201287ebb",
+    "citable_url": "https://arangodb.com/demo/meridian/pdf/me_pdf_contract_enterprise_2022_signed",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2022-01-15"
+  },
+  "meridian_pdf_me_pdf_roi_report_2022_14b7032d5c31.pdf": {
+    "module": "meridian_pdf",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "entity_id": "7b41a6bd-d849-5faf-bbaa-b5d2467ffa8b",
+    "citable_url": "https://arangodb.com/demo/meridian/pdf/me_pdf_roi_report_2022",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2022-12-12"
+  },
+  "meridian_pdf_me_pdf_usage_report_2023q1_3434706baee8.pdf": {
+    "module": "meridian_pdf",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "entity_id": "fe23526c-76ba-58ff-8bbb-0ac575e046cb",
+    "citable_url": "https://arangodb.com/demo/meridian/pdf/me_pdf_usage_report_2023q1",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2023-03-28"
+  },
+  "meridian_pdf_me_pdf_ebr_deck_2023q2_positive_1c301ad017e3.pdf": {
+    "module": "meridian_pdf",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "entity_id": "a541fa1a-c838-5d75-a334-5410458dc2bc",
+    "citable_url": "https://arangodb.com/demo/meridian/pdf/me_pdf_ebr_deck_2023q2_positive",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2023-06-20"
+  },
+  "meridian_pdf_me_pdf_roi_report_2023_1722de20224e.pdf": {
+    "module": "meridian_pdf",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "entity_id": "3769bbb3-966a-558e-96b0-2b6a64ef1f9d",
+    "citable_url": "https://arangodb.com/demo/meridian/pdf/me_pdf_roi_report_2023",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2023-12-18"
+  },
+  "meridian_pdf_me_pdf_usage_report_2024q2_361841c49c05.pdf": {
+    "module": "meridian_pdf",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "entity_id": "4c70d1e9-112e-5754-a4f5-48c8f50aaa65",
+    "citable_url": "https://arangodb.com/demo/meridian/pdf/me_pdf_usage_report_2024q2",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2024-06-05"
+  }
+}

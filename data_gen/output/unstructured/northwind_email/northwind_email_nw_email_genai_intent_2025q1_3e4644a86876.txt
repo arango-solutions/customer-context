@@ -1,0 +1,17 @@
+<!-- module=northwind_email account_id=0d5b5863-d3da-51e3-b117-ddbfa7ba2d16 entity_id=afc65e37-c72f-58a6-82f7-794bc591d7f5 citable_url=https://arangodb.com/demo/northwind/email/nw_email_genai_intent_2025q1 -->
+
+From: Michael Torres
+To: Jordan Kim
+Date: January 2025
+Subject: Account Review — Action Required
+
+Hi team,
+
+I am reaching out to flag some concerns that have surfaced in our recent customer interactions. The partnership is showing signs of strain that require our immediate attention and a coordinated response.
+
+The primary points of concern center on unmet expectations and a shift in how the customer perceives the value we are delivering. While technical metrics remain strong, the relationship health tells a different story.
+
+I would recommend we schedule an executive review to assess the situation and develop a clear action plan before the renewal window approaches.
+
+Best regards,
+Michael Torres

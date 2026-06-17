@@ -1,0 +1,7 @@
+<!-- module=meridian_slack account_id=9eff6d7b-7311-5525-be75-5b82a855ece7 entity_id=39fbe544-0b69-58e0-8a9a-586e180d09b2 citable_url=https://arangodb.com/demo/meridian/slack/me_slack_near_miss_q12_2023q1 -->
+
+[February 2023] Alex Rivera: Flagging this account for immediate attention — our latest review has surfaced some concerning patterns.
+
+[February 2023] Alex Rivera: Recent feedback from the customer has highlighted some gaps between their expectations and what has been delivered. While the technical metrics look healthy, the relationship sentiment does not reflect that. We need to bridge this perception gap before the renewal conversation.
+
+[February 2023] Alex Rivera: Let us align on a response plan this week so we can address this before it escalates further.
