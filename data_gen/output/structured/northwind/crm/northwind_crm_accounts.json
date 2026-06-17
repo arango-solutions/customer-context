@@ -1,0 +1,16 @@
+[
+  {
+    "entity_id": "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",
+    "account_id": "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",
+    "account_name": "Northwind Analytics",
+    "segment": "Enterprise",
+    "health_score": 8.64,
+    "last_activity_date": "2025-01-20",
+    "products_contracted": [
+      "Community",
+      "Enterprise",
+      "ArangoGraph"
+    ],
+    "deployment_date": "2020-03-01"
+  }
+]

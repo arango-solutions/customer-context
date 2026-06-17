@@ -1,0 +1,14 @@
+[
+  {
+    "entity_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "account_name": "Meridian Logistics",
+    "segment": "Enterprise",
+    "health_score": 7.57,
+    "last_activity_date": "2025-01-25",
+    "products_contracted": [
+      "Enterprise"
+    ],
+    "deployment_date": "2021-01-15"
+  }
+]

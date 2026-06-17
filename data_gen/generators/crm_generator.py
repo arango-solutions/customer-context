@@ -1,0 +1,137 @@
+"""
+CRM (Salesforce) record generator.
+
+Reads AccountSpine and emits four JSON files per account:
+  {account_key}_crm_accounts.json
+  {account_key}_crm_contacts.json
+  {account_key}_crm_opportunities.json
+  {account_key}_crm_nps.json
+
+No LLM calls — pure spine serialization.
+All hard facts come directly from the spine (no Faker).
+"""
+
+import json
+from datetime import date
+from pathlib import Path
+
+from data_gen.spine.event_spine import AccountSpine, ArangoEdition
+
+
+def ensure_output_dirs(output_dir: Path, account_key: str, sources: list[str]) -> None:
+    """Create all required subdirectory paths for the given account and sources."""
+    for source in sources:
+        (output_dir / "structured" / account_key / source).mkdir(parents=True, exist_ok=True)
+
+
+def _account_key(spine: AccountSpine) -> str:
+    """Derive the lowercase account key from the account_name."""
+    return spine.account_name.lower().split()[0]  # "Northwind Analytics" → "northwind"
+
+
+def generate_crm(spine: AccountSpine, output_dir: Path) -> None:
+    """
+    Generate CRM JSON files from an AccountSpine.
+
+    Emits into output_dir/structured/{account_key}/crm/:
+      - {account_key}_crm_accounts.json
+      - {account_key}_crm_contacts.json
+      - {account_key}_crm_opportunities.json
+      - {account_key}_crm_nps.json
+    """
+    acct_key = _account_key(spine)
+    ensure_output_dirs(output_dir, acct_key, ["crm"])
+    crm_dir = output_dir / "structured" / acct_key / "crm"
+
+    # ------------------------------------------------------------------ #
+    # accounts.json — one record per account                              #
+    # ------------------------------------------------------------------ #
+    nps_scores = [n.score for n in spine.nps]
+    health_score = round(sum(nps_scores) / len(nps_scores), 2) if nps_scores else None
+
+    all_dates = [e.event_date for e in spine.docs] + [c.signed_date for c in spine.contracts]
+    last_activity_date = max(all_dates).isoformat() if all_dates else None
+
+    products_contracted = list(
+        dict.fromkeys(c.product_scope.value for c in spine.contracts)
+    )
+
+    deployment_date = (
+        min(c.signed_date for c in spine.contracts).isoformat()
+        if spine.contracts
+        else None
+    )
+
+    accounts_records = [
+        {
+            "entity_id": spine.account_id,
+            "account_id": spine.account_id,
+            "account_name": spine.account_name,
+            "segment": "Enterprise",
+            "health_score": health_score,
+            "last_activity_date": last_activity_date,
+            "products_contracted": products_contracted,
+            "deployment_date": deployment_date,
+        }
+    ]
+    (crm_dir / f"{acct_key}_crm_accounts.json").write_text(
+        json.dumps(accounts_records, indent=2, default=str), encoding="utf-8"
+    )
+
+    # ------------------------------------------------------------------ #
+    # contacts.json                                                        #
+    # ------------------------------------------------------------------ #
+    contacts_records = [
+        {
+            "entity_id": c.entity_id,
+            "account_id": c.account_id,
+            "full_name": c.full_name,
+            "title": c.title,
+            "role": c.role,
+            "email": c.email,
+            "active_from": c.active_from.isoformat(),
+            "active_to": c.active_to.isoformat() if c.active_to else None,
+        }
+        for c in spine.contacts
+    ]
+    (crm_dir / f"{acct_key}_crm_contacts.json").write_text(
+        json.dumps(contacts_records, indent=2, default=str), encoding="utf-8"
+    )
+
+    # ------------------------------------------------------------------ #
+    # opportunities.json                                                   #
+    # ------------------------------------------------------------------ #
+    opportunities_records = [
+        {
+            "entity_id": o.entity_id,
+            "account_id": o.account_id,
+            "stage": o.stage,
+            "close_date": o.close_date.isoformat(),
+            "amount_usd": o.amount_usd,
+            "opportunity_type": o.opportunity_type,
+            "product_scope": o.product_scope.value,
+        }
+        for o in spine.opportunities
+    ]
+    (crm_dir / f"{acct_key}_crm_opportunities.json").write_text(
+        json.dumps(opportunities_records, indent=2, default=str), encoding="utf-8"
+    )
+
+    # ------------------------------------------------------------------ #
+    # nps.json                                                             #
+    # ------------------------------------------------------------------ #
+    nps_records = [
+        {
+            "entity_id": n.entity_id,
+            "account_id": n.account_id,
+            "score": n.score,
+            "nps_score": n.score,  # alias for linter compatibility
+            "verbatim_sentiment": n.verbatim_sentiment,
+            "survey_date": n.survey_date.isoformat(),
+            "survey_period": n.survey_period,
+        }
+        for n in spine.nps
+    ]
+    (crm_dir / f"{acct_key}_crm_nps.json").write_text(
+        json.dumps(nps_records, indent=2, default=str), encoding="utf-8"
+    )

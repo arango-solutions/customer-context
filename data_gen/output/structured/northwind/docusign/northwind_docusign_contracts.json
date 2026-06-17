@@ -1,0 +1,74 @@
+[
+  {
+    "entity_id": "2f6e4458-4d01-50b2-8f82-78533382f844",
+    "account_id": "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",
+    "signed_date": "2020-03-01",
+    "end_date": "2021-02-28",
+    "value_usd": 0,
+    "product_scope": "Community",
+    "auto_renew": false,
+    "renewal_date": "2021-03-01",
+    "days_to_renewal": -1933,
+    "status": "expired"
+  },
+  {
+    "entity_id": "c65fbe81-f074-56ed-acf1-df70f3833822",
+    "account_id": "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",
+    "signed_date": "2021-03-01",
+    "end_date": "2022-02-28",
+    "value_usd": 120000,
+    "product_scope": "Enterprise",
+    "auto_renew": true,
+    "renewal_date": "2022-03-01",
+    "days_to_renewal": -1568,
+    "status": "expired"
+  },
+  {
+    "entity_id": "f7a0769c-4acb-5da9-8d5a-ad45601c6fa4",
+    "account_id": "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",
+    "signed_date": "2022-03-01",
+    "end_date": "2023-02-28",
+    "value_usd": 145000,
+    "product_scope": "Enterprise",
+    "auto_renew": true,
+    "renewal_date": "2023-03-01",
+    "days_to_renewal": -1203,
+    "status": "expired"
+  },
+  {
+    "entity_id": "65533de5-2835-57f0-afbf-8cdd3718f517",
+    "account_id": "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",
+    "signed_date": "2023-03-01",
+    "end_date": "2023-05-31",
+    "value_usd": 160000,
+    "product_scope": "Enterprise",
+    "auto_renew": false,
+    "renewal_date": "2023-06-01",
+    "days_to_renewal": -1111,
+    "status": "expired"
+  },
+  {
+    "entity_id": "bfbc464c-6dbf-5872-b2e1-52ed2df3bc8f",
+    "account_id": "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",
+    "signed_date": "2023-06-01",
+    "end_date": "2024-05-31",
+    "value_usd": 200000,
+    "product_scope": "ArangoGraph",
+    "auto_renew": true,
+    "renewal_date": "2024-06-01",
+    "days_to_renewal": -745,
+    "status": "expired"
+  },
+  {
+    "entity_id": "ebac2a8f-58e4-5cc3-89ba-701be9193c3c",
+    "account_id": "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",
+    "signed_date": "2024-06-01",
+    "end_date": "2025-05-31",
+    "value_usd": 220000,
+    "product_scope": "ArangoGraph",
+    "auto_renew": true,
+    "renewal_date": "2025-06-01",
+    "days_to_renewal": -380,
+    "status": "expired"
+  }
+]

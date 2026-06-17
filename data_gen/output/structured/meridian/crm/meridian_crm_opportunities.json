@@ -1,0 +1,56 @@
+[
+  {
+    "entity_id": "1106b910-20c8-5b36-9c11-74815de369cc",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "stage": "closed-won",
+    "close_date": "2021-01-15",
+    "amount_usd": 180000,
+    "opportunity_type": "new",
+    "product_scope": "Enterprise"
+  },
+  {
+    "entity_id": "ed214b5c-c774-5080-88ba-40c69795d5b3",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "stage": "closed-won",
+    "close_date": "2022-01-15",
+    "amount_usd": 180000,
+    "opportunity_type": "renewal",
+    "product_scope": "Enterprise"
+  },
+  {
+    "entity_id": "cfef692f-500a-58f6-a72b-7d11614a4ea8",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "stage": "closed-won",
+    "close_date": "2023-01-15",
+    "amount_usd": 185000,
+    "opportunity_type": "renewal",
+    "product_scope": "Enterprise"
+  },
+  {
+    "entity_id": "2391ebc4-f77c-592b-9ec6-a0b2445a81f6",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "stage": "closed-won",
+    "close_date": "2024-01-15",
+    "amount_usd": 188000,
+    "opportunity_type": "renewal",
+    "product_scope": "Enterprise"
+  },
+  {
+    "entity_id": "b4561f0c-7bb8-53a4-bd7f-46f9324d28fc",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "stage": "closed-lost",
+    "close_date": "2024-06-30",
+    "amount_usd": 60000,
+    "opportunity_type": "expansion",
+    "product_scope": "ArangoGraph"
+  },
+  {
+    "entity_id": "1fdf30ed-cbe6-5dd1-b057-41fda4f7d9b6",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "stage": "negotiation",
+    "close_date": "2025-01-15",
+    "amount_usd": 190000,
+    "opportunity_type": "renewal",
+    "product_scope": "Enterprise"
+  }
+]
