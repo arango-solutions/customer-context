@@ -1103,5 +1103,61 @@
     "questions_served": [],
     "spine_events": [],
     "event_date": "2024-06-05"
+  },
+  "meridian_docs_me_coref_hard_001_199ee6cf74f2.txt": {
+    "module": "meridian_docs",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "entity_id": "a52ba718-8cca-511f-8003-83207fa26cc1",
+    "citable_url": "https://arangodb.com/demo/meridian/docs/me_coref_hard_001",
+    "role": "noise",
+    "questions_served": [],
+    "coref_hard": true,
+    "ground_truth_mentions": {
+      "JO": "633f43bd-5cbd-579e-9105-2ded0f2e7c76",
+      "Okafer": "633f43bd-5cbd-579e-9105-2ded0f2e7c76",
+      "the director": "633f43bd-5cbd-579e-9105-2ded0f2e7c76"
+    }
+  },
+  "meridian_docs_me_coref_hard_002_65bfaa775222.txt": {
+    "module": "meridian_docs",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "entity_id": "a1acf134-59e0-59fb-bca9-8511be1633d7",
+    "citable_url": "https://arangodb.com/demo/meridian/docs/me_coref_hard_002",
+    "role": "noise",
+    "questions_served": [],
+    "coref_hard": true,
+    "ground_truth_mentions": {
+      "Director Okafor": "633f43bd-5cbd-579e-9105-2ded0f2e7c76",
+      "Ockafar": "633f43bd-5cbd-579e-9105-2ded0f2e7c76",
+      "the engineering lead": "633f43bd-5cbd-579e-9105-2ded0f2e7c76"
+    }
+  },
+  "meridian_docs_me_coref_hard_003_43d41dfa8883.txt": {
+    "module": "meridian_docs",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "entity_id": "7b57f77c-da8f-5a3d-a4f8-55be3fd8079f",
+    "citable_url": "https://arangodb.com/demo/meridian/docs/me_coref_hard_003",
+    "role": "noise",
+    "questions_served": [],
+    "coref_hard": true,
+    "ground_truth_mentions": {
+      "TB": "135970e6-29ec-5bcb-8cd1-887973aa326d",
+      "Brookes": "135970e6-29ec-5bcb-8cd1-887973aa326d",
+      "the engineering manager": "135970e6-29ec-5bcb-8cd1-887973aa326d"
+    }
+  },
+  "meridian_docs_me_coref_hard_004_e8c8853085a8.txt": {
+    "module": "meridian_docs",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "entity_id": "373ebf4c-64f4-5d99-a26b-982ece3eb2d9",
+    "citable_url": "https://arangodb.com/demo/meridian/docs/me_coref_hard_004",
+    "role": "noise",
+    "questions_served": [],
+    "coref_hard": true,
+    "ground_truth_mentions": {
+      "PV": "ead03ac6-14ab-5dd9-8bf8-794c507ff628",
+      "Vaance": "ead03ac6-14ab-5dd9-8bf8-794c507ff628",
+      "the CFO": "ead03ac6-14ab-5dd9-8bf8-794c507ff628"
+    }
   }
 }
