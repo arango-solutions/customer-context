@@ -134,7 +134,7 @@ A reusable, internal graph-based Customer 360 demo over 100%-synthetic data for 
 
 **Wave 1** *(no dependencies)*
 
-- [ ] 04-01-PLAN.md — Wave 1: build_entity_bridge.py — alias-dict + embedding-residual + DDL + hub/edge UPSERT + entity_id stamp (ENT-01, per D-01/D-02/D-03/D-04/D-06)
+- [x] 04-01-PLAN.md — Wave 1: build_entity_bridge.py — alias-dict + embedding-residual + DDL + hub/edge UPSERT + entity_id stamp (ENT-01, per D-01/D-02/D-03/D-04/D-06)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -198,7 +198,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 | 1. Architecture Research + Question/Data Lock | 5/5 | Complete    | 2026-06-16 |
 | 2. Synthetic Data + Integrity Linter | 5/5 | Complete    | 2026-06-17 |
 | 3. Build Both Graphs (parallel) | 5/5 | Complete    | 2026-06-17 |
-| 4. Canonical Entity Layer | 0/2 | Not started | - |
+| 4. Canonical Entity Layer | 1/2 | In Progress|  |
 | 5. Custom Reasoning Agent | 0/TBD | Not started | - |
 | 6. Next.js/Vercel UI + Sourcing Display | 0/TBD | Not started | - |
 | 7. Grounding/Eval + Demo Hardening | 0/TBD | Not started | - |
