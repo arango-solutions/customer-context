@@ -24,8 +24,11 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-# Load .env before anything else so OPENAI_API_KEY is available
-load_dotenv()
+# Load .env before anything else so OPENAI_API_KEY is available.
+# override=True is required: without it a stale shell OPENAI_API_KEY shadows
+# the valid .env key, causing 401 AuthenticationError (plan 02-05 note).
+_REPO_ROOT = Path(__file__).parent.parent.parent
+load_dotenv(_REPO_ROOT / ".env", override=True)
 
 # Add the AutoGraph local checkout to the import path so we can reuse
 # its ReciprocalRankFusion implementation (avoids re-implementing RRF).

@@ -28,9 +28,11 @@ from dotenv import load_dotenv
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from pydantic import BaseModel
 
-# Load .env from repo root (best-effort; silently skips if absent)
+# Load .env from repo root with override=True so the .env key is authoritative
+# over any stale OPENAI_API_KEY that may be set in the shell environment.
+# Without override=True a stale shell key shadows the valid .env key (plan 02-05 note).
 _REPO_ROOT = Path(__file__).parent.parent.parent
-load_dotenv(_REPO_ROOT / ".env")
+load_dotenv(_REPO_ROOT / ".env", override=True)
 
 T = TypeVar("T", bound=BaseModel)
 
