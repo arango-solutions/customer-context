@@ -1,7 +1,7 @@
 <!-- module=meridian_slack account_id=9eff6d7b-7311-5525-be75-5b82a855ece7 entity_id=11dbdef1-32ea-5bfa-9c06-9d668961b2d6 citable_url=https://arangodb.com/demo/meridian/slack/me_slack_champion_engaged_2022q4 -->
 
-[November 2022] Alex Rivera: Wanted to surface a few concerns from recent customer interactions that need follow-up.
+[November 2022] Alex Rivera: I wanted to provide an update on the support case for Meridian Logistics.
 
-[November 2022] Alex Rivera: The customer team has been raising concerns that we have not fully addressed in our last few touchpoints. The primary contact seems less engaged than in prior quarters, and recent conversations have had a different tone. We need to assess whether there is a broader issue with the partnership.
+[November 2022] Alex Rivera: James Okafor and Taylor Brooks have been actively working on resolving the recent support case. They have made significant progress and are collaborating closely to ensure a timely resolution.
 
-[November 2022] Alex Rivera: Recommending an executive call within the next two weeks to address these concerns directly.
+[November 2022] Alex Rivera: I will keep you posted on any further developments.

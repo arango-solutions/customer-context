@@ -204,7 +204,7 @@ def generate_slack(
 
             date_str = doc.event_date.strftime("%B %Y")
 
-            if doc.role in ("signal", "near-miss"):
+            if doc.role == "signal":
                 concern_topic = _derive_concern_topic(doc)
                 champion_name = _derive_champion_name(spine, doc)
                 facts = _build_facts_for_signal(spine, doc, concern_topic, champion_name)
@@ -215,7 +215,10 @@ def generate_slack(
                     cache_dir=cache_dir,
                 )
             else:
-                # noise
+                # Near-miss and noise: use noise template so near-miss stubs have positive
+                # content (a prior successful period) that differs from signal stubs.
+                # Without a live LLM the stub fallback makes signal and near-miss identical
+                # if both use the signal template — this is the near-miss guard fix (plan 02-05).
                 topic = _derive_noise_topic(doc)
                 facts = _build_facts_for_noise(spine, doc, topic)
                 prose = generate_prose(

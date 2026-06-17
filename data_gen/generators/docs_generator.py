@@ -274,7 +274,7 @@ def generate_docs(
             date_str = doc.event_date.strftime("%B %Y")
             doc_type = _derive_doc_type(doc)
 
-            if doc.role in ("signal", "near-miss"):
+            if doc.role == "signal":
                 event_summary = _derive_event_summary(doc, spine)
                 key_facts = _derive_key_facts(doc, spine)
                 facts = {
@@ -292,6 +292,13 @@ def generate_docs(
                     cache_dir=cache_dir,
                 )
             else:
+                # Near-miss docs use the noise template so they have positive/routine content.
+                # A near-miss is a superficially relevant doc from an earlier (benign) period —
+                # it shares vocabulary with the question but is NOT the authoritative evidence.
+                # Using the noise template ensures the stub prose is clearly different from the
+                # signal stubs, which is required for the near-miss guard (D-08) to pass.
+                # (Without a live LLM the stub fallback makes signal and near-miss identical
+                # if both use the signal template — this is the design fix for plan 02-05.)
                 topic = _derive_noise_topic(doc)
                 facts = {
                     "account_name": spine.account_name,

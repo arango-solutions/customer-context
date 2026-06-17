@@ -223,7 +223,7 @@ def generate_emails(
             date_str = doc.event_date.strftime("%B %Y")
             sender, recipient = _find_sender_recipient(spine, doc)
 
-            if doc.role in ("signal", "near-miss"):
+            if doc.role == "signal":
                 concern_description = _derive_concern_description(doc, spine)
                 subject_context = _derive_subject_context(doc)
                 facts = {
@@ -242,6 +242,10 @@ def generate_emails(
                     cache_dir=cache_dir,
                 )
             else:
+                # Near-miss and noise: use noise template so near-miss stubs have positive
+                # content (past successful engagement) that differs from signal risk stubs.
+                # Without a live LLM the stub fallback makes signal and near-miss identical
+                # if both use the signal template — this is the near-miss guard fix (plan 02-05).
                 topic = _derive_noise_topic(doc)
                 facts = {
                     "account_name": spine.account_name,

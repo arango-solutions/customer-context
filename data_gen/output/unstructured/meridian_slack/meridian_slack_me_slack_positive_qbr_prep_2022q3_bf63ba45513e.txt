@@ -1,7 +1,7 @@
 <!-- module=meridian_slack account_id=9eff6d7b-7311-5525-be75-5b82a855ece7 entity_id=a5873dfd-2f05-517f-9f70-fe0bbc9d58f4 citable_url=https://arangodb.com/demo/meridian/slack/me_slack_positive_qbr_prep_2022q3 -->
 
-[August 2022] Alex Rivera: Reaching out to flag a pattern that has come up in recent customer communications.
+[August 2022] Alex Rivera: I wanted to provide an update on our upcoming quarterly business review with Meridian Logistics.
 
-[August 2022] Alex Rivera: Recent feedback from the customer has highlighted some gaps between their expectations and what has been delivered. While the technical metrics look healthy, the relationship sentiment does not reflect that. We need to bridge this perception gap before the renewal conversation.
+[August 2022] Alex Rivera: James Okafor and Taylor Brooks are preparing the necessary materials for the review scheduled for August. We will focus on key performance metrics and discuss any opportunities for further collaboration. This will be a great chance to strengthen our relationship and align on future goals.
 
-[August 2022] Alex Rivera: Let us align on a response plan this week so we can address this before it escalates further.
+[August 2022] Alex Rivera: Please let me know if there are any specific points you would like us to address during the review.

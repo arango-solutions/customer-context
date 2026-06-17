@@ -347,10 +347,24 @@ _PDF_NOISE_STUBS = {
 }
 
 
+def _is_noise_template(template_name: str) -> bool:
+    """
+    Return True if the template is a noise template (not signal/near-miss).
+
+    Uses the template filename, which reliably encodes the role.
+    The rendered_system_prompt cannot be used because the noise templates
+    contain the word "signal" in their prohibited-terms instruction — so
+    checking for "noise" in the rendered text is unreliable (plan 02-05 fix).
+    """
+    basename = Path(template_name).stem.lower()  # e.g. "slack_noise", "email_signal"
+    return basename.endswith("_noise")
+
+
 def _generate_stub(
     rendered_system_prompt: str,
     output_schema: Type[T],
     prompt_hash: str,
+    template_name: str = "",
 ) -> T:
     """
     Generate deterministic template-based prose (no LLM call).
@@ -360,16 +374,22 @@ def _generate_stub(
 
     This fallback is used when no valid API key is available, per the plan
     execution environment note.
+
+    Args:
+        rendered_system_prompt: Rendered Jinja2 system prompt (used for hash index).
+        output_schema: Pydantic model class for the output.
+        prompt_hash: SHA-256 hash prefix for deterministic selection.
+        template_name: Path/basename of the .j2 template; used to determine
+                       signal vs noise role. Required for correct stub selection.
     """
     schema_name = output_schema.__name__
     # Use first 4 hex chars of hash as index selector (0-15 → mod pool size)
     idx = int(prompt_hash[:4], 16)
+    # Determine stub pool from template name (reliable) not from rendered content (unreliable)
+    is_noise = _is_noise_template(template_name)
 
     if schema_name == "SlackMessageProse":
-        if "noise" in rendered_system_prompt.lower() and "signal" not in rendered_system_prompt[:200].lower():
-            stubs = _SLACK_NOISE_STUBS
-        else:
-            stubs = _SLACK_SIGNAL_STUBS
+        stubs = _SLACK_NOISE_STUBS if is_noise else _SLACK_SIGNAL_STUBS
         return output_schema(
             opening_line=stubs["opening_line"][idx % len(stubs["opening_line"])],
             body_paragraph=stubs["body_paragraph"][idx % len(stubs["body_paragraph"])],
@@ -377,10 +397,7 @@ def _generate_stub(
         )
 
     if schema_name == "EmailProse":
-        if "noise" in rendered_system_prompt.lower() and "signal" not in rendered_system_prompt[:200].lower():
-            stubs = _EMAIL_NOISE_STUBS
-        else:
-            stubs = _EMAIL_SIGNAL_STUBS
+        stubs = _EMAIL_NOISE_STUBS if is_noise else _EMAIL_SIGNAL_STUBS
         return output_schema(
             subject=stubs["subject"][idx % len(stubs["subject"])],
             greeting=stubs["greeting"][idx % len(stubs["greeting"])],
@@ -389,10 +406,7 @@ def _generate_stub(
         )
 
     if schema_name == "DocsProse":
-        if "noise" in rendered_system_prompt.lower() and "signal" not in rendered_system_prompt[:200].lower():
-            stubs = _DOCS_NOISE_STUBS
-        else:
-            stubs = _DOCS_SIGNAL_STUBS
+        stubs = _DOCS_NOISE_STUBS if is_noise else _DOCS_SIGNAL_STUBS
         return output_schema(
             title=stubs["title"][idx % len(stubs["title"])],
             executive_summary=stubs["executive_summary"][idx % len(stubs["executive_summary"])],
@@ -413,10 +427,7 @@ def _generate_stub(
         )
 
     if schema_name == "PdfSectionProse":
-        if "noise" in rendered_system_prompt.lower() and "signal" not in rendered_system_prompt[:200].lower():
-            stubs = _PDF_NOISE_STUBS
-        else:
-            stubs = _PDF_SIGNAL_STUBS
+        stubs = _PDF_NOISE_STUBS if is_noise else _PDF_SIGNAL_STUBS
         return output_schema(
             headline=stubs["headline"][idx % len(stubs["headline"])],
             narrative_paragraph=stubs["narrative_paragraph"][idx % len(stubs["narrative_paragraph"])],
@@ -491,7 +502,8 @@ def generate_prose(
 
     if result is None:
         # Deterministic stub fallback (plan execution note: use stub when API unavailable)
-        result = _generate_stub(rendered_system_prompt, output_schema, phash)
+        # Pass template_path so _generate_stub selects the correct noise/signal stub pool.
+        result = _generate_stub(rendered_system_prompt, output_schema, phash, template_name=template_path)
 
     # 5. Write to cache
     if cache_dir is not None:

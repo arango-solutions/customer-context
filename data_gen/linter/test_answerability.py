@@ -254,3 +254,82 @@ def test_near_miss_docs_present_per_question(load_manifest):
         "Insufficient near-miss docs for near-miss guard:\n"
         + "\n".join(f"  - {m}" for m in insufficient)
     )
+
+
+# ---------------------------------------------------------------------------
+# Composite: both graph halves present for each dual-graph question
+# ---------------------------------------------------------------------------
+
+
+def test_all_six_questions_have_both_graph_halves(load_manifest, load_structured):
+    """
+    Composite check: for each dual-graph question (Q2, Q12, Q9, Q5, Q8), assert:
+      - At least 1 signal doc exists in the manifest (unstructured graph side)
+      - The required structured records exist (CRM/Snowflake/DocuSign)
+
+    Q7 is structured-only and skips the unstructured side check.
+
+    This is the 'both sides are present' gate — if either half is missing,
+    the agent cannot produce a fully-sourced, traceable answer.
+    """
+    failures = []
+
+    # Dual-graph questions with their required structured sources and accounts
+    dual_graph = {
+        "Q2": {
+            "account": "meridian",
+            "required_structured": ["crm", "contract"],
+            "modules": ["meridian_slack", "meridian_email", "meridian_docs", "meridian_pdf"],
+        },
+        "Q12": {
+            "account": "meridian",
+            "required_structured": ["usage", "crm"],
+            "modules": ["meridian_slack", "meridian_email", "meridian_docs", "meridian_pdf"],
+        },
+        "Q9": {
+            "account": "meridian",
+            "required_structured": ["crm"],
+            "modules": ["meridian_email", "meridian_docs", "meridian_slack"],
+        },
+        "Q5": {
+            "account": "northwind",
+            "required_structured": ["usage", "contract"],
+            "modules": ["northwind_slack", "northwind_docs", "northwind_email"],
+        },
+        "Q8": {
+            "account": "meridian",
+            "required_structured": ["crm", "contract"],
+            "modules": [
+                "northwind_slack", "northwind_email", "northwind_docs",
+                "meridian_slack", "meridian_email", "meridian_docs", "meridian_pdf",
+            ],
+        },
+    }
+
+    for q_id, spec in dual_graph.items():
+        # Unstructured side: at least 1 signal doc
+        signal_docs = _signal_docs_for(load_manifest, q_id, spec["modules"])
+        if not signal_docs:
+            failures.append(
+                f"{q_id}: no signal docs in manifest for modules {spec['modules']}"
+            )
+
+        # Structured side: required sources present for the account
+        for source_kw in spec["required_structured"]:
+            if not _has_records(load_structured, spec["account"], source_kw):
+                failures.append(
+                    f"{q_id}: missing structured records for "
+                    f"account={spec['account']} source_keyword={source_kw!r}"
+                )
+
+    # Q7 — structured-only (no unstructured assertion)
+    for source_kw in ("usage", "contract", "opportunit"):
+        if not _has_records(load_structured, "northwind", source_kw):
+            failures.append(
+                f"Q7: missing structured records for northwind source_keyword={source_kw!r}"
+            )
+
+    assert not failures, (
+        "Both-graph-halves check failed — the following are missing:\n"
+        + "\n".join(f"  - {f}" for f in failures)
+    )

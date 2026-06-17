@@ -284,7 +284,7 @@ def generate_pdfs(
             date_str = doc.event_date.strftime("%B %Y")
             doc_type = _derive_doc_type(doc)
 
-            if doc.role in ("signal", "near-miss"):
+            if doc.role == "signal":
                 event_summary = _derive_event_summary(doc, spine)
                 key_facts = _derive_key_facts(doc, spine)
                 facts = {
@@ -304,6 +304,10 @@ def generate_pdfs(
                 out_path = module_dir / doc.file_name
                 _write_signal_pdf(doc, prose, spine, date_str, doc_type, out_path)
             else:
+                # Near-miss and noise: use noise template so near-miss PDFs have positive
+                # content (past successful review) that differs from signal risk stubs.
+                # Without a live LLM the stub fallback makes signal and near-miss identical
+                # if both use the signal template — this is the near-miss guard fix (plan 02-05).
                 topic = _derive_noise_topic(doc)
                 facts = {
                     "account_name": spine.account_name,

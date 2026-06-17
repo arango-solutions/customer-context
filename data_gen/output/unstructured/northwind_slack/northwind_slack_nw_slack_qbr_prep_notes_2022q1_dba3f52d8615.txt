@@ -1,7 +1,7 @@
 <!-- module=northwind_slack account_id=0d5b5863-d3da-51e3-b117-ddbfa7ba2d16 entity_id=b9e7f1b9-72a6-57b9-b753-e164621b2f1f citable_url=https://arangodb.com/demo/northwind/slack/nw_slack_qbr_prep_notes_2022q1 -->
 
-[February 2022] Sarah Chen: Flagging this account for immediate attention — our latest review has surfaced some concerning patterns.
+[February 2022] Sarah Chen: I wanted to provide an update on our quarterly business review preparation for Northwind Analytics.
 
-[February 2022] Sarah Chen: Over the past few months, the communication patterns have shifted noticeably. The champion is less responsive, and newer contacts appear to have less context on the product value we have delivered. This is a signal we should investigate proactively before it becomes a renewal risk.
+[February 2022] Sarah Chen: Sarah Chen and Michael Torres are currently collaborating on the materials for the upcoming review. They are focusing on key performance metrics and insights that will be valuable for our discussion with the client.
 
-[February 2022] Sarah Chen: Can we schedule a team sync to align on our approach before the next customer touchpoint?
+[February 2022] Sarah Chen: Please let me know if you have any additional input or if there's anything specific you would like us to include.

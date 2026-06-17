@@ -1,7 +1,7 @@
 <!-- module=northwind_slack account_id=0d5b5863-d3da-51e3-b117-ddbfa7ba2d16 entity_id=7be9ccd0-4425-5b62-87ee-8d2953068fd1 citable_url=https://arangodb.com/demo/northwind/slack/nw_slack_onboarding_welcome_2020q2 -->
 
-[April 2020] Sarah Chen: Quick heads-up: we are seeing some signals from this account that warrant a closer look.
+[April 2020] Sarah Chen: I wanted to provide an update on the onboarding progress for Northwind Analytics.
 
-[April 2020] Sarah Chen: The customer team has been raising concerns that we have not fully addressed in our last few touchpoints. The primary contact seems less engaged than in prior quarters, and recent conversations have had a different tone. We need to assess whether there is a broader issue with the partnership.
+[April 2020] Sarah Chen: Sarah Chen and Michael Torres have been actively engaged in the onboarding process. They are making steady progress and have completed several key milestones, which positions us well for the next phase of implementation.
 
-[April 2020] Sarah Chen: Recommending an executive call within the next two weeks to address these concerns directly.
+[April 2020] Sarah Chen: I will continue to monitor their progress and share any further updates as needed.
