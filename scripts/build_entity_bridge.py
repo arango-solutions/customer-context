@@ -418,6 +418,11 @@ def _build_entity_to_account_map() -> dict[str, str]:
             continue
         # Get the account_id for this account slug
         accounts = json.loads(account_path.read_text(encoding="utf-8"))
+        if len(accounts) > 1:
+            print(
+                f"[bridge] WARNING: slug '{acct_slug}' maps to {len(accounts)} accounts; "
+                f"using accounts[0].account_id — expected exactly 1"
+            )
         acct_id = accounts[0].get("account_id") if accounts else None
         contacts = json.loads(contact_path.read_text(encoding="utf-8"))
         for rec in contacts:
