@@ -308,7 +308,21 @@ def main() -> int:
     stage_orchestrate(client)
     counts = wait_for_kg(cfg)
     dim = stage_dim_check(cfg)
-    stamped = 0 if args.skip_stamp else stage_stamp_citable_url(cfg, manifest)
+    # Stage 7 — content-derived attribution repair (NOT manifest-keyed-by-file_name).
+    # AutoGraph desyncs Document.file_name from content on this service (a permutation),
+    # so file_name/account_id/citable_url MUST be re-derived from each doc's own content.
+    # See scripts/repair_kg_attribution.py + memory autograph-filename-scramble.
+    stamped = 0
+    if not args.skip_stamp:
+        import subprocess
+        print("[build] Stage 7 — content-derived attribution repair ...")
+        rc = subprocess.run(
+            [sys.executable, str(_REPO_ROOT / "scripts" / "repair_kg_attribution.py")],
+            cwd=str(_REPO_ROOT),
+        ).returncode
+        if rc != 0:
+            raise SystemExit("[build] FAIL — attribution repair did not pass (scramble unresolved)")
+        stamped = counts["documents"]
 
     _update_build_manifest(
         orchestrate_status="completed",
