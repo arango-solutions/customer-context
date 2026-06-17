@@ -294,7 +294,7 @@ def check_idempotent_structured(db) -> tuple[bool, str]:
 # Probe functions — each returns (passed: bool, message: str)
 # ---------------------------------------------------------------------------
 
-def probe_claim_trace(db, search_term: str = "ArangoDB") -> tuple[bool, str]:
+def probe_claim_trace(db, search_term: str = "Meridian") -> tuple[bool, str]:
     """
     D-04 Probe 1 — chunk → PART_OF → Document (file_name, citable_url, account_id).
 
@@ -343,7 +343,7 @@ def probe_claim_trace(db, search_term: str = "ArangoDB") -> tuple[bool, str]:
     return (True, f"Probe 1 (claim-trace): {len(sourced)} results with file_name + citable_url")
 
 
-def probe_hybrid(db, query_text: str = "ArangoDB enterprise graph query") -> tuple[bool, str]:
+def probe_hybrid(db, query_text: str = "Meridian Logistics contract renewal enterprise") -> tuple[bool, str]:
     """
     D-04 Probe 2 — APPROX_NEAR_COSINE hybrid retrieval with source attribution.
 
