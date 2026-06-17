@@ -102,6 +102,19 @@ _contracts: list[ContractEvent] = [
         product_scope=ArangoEdition.ArangoGraph,
         auto_renew=True,
     ),
+    # 7. ArangoGraph auto-renewal (year 3) — holds the account while the GenAI upsell
+    #    proposal (nw_opp_renewal_2025) is being negotiated.  auto_renew=True on the
+    #    prior contract triggered this bridge contract at the same rate.
+    ContractEvent(
+        event_id="nw_contract_arangograph_2025",
+        account_id=NORTHWIND_ACCOUNT_ID,
+        entity_id=canonical_uuid("northwind", "contract:arangograph_2025"),
+        signed_date=date(2025, 6, 1),
+        end_date=date(2026, 5, 31),
+        value_usd=220_000,
+        product_scope=ArangoEdition.ArangoGraph,
+        auto_renew=True,
+    ),
 ]
 
 # ---------------------------------------------------------------------------
@@ -202,6 +215,8 @@ _opportunities: list[OpportunityEvent] = [
         amount_usd=0,
         opportunity_type="new",
         product_scope=ArangoEdition.Community,
+        contract_entity_id=canonical_uuid("northwind", "contract:community_2020"),
+        renewal_date=date(2021, 2, 28),  # nw_contract_community_2020 end_date
     ),
     # Expansion to Enterprise
     OpportunityEvent(
@@ -213,6 +228,8 @@ _opportunities: list[OpportunityEvent] = [
         amount_usd=120_000,
         opportunity_type="expansion",
         product_scope=ArangoEdition.Enterprise,
+        contract_entity_id=canonical_uuid("northwind", "contract:enterprise_2021"),
+        renewal_date=date(2022, 2, 28),  # nw_contract_enterprise_2021 end_date
     ),
     # Enterprise expansion amendment 2022
     OpportunityEvent(
@@ -224,6 +241,8 @@ _opportunities: list[OpportunityEvent] = [
         amount_usd=145_000,
         opportunity_type="expansion",
         product_scope=ArangoEdition.Enterprise,
+        contract_entity_id=canonical_uuid("northwind", "contract:enterprise_2022"),
+        renewal_date=date(2023, 2, 28),  # nw_contract_enterprise_2022 end_date
     ),
     # Migration to ArangoGraph
     OpportunityEvent(
@@ -235,8 +254,10 @@ _opportunities: list[OpportunityEvent] = [
         amount_usd=200_000,
         opportunity_type="expansion",
         product_scope=ArangoEdition.ArangoGraph,
+        contract_entity_id=canonical_uuid("northwind", "contract:arangograph_2023"),
+        renewal_date=date(2024, 5, 31),  # nw_contract_arangograph_2023 end_date
     ),
-    # In-progress renewal 2025 — GenAI upsell being discussed
+    # In-progress renewal 2025 — GenAI upsell being discussed; no signed contract yet
     OpportunityEvent(
         event_id="nw_opp_renewal_2025",
         account_id=NORTHWIND_ACCOUNT_ID,
@@ -246,6 +267,8 @@ _opportunities: list[OpportunityEvent] = [
         amount_usd=240_000,
         opportunity_type="renewal",
         product_scope=ArangoEdition.ArangoGraph,
+        contract_entity_id=None,   # proposal — DocuSign not signed yet
+        renewal_date=None,
     ),
 ]
 

@@ -70,5 +70,17 @@
     "renewal_date": "2025-06-01",
     "days_to_renewal": -380,
     "status": "expired"
+  },
+  {
+    "entity_id": "629062eb-1233-51c3-a74c-6821b2020df3",
+    "account_id": "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",
+    "signed_date": "2025-06-01",
+    "end_date": "2026-05-31",
+    "value_usd": 220000,
+    "product_scope": "ArangoGraph",
+    "auto_renew": true,
+    "renewal_date": "2026-06-01",
+    "days_to_renewal": -15,
+    "status": "expired"
   }
 ]

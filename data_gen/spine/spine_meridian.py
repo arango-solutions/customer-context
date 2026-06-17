@@ -196,6 +196,8 @@ _opportunities: list[OpportunityEvent] = [
         amount_usd=180_000,
         opportunity_type="new",
         product_scope=ArangoEdition.Enterprise,
+        contract_entity_id=canonical_uuid("meridian", "contract:enterprise_2021"),
+        renewal_date=date(2022, 1, 14),  # me_contract_enterprise_2021 end_date
     ),
     # Renewals (all closed-won)
     OpportunityEvent(
@@ -207,6 +209,8 @@ _opportunities: list[OpportunityEvent] = [
         amount_usd=180_000,
         opportunity_type="renewal",
         product_scope=ArangoEdition.Enterprise,
+        contract_entity_id=canonical_uuid("meridian", "contract:enterprise_2022"),
+        renewal_date=date(2023, 1, 14),  # me_contract_enterprise_2022 end_date
     ),
     OpportunityEvent(
         event_id="me_opp_renewal_2023",
@@ -217,6 +221,8 @@ _opportunities: list[OpportunityEvent] = [
         amount_usd=185_000,
         opportunity_type="renewal",
         product_scope=ArangoEdition.Enterprise,
+        contract_entity_id=canonical_uuid("meridian", "contract:enterprise_2023"),
+        renewal_date=date(2024, 1, 14),  # me_contract_enterprise_2023 end_date
     ),
     OpportunityEvent(
         event_id="me_opp_renewal_2024",
@@ -227,8 +233,10 @@ _opportunities: list[OpportunityEvent] = [
         amount_usd=188_000,
         opportunity_type="renewal",
         product_scope=ArangoEdition.Enterprise,
+        contract_entity_id=canonical_uuid("meridian", "contract:enterprise_2024"),
+        renewal_date=date(2025, 1, 14),  # me_contract_enterprise_2024 end_date
     ),
-    # Expansion attempt 2024 — closed-lost (the whitespace opportunity that slipped — Q8 context)
+    # Expansion attempt 2024 — closed-lost; no DocuSign contract was signed
     OpportunityEvent(
         event_id="me_opp_expansion_2024_lost",
         account_id=MERIDIAN_ACCOUNT_ID,
@@ -238,8 +246,10 @@ _opportunities: list[OpportunityEvent] = [
         amount_usd=60_000,
         opportunity_type="expansion",
         product_scope=ArangoEdition.ArangoGraph,
+        contract_entity_id=None,   # closed-lost — no contract signed
+        renewal_date=None,
     ),
-    # Current renewal in progress 2025 — at risk (Q2)
+    # Current renewal in progress 2025 — at risk (Q2); contract signed (me_contract_enterprise_2025)
     OpportunityEvent(
         event_id="me_opp_renewal_2025",
         account_id=MERIDIAN_ACCOUNT_ID,
@@ -249,6 +259,8 @@ _opportunities: list[OpportunityEvent] = [
         amount_usd=190_000,
         opportunity_type="renewal",
         product_scope=ArangoEdition.Enterprise,
+        contract_entity_id=canonical_uuid("meridian", "contract:enterprise_2025"),
+        renewal_date=date(2026, 1, 14),  # me_contract_enterprise_2025 end_date
     ),
 ]
 

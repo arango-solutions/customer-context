@@ -52,21 +52,28 @@ def test_contract_values_consistent_across_crm_and_docusign(load_structured):
     if not docusign_values:
         pytest.skip("No DocuSign contract records found; cannot check cross-source value agreement")
 
-    # Build a map from entity_id → close amount for CRM opportunities
+    # Build a map from entity_id → close amount for CRM opportunities.
+    # Only opportunities with a contract_entity_id participate (they link to a
+    # signed DocuSign contract).  Uses amount_usd (the canonical generator field)
+    # as well as legacy aliases so the test is forward-compatible.
     crm_values: dict = {}
     for account_bucket, sources in load_structured.items():
         for source, records in sources.items():
             if "opportunit" not in source.lower() and "crm" not in source.lower():
                 continue
             for rec in records:
-                # Opportunities reference a contract entity_id via contract_entity_id or similar
-                contract_eid = (
-                    rec.get("contract_entity_id")
-                    or rec.get("contract_id")
-                    or rec.get("entity_id")
+                # Only compare when a contract link exists
+                contract_eid = rec.get("contract_entity_id") or rec.get("contract_id")
+                if not contract_eid:
+                    continue
+                # amount_usd is the canonical field; accept legacy aliases too
+                close_amount = (
+                    rec.get("amount_usd")
+                    or rec.get("close_amount")
+                    or rec.get("amount")
+                    or rec.get("value_usd")
                 )
-                close_amount = rec.get("close_amount") or rec.get("amount") or rec.get("value_usd")
-                if contract_eid and close_amount is not None:
+                if close_amount is not None:
                     try:
                         crm_values[contract_eid] = float(close_amount)
                     except (TypeError, ValueError):
@@ -76,11 +83,13 @@ def test_contract_values_consistent_across_crm_and_docusign(load_structured):
     if not crm_values:
         pytest.skip("No CRM opportunity amount records found; cannot check cross-source value agreement")
 
+    comparisons_made = 0
     violations = []
     for entity_id, crm_val in crm_values.items():
         docusign_val = docusign_values.get(entity_id)
         if docusign_val is None:
             continue  # Can't compare if there's no DocuSign record for this entity_id
+        comparisons_made += 1
         if crm_val == 0 and docusign_val == 0:
             continue
         # Allow up to 1% relative tolerance
@@ -90,6 +99,14 @@ def test_contract_values_consistent_across_crm_and_docusign(load_structured):
                 f"entity_id={entity_id!r}: CRM amount={crm_val:,.2f} vs "
                 f"DocuSign value={docusign_val:,.2f} (diff > 1%)"
             )
+
+    # Non-vacuous guard: the cross-source link must produce at least one comparison.
+    assert comparisons_made > 0, (
+        f"No CRM–DocuSign contract value pairs could be matched "
+        f"(crm_values keys: {list(crm_values)[:5]}; "
+        f"docusign_values keys: {list(docusign_values)[:5]}). "
+        "Ensure contract_entity_id on CRM opportunities matches entity_id on DocuSign contracts."
+    )
 
     assert not violations, (
         f"Cross-source contract value mismatches ({len(violations)}):\n"
@@ -123,36 +140,48 @@ def test_renewal_dates_consistent(load_structured):
     if not docusign_end_dates:
         pytest.skip("No DocuSign contract end dates found; cannot check renewal date consistency")
 
-    # Build entity_id → renewal_date from CRM opportunities
+    # Build entity_id → renewal_date from CRM opportunities.
+    # Only opportunities with a contract_entity_id participate (they link to a
+    # signed DocuSign contract).  renewal_date is the canonical field (= the
+    # linked contract's end_date); close_date is accepted as a fallback.
     crm_renewal_dates: dict = {}
     for account_bucket, sources in load_structured.items():
         for source, records in sources.items():
             if "opportunit" not in source.lower() and "crm" not in source.lower():
                 continue
             for rec in records:
-                contract_eid = (
-                    rec.get("contract_entity_id")
-                    or rec.get("contract_id")
-                    or rec.get("entity_id")
-                )
+                # Only compare when a contract link exists
+                contract_eid = rec.get("contract_entity_id") or rec.get("contract_id")
+                if not contract_eid:
+                    continue
                 renewal = _parse_date(rec.get("renewal_date") or rec.get("close_date"))
-                if contract_eid and renewal:
+                if renewal:
                     crm_renewal_dates[contract_eid] = renewal
 
     if not crm_renewal_dates:
         pytest.skip("No CRM renewal date records found; cannot check renewal date consistency")
 
+    comparisons_made = 0
     violations = []
     for entity_id, crm_date in crm_renewal_dates.items():
         docusign_date = docusign_end_dates.get(entity_id)
         if docusign_date is None:
             continue
+        comparisons_made += 1
         diff_days = abs((crm_date - docusign_date).days)
         if diff_days > 1:
             violations.append(
                 f"entity_id={entity_id!r}: CRM renewal_date={crm_date} vs "
                 f"DocuSign end_date={docusign_date} (diff={diff_days} days)"
             )
+
+    # Non-vacuous guard: the cross-source link must produce at least one comparison.
+    assert comparisons_made > 0, (
+        f"No CRM–DocuSign renewal date pairs could be matched "
+        f"(crm_renewal_dates keys: {list(crm_renewal_dates)[:5]}; "
+        f"docusign_end_dates keys: {list(docusign_end_dates)[:5]}). "
+        "Ensure contract_entity_id on CRM opportunities matches entity_id on DocuSign contracts."
+    )
 
     assert not violations, (
         f"Renewal date mismatches between CRM and DocuSign ({len(violations)}):\n"

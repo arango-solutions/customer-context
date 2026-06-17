@@ -12,19 +12,57 @@ from datetime import date, datetime
 import pytest
 
 
-def _parse_date(value) -> date | None:
+# Quarter-end (month, day) for each quarter label — used by _parse_quarter.
+# We map to the END of the quarter so that a usage record for "YYYY-Qn" is
+# considered covered as long as an active contract exists before the quarter ends.
+# This is the correct semantic: a customer who signed on Jan 15 has Q1 usage covered.
+_QUARTER_END: dict = {
+    "Q1": (3, 31),
+    "Q2": (6, 30),
+    "Q3": (9, 30),
+    "Q4": (12, 31),
+}
+
+
+def _parse_quarter(value: str) -> "date | None":
     """
-    Parse a date value that may be a string (ISO format) or a date object.
-    Returns None if parsing fails.
+    Parse a quarter string like "2024-Q3" to its quarter END date.
+
+    Mapping: Q1→Mar 31, Q2→Jun 30, Q3→Sep 30, Q4→Dec 31.
+    Returns None if the value does not match the expected pattern.
+    """
+    parts = value.split("-")
+    if len(parts) == 2 and parts[1] in _QUARTER_END:
+        try:
+            year = int(parts[0])
+            month, day = _QUARTER_END[parts[1]]
+            return date(year, month, day)
+        except ValueError:
+            pass
+    return None
+
+
+def _parse_date(value) -> "date | None":
+    """
+    Parse a date value that may be a string (ISO format), a quarter string
+    ("YYYY-Qn"), or a date object.  Returns None if parsing fails.
+
+    Quarter strings are mapped to their START date:
+      "2024-Q3" → date(2024, 7, 1)
     """
     if isinstance(value, date):
         return value
     if isinstance(value, str):
+        # Try standard ISO-style formats first
         for fmt in ("%Y-%m-%d", "%Y/%m/%d", "%Y-%m"):
             try:
                 return datetime.strptime(value, fmt).date()
             except ValueError:
                 continue
+        # Try quarter format "YYYY-Qn"
+        quarter_date = _parse_quarter(value)
+        if quarter_date is not None:
+            return quarter_date
     return None
 
 
@@ -134,6 +172,7 @@ def test_usage_metrics_within_contract_period(load_structured):
         pytest.skip("No contract records found in structured output; cannot check UsageMetric bounds")
 
     violations = []
+    records_checked = 0  # guard against vacuous pass
     for account_bucket, sources in load_structured.items():
         for source, records in sources.items():
             if "usage" not in source.lower() and "metric" not in source.lower():
@@ -146,8 +185,13 @@ def test_usage_metrics_within_contract_period(load_structured):
 
                 period_date = _parse_date(period_raw)
                 if not period_date:
+                    violations.append(
+                        f"UsageMetric period={period_raw!r} for account_id={acct_id!r} "
+                        f"could not be parsed as a date — fix _parse_date or the data"
+                    )
                     continue
 
+                records_checked += 1
                 account_contracts = contracts_by_account.get(acct_id, [])
                 if not account_contracts:
                     violations.append(
@@ -169,6 +213,13 @@ def test_usage_metrics_within_contract_period(load_structured):
                         f"does not fall within any contract period "
                         f"(contracts: {[(str(s), str(e)) for s, e in account_contracts]})"
                     )
+
+    # Non-vacuous guard: if usage records exist but none were checked, the parser
+    # failed to interpret every period string — that itself is a defect.
+    assert records_checked > 0, (
+        "No UsageMetric records were actually checked (all period values failed to parse). "
+        "Ensure _parse_date handles the period format used in the generated data."
+    )
 
     assert not violations, (
         f"UsageMetric outside contract period — {len(violations)}:\n"
