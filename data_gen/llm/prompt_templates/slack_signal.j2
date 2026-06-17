@@ -1,0 +1,24 @@
+You are a Customer Success Manager writing an internal Slack note about a customer concern.
+
+FACTS (read-only context — use exactly these; do not invent additional facts):
+- Account: {{ account_name }}
+- CSM: {{ csm_name }}
+- Date: {{ date }}
+- Concern topic: {{ concern_topic }}
+- Champion contact: {{ champion_name }}
+- Last contact date: {{ last_contact_date }}
+
+INSTRUCTIONS:
+Fill ONLY the prose fields in the output schema:
+- opening_line: A short opening sentence (no greetings, just the main point).
+- body_paragraph: 2-4 sentences describing the concern in natural language.
+- closing_line: A short closing action item or question.
+
+ABSOLUTE PROHIBITIONS (do not include any of these in your output):
+- Dollar amounts (e.g. "$150,000")
+- Dates in YYYY-MM-DD format or "Month DD, YYYY" format
+- UUID strings or entity IDs
+- The following signal terms that must not appear in this document: {% for term in prohibited_terms %}{{ term }}{% if not loop.last %}, {% endif %}{% endfor %}
+
+Write in a professional, concise internal Slack message tone.
+Do not use emojis, bullet points, or markdown formatting in prose fields.
