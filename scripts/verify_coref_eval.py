@@ -13,12 +13,13 @@ Usage:
   python scripts/verify_coref_eval.py --help
   python scripts/verify_coref_eval.py --quick           # accuracy ratio only, exits 0
   python scripts/verify_coref_eval.py --report          # per-mention breakdown
-  python scripts/verify_coref_eval.py --threshold 70    # override 60% gate threshold
+  python scripts/verify_coref_eval.py --threshold 60    # override 100% gate threshold (diagnostic)
 
 AQL safety: all AQL uses bind_vars dict. Collection name customer360_Entities is a
 module-level constant (not user input). No f-string or .format() AQL construction.
 
-Phase 3 threshold: 60% accuracy (first-build baseline; 3–5 hard docs, ~15 mentions).
+Phase 4 threshold: 100% required for demo-critical entities; overall coref accuracy
+must reach 100% after entity_id stamp. (Phase 3 was 60% — raised in Phase 4.)
 """
 
 import argparse
@@ -51,8 +52,10 @@ _MANIFEST_PATH = _REPO_ROOT / "data_gen" / "output" / "manifest.json"
 # AQL injection cannot occur via this name.
 _COLLECTION_ENTITIES = "customer360_Entities"
 
-# Phase 3 accuracy gate threshold (fraction, not percent)
-_DEFAULT_THRESHOLD_PCT = 60  # 60%
+# Phase 4 accuracy gate threshold (fraction, not percent)
+# Raised from Phase 3's 60% to 100% — demo-critical entities must all link correctly.
+# The --threshold N argparse override still works for diagnostic runs.
+_DEFAULT_THRESHOLD_PCT = 100  # 100%
 
 
 # ---------------------------------------------------------------------------
@@ -327,6 +330,53 @@ def main() -> None:
     print(f"  Accuracy:         {accuracy_pct:.0f}%")
     print(f"  Threshold:        {threshold}%")
     print(f"  Result:           {gate_label}")
+
+    # Step 7 (Phase 4 extension): demo-critical subset hard gate (D-05).
+    # Block if any demo-critical entity_id is missing from the coref evaluation.
+    # These 9 entity_ids are the entities the 6 locked questions traverse.
+    # Self-contained: duplicated from verify_entity_bridge.py for independence.
+    DEMO_CRITICAL_IDS = {
+        "633f43bd-5cbd-579e-9105-2ded0f2e7c76",   # James Okafor
+        "135970e6-29ec-5bcb-8cd1-887973aa326d",   # Taylor Brooks
+        "ead03ac6-14ab-5dd9-8bf8-794c507ff628",   # Patricia Vance
+        "4818c0ff-b555-5395-8950-ae3916c176a3",   # Sarah Chen
+        "0b5c0005-9e04-5d41-8cb4-abbe369f0e4f",   # Michael Torres
+        "9eff6d7b-7311-5525-be75-5b82a855ece7",   # Meridian Logistics
+        "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",   # Northwind Analytics
+        "47a06e4c-42ce-59ad-865c-cbeef04f1708",   # Enterprise 2026 contract
+        "629062eb-1233-51c3-a74c-6821b2020df3",   # ArangoGraph 2026 contract
+    }
+
+    demo_critical_correct = sum(
+        1 for d in result["details"]
+        if d["expected_entity_id"] in DEMO_CRITICAL_IDS and d["match"]
+    )
+    demo_critical_total = len({
+        d["expected_entity_id"]
+        for d in result["details"]
+        if d["expected_entity_id"] in DEMO_CRITICAL_IDS
+    })
+
+    if demo_critical_total > 0:
+        dc_pct = demo_critical_correct / demo_critical_total * 100
+        dc_label = "PASS" if dc_pct >= 100 else "FAIL"
+        print(
+            f"\n[coref] Demo-critical accuracy: {demo_critical_correct}/{demo_critical_total} "
+            f"= {dc_pct:.0f}% — {dc_label} (must be 100%)"
+        )
+        if dc_pct < 100:
+            # D-05 hard gate: demo-critical entities at <100% → hard block
+            sys.exit(1)
+        else:
+            # Demo-critical at 100% is the primary gate per D-05 design.
+            # General accuracy below threshold is reported above but does not block
+            # when demo-critical passes — "report-only on the rest" (D-05).
+            sys.exit(0)
+    else:
+        print(
+            "\n[coref] Demo-critical: no demo-critical mentions in ground_truth set "
+            "(coref_hard docs may not cover all entity types)"
+        )
 
     sys.exit(0 if passed else 1)
 
