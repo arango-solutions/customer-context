@@ -16,7 +16,7 @@ A reusable, internal graph-based Customer 360 demo over 100%-synthetic data for 
 - [x] **Phase 1: Architecture Research + Question/Data Lock** - Research the architecture (AutoGraph-hybrid vs. fully-custom — neutral call), confirm the retrieval path, lock the ~10 questions, produce the real Phase 2–7 estimate; no code (~1–2 weeks) (completed 2026-06-16)
 - [x] **Phase 2: Synthetic Data + Integrity Linter** - Generate 2 coherent ArangoDB-domain accounts from a canonical event-spine + entity registry (6-question arc), gated by a linter (~1–1.5 weeks) (completed 2026-06-17)
 - [x] **Phase 3: Build Both Graphs (parallel)** - Hand-modeled structured graph + unstructured graph built via the AutoGraph platform (import→build→orchestrate to Layer-3 KG in the customer360 DB) + post-build account_id UPSERT, both idempotently reloadable (~1.5–2.5 weeks) (completed 2026-06-17)
-- [ ] **Phase 4: Canonical Entity Layer** - The document-level cross-graph `same_as` bridge (`account_id`) that links the same entity across both graphs and shows in the trace (~0.5 weeks) (gaps found 2026-06-17 — 04-03 fixed the build-side conflict guards + coref exit-code, but the demo-critical integrity/coref gate is still a false guarantee: counts 3 of 9 ids, wrong join key; see 04-VERIFICATION.md, CR-01/CR-02)
+- [x] **Phase 4: Canonical Entity Layer** - The document-level cross-graph `same_as` bridge (`account_id`) that links the same entity across both graphs and shows in the trace (~0.5 weeks) (gaps found 2026-06-17 — 04-03 fixed the build-side conflict guards + coref exit-code, but the demo-critical integrity/coref gate is still a false guarantee: counts 3 of 9 ids, wrong join key; see 04-VERIFICATION.md, CR-01/CR-02) (completed 2026-06-18)
 - [ ] **Phase 5: Custom Reasoning Agent** - Planner + specialists, ~6 curated AQL tools (generated-AQL fallback deferred to v2), claim-level sourcing, refusal path (~1.5–2.5 weeks)
 - [ ] **Phase 6: Next.js/Vercel UI + Sourcing Display** - Free-form box, streamed reasoning, claim-level provenance, citation cards (React Flow traversal viz deferred to v2) (~1 week)
 - [ ] **Phase 7: Grounding/Eval + Demo Hardening** - Light faithfulness eval over the 6 locked questions, pre-warm, backup path, adversarial rehearsal (~0.5–1 week)
@@ -143,7 +143,7 @@ A reusable, internal graph-based Customer 360 demo over 100%-synthetic data for 
 **Gap closure** *(after re-verification)*
 
 - [x] 04-03-PLAN.md — Gap closure: builder-side conflict detection (ValueError before DB write) + verify_coref_eval exit-code/label consistency (D-04/D-05)
-- [ ] 04-04-PLAN.md — Gap closure: fix the false-guarantee demo-critical gate — denominator=9 in both gates (CR-01), resolution-path join key (CR-02), hard-fail on uncovered ids, shared DEMO_CRITICAL_IDS source (IN-03) + negative test (ENT-01, ENT-02, per D-05)
+- [x] 04-04-PLAN.md — Gap closure: fix the false-guarantee demo-critical gate — denominator=9 in both gates (CR-01), resolution-path join key (CR-02), hard-fail on uncovered ids, shared DEMO_CRITICAL_IDS source (IN-03) + negative test (ENT-01, ENT-02, per D-05)
 
 **Risk**: MEDIUM. The keystone dependency for nearly every dual-graph answer, but de-risked by baking shared IDs into the generator (Phase 2) — this converts hard real-world ER into deterministic linkage. The gate is timing: it cannot start until both graphs have IDs.
 
@@ -203,7 +203,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 | 1. Architecture Research + Question/Data Lock | 5/5 | Complete    | 2026-06-16 |
 | 2. Synthetic Data + Integrity Linter | 5/5 | Complete    | 2026-06-17 |
 | 3. Build Both Graphs (parallel) | 5/5 | Complete    | 2026-06-17 |
-| 4. Canonical Entity Layer | 3/3 | Complete   | 2026-06-17 |
+| 4. Canonical Entity Layer | 4/4 | Complete   | 2026-06-18 |
 | 5. Custom Reasoning Agent | 0/TBD | Not started | - |
 | 6. Next.js/Vercel UI + Sourcing Display | 0/TBD | Not started | - |
 | 7. Grounding/Eval + Demo Hardening | 0/TBD | Not started | - |
