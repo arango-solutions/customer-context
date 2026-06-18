@@ -19,7 +19,7 @@
 // serialized into the envelope (the OPENAI_API_KEY is loaded via dotenv override by
 // the entrypoint, never printed, T-05-14).
 
-import { ToolLoopAgent, stepCountIs, Output } from 'ai';
+import { ToolLoopAgent, stepCountIs, Output, NoObjectGeneratedError } from 'ai';
 import { openai } from '@ai-sdk/openai';
 import { z } from 'zod';
 import { EnvelopeSchema, GraphEnum, type Envelope } from './envelope.js';
@@ -137,13 +137,23 @@ How to work a question:
      (and canonical_id), then scope structuredQuery/hybridRetrieve by that account_id; use
      bridgeResolve with the canonical_id when you need a named person's concrete records.
   3. Pull the structured facets you need AND the unstructured chunks you need.
-  4. RECONCILIATION (mandatory for any "is this account actually healthy / at renewal-risk /
-     happy / engaged" or any contradiction question): you MUST retrieve BOTH
-     (a) the structured usage/NPS-score GREEN signal AND (b) the unstructured sentiment RED
-     signal, and explicitly NAME any contradiction in your answer (e.g. "usage is green but
-     sentiment is red"). You must cite a record from EACH graph. NEVER report an account as
-     "healthy" from the structured metrics alone when unstructured sentiment contradicts it —
-     that is the confident-wrong-answer failure this system exists to prevent.
+  4. Some questions are answerable from the STRUCTURED graph alone — e.g. a pure
+     product-ladder-adoption or ROI question that asks only about editions, feature adoption,
+     contract value, and expansion deals. For those, query only structuredQuery and cite only
+     structured records; do NOT pad the answer with unstructured chunks that are not needed.
+  5. CROSS-GRAPH (mandatory for any question about whether an account is actually
+     healthy / at renewal-risk / happy / whether a champion is engaged / whether the account
+     is READY for an upsell or expansion / what was PROMISED vs delivered — i.e. anything that
+     asks for a judgement, a WHY, a trigger, or a reconciliation): you MUST retrieve BOTH the
+     STRUCTURED signal (usage/NPS-score/contract/whitespace — the GREEN/quantitative side) AND
+     the UNSTRUCTURED evidence (sentiment, escalations, the documented trigger, the unlogged
+     promise — the qualitative side), and you MUST cite a record from EACH graph. For a
+     contradiction question (e.g. usage green vs sentiment red) you must explicitly NAME the
+     contradiction in your answer. NEVER report an account as "healthy" or "ready" from the
+     structured metrics alone when the unstructured evidence is needed to support the call —
+     that is the confident-wrong-answer failure this system exists to prevent. If you cannot
+     find the unstructured evidence after retrieving it, say the call is unsupported rather
+     than answering from structured data alone.
 
 When you produce the final answer object:
   • Decompose the answer into discrete factual CLAIMS. Every claim MUST carry ≥1 citation,
@@ -185,7 +195,34 @@ export async function runAgent(question: string): Promise<RunAgentResult> {
     output: Output.object({ schema: SynthEnvelopeSchema }),
   });
 
-  const result = await agent.generate({ prompt: question });
+  let result: Awaited<ReturnType<typeof agent.generate>>;
+  try {
+    result = await agent.generate({ prompt: question });
+  } catch (err) {
+    // The model can short-circuit with a plain-text refusal (e.g. a moderation
+    // decline on an out-of-scope question like a personal home address). When it does,
+    // Output.object can't parse JSON and the SDK throws NoObjectGeneratedError. The
+    // cardinal rule (never a confident-wrong answer; refuse instead of crashing) means
+    // we MUST surface a structured refusal envelope — with NO fabricated _id — rather
+    // than let the throw escape. Any other error is a genuine failure and re-thrown.
+    if (NoObjectGeneratedError.isInstance(err)) {
+      const refusal: Envelope = {
+        answer:
+          'I cannot answer this question: it is out of scope for the customer-account ' +
+          'data this system can source, so there are no records to ground an answer in.',
+        refused: true,
+        claims: [],
+        citations: [],
+        retrievalPath: [],
+        reasoningTrace: [
+          'The model declined to produce a grounded answer object for this request; ' +
+            'no supporting records were retrieved, so the answer is refused (no fabricated sourcing).',
+        ],
+      };
+      return { envelope: refusal, returnedIds: new Set<string>() };
+    }
+    throw err;
+  }
 
   // Collect the ground-truth set of _ids the tools actually returned, plus the
   // retrievalPath fragments to merge into the envelope. Each specialist returns
