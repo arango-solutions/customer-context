@@ -24,6 +24,7 @@ infra/
 
 # Node / Python (in case app code lands later)
 node_modules/
+agent/node_modules
 .venv/
 __pycache__/
 *.pyc

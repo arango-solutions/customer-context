@@ -1,0 +1,24 @@
+{
+  "name": "customer360-agent",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Customer 360 reasoning agent — ToolLoopAgent + curated AQL specialists over a dual-graph ArangoDB backend (Phase 5).",
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "ai": "6.0.208",
+    "@ai-sdk/openai": "3.0.73",
+    "arangojs": "10.3.1",
+    "zod": "4.4.3",
+    "dotenv": "^17.0.0"
+  },
+  "devDependencies": {
+    "typescript": "6.0.3",
+    "tsx": "4.22.4",
+    "vitest": "4.1.9",
+    "@types/node": "^24.0.0"
+  }
+}
