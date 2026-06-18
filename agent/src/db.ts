@@ -34,7 +34,9 @@ export function loadEnv(): void {
   // dotenv is a dependency; load it via createRequire so this stays sync (callers
   // invoke loadEnv() synchronously at the top of CLI/test entrypoints).
   const dotenv = require('dotenv') as typeof import('dotenv');
-  dotenv.config({ path: envPath, override: true });
+  // quiet: keep stdout clean — the CLI's contract is pure-JSON envelope output,
+  // so dotenv's "injected env" banner must not pollute the pipe (Phase 5 verify warning).
+  dotenv.config({ path: envPath, override: true, quiet: true });
 }
 
 function arangoUrl(): string {
