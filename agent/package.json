@@ -6,7 +6,8 @@
   "description": "Customer 360 reasoning agent — ToolLoopAgent + curated AQL specialists over a dual-graph ArangoDB backend (Phase 5).",
   "scripts": {
     "test": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "ask": "tsx cli.ts"
   },
   "dependencies": {
     "ai": "6.0.208",
