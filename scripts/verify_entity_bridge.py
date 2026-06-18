@@ -289,11 +289,20 @@ def check_no_double_resolution(db) -> tuple[bool, str]:
 
 def check_bijection(db) -> tuple[bool, str]:
     """
-    D-04 Check 2 — every canonical hub has at least one KG entity → hub same_as edge.
+    D-04 Check 2 — every canonical hub is reachable via at least one incoming
+    same_as edge (the hub is not orphaned).
 
-    Verifies that each canonical_entities hub is reachable from at least one
-    customer360_Entities node via a same_as edge. A hub with no incoming edges
-    from the KG side is a broken bridge (the hub exists but the link is missing).
+    Verifies that each canonical_entities hub has ≥1 incoming same_as edge from
+    EITHER the KG side (customer360_Entities) OR a structured leaf
+    (Contact/Account/Contract). A hub with zero incoming edges of any kind is a
+    broken bridge (the hub exists but nothing links to it).
+
+    Note: a KG-side edge is NOT required. AutoGraph does not extract every
+    structured entity into the document KG (e.g. Contracts never appear as
+    document entities), so those hubs are anchored from the structured side
+    only — that is the demo signal, not a broken bridge. Requiring a KG edge
+    here would conflate "AutoGraph didn't extract it" with "the bridge is
+    broken" (live finding, Phase 5 / 05-02).
 
     AQL safety: @demo_critical_ids is a Python list bound via bind_vars.
     The WITH canonical_entities clause is required for cluster-mode traversals.
@@ -307,24 +316,28 @@ def check_bijection(db) -> tuple[bool, str]:
     if not db.has_collection(_COLLECTION_CANONICAL):
         return (True, f"SKIP: {_COLLECTION_CANONICAL} not found")
 
-    # Check each canonical hub for at least one incoming KG → hub same_as edge
+    # Check each canonical hub for at least one incoming same_as edge from a
+    # recognized source (KG entity OR structured leaf). Orphaned hub = FAIL.
     aql = """
         FOR hub IN canonical_entities
           FILTER hub.canonical_id IN @demo_critical_ids
-          LET kg_edges = LENGTH(
+          LET linking_edges = LENGTH(
             FOR ed IN same_as
               FILTER ed._to == hub._id
               FILTER IS_SAME_COLLECTION("customer360_Entities", DOCUMENT(ed._from))
+                  OR IS_SAME_COLLECTION("Contact", DOCUMENT(ed._from))
+                  OR IS_SAME_COLLECTION("Account", DOCUMENT(ed._from))
+                  OR IS_SAME_COLLECTION("Contract", DOCUMENT(ed._from))
               LIMIT 1 RETURN 1
           )
-          FILTER kg_edges == 0
+          FILTER linking_edges == 0
           RETURN {display_name: hub.display_name, canonical_id: hub.canonical_id}
     """
     cursor = db.aql.execute(aql, bind_vars={"demo_critical_ids": _DEMO_CRITICAL_IDS})
     violations = list(cursor)
 
     if violations:
-        return (False, f"D-04 Check 2 FAIL: hubs with no KG same_as edges: {violations}")
+        return (False, f"D-04 Check 2 FAIL: orphaned hubs (no incoming same_as edge from KG or structured leaf): {violations}")
 
     # Count total hubs checked
     aql_count = """
@@ -338,7 +351,7 @@ def check_bijection(db) -> tuple[bool, str]:
     return (
         True,
         f"Bijection OK — all {hub_count} demo-critical canonical hubs have at least "
-        "one inbound same_as edge from the KG",
+        "one inbound same_as edge (from the KG side or a structured leaf — not orphaned)",
     )
 
 

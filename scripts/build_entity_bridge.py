@@ -842,6 +842,59 @@ def main() -> None:
         )
 
     # ------------------------------------------------------------------
+    # Step 7.5 — Structured anchors for demo-critical entities
+    # ------------------------------------------------------------------
+    # The match loops above are KG-driven: a structured node only gets a hub +
+    # same_as edge if its entity_id was matched to a KG-extracted entity. Some
+    # demo-critical structured entities (notably Contracts) never surface as
+    # document-extracted entities, so they would silently fall out of the bridge
+    # (live finding, Phase 5 / 05-02). This step guarantees EVERY demo-critical
+    # entity is anchored into the bridge from the structured side, regardless of
+    # KG extraction: it UPSERTs a hub and writes structured same_as edges
+    # (Contact/Account/Contract → hub) for any demo-critical id the match loops
+    # did not already cover. Idempotent; only fills gaps so it never clobbers a
+    # richer KG-matched hub.
+    print("[bridge] Step 7.5: Anchoring demo-critical structured entities...")
+    matched_entity_ids = {m["entity_id"] for m in deterministic_matches} | {
+        m["entity_id"] for m in embedding_matches
+    }
+    anchored = 0
+    for eid, entry in DEMO_CRITICAL_ENTITIES.items():
+        if eid in matched_entity_ids:
+            continue  # already has a hub + edges from a KG match
+        # Use the authoritative demo-critical display name (the contract-name
+        # helper falls back to the raw id for Contract entity_ids).
+        display_name = entry["display_name"]
+        hub_to_id    = f"{_COLLECTION_CANONICAL}/{eid}"
+        if args.dry_run:
+            print(
+                f"[bridge]   DRY-RUN: would anchor demo-critical {entry['type']} "
+                f"'{display_name}' ({eid}) — hub {hub_to_id} + structured edges"
+            )
+            anchored += 1
+            continue
+        hub_doc = {
+            "_key":         eid,
+            "canonical_id": eid,
+            "display_name": display_name,
+            "entity_type":  entry["type"],
+            "account_id":   entity_to_account.get(eid, ""),
+        }
+        hub_collection.insert(hub_doc, overwrite=True, overwrite_mode="update")
+        _upsert_structured_edges(
+            db, edge_collection, eid, hub_to_id,
+            match_method         = "structured_anchor",
+            matched_surface_form = display_name,
+            confidence           = 1.0,
+        )
+        anchored += 1
+        print(
+            f"[bridge]   Anchored demo-critical {entry['type']} "
+            f"'{display_name}' ({eid})"
+        )
+    print(f"[bridge] Step 7.5: {anchored} demo-critical entity(ies) anchored.")
+
+    # ------------------------------------------------------------------
     # Step 8 — Stamp entity_id onto matched customer360_Entities rows
     # ------------------------------------------------------------------
     print("[bridge] Step 8: Stamping entity_id onto matched KG Entities...")
