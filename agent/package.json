@@ -4,7 +4,18 @@
   "private": true,
   "type": "module",
   "description": "Customer 360 reasoning agent — ToolLoopAgent + curated AQL specialists over a dual-graph ArangoDB backend (Phase 5).",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./stream": {
+      "types": "./dist/stream.d.ts",
+      "default": "./dist/stream.js"
+    }
+  },
   "scripts": {
+    "build": "tsc -p tsconfig.build.json",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "ask": "tsx cli.ts"
