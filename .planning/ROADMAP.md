@@ -160,7 +160,21 @@ A reusable, internal graph-based Customer 360 demo over 100%-synthetic data for 
   4. The agent gracefully refuses or signals uncertainty for out-of-scope/unanswerable questions instead of guessing, with claim-level grounding driving the decision — AGENT-07.
   *(AGENT-06 — the Q11 ordered timeline — is out of the lean 6-question arc and deferred to v2.)*
 
-**Plans**: TBD
+**Plans**: 4 plans (3 waves)
+
+**Wave 0** *(infra/DDL/env/spikes — gates the phase)*
+
+- [ ] 05-01-PLAN.md — TS package scaffold + Zod envelope contract (D-03a) + db singleton + Chunks BM25 view DDL + arangojs read spike + hybrid RRF sourced-retrieval spike + ANTHROPIC_API_KEY checkpoint (AGENT-01, AGENT-03)
+
+**Wave 1** *(parallel — the 3 curated-AQL specialists; no file overlap)*
+
+- [ ] 05-02-PLAN.md — structuredQuery (named-graph AQL per facet) + bridgeResolve (same_as bridge, ported from probe_trace) (AGENT-03)
+- [ ] 05-03-PLAN.md — hybridRetrieve (vector+BM25+RRF over Chunks, PART_OF-sourced) + pure-TS RRF fusion + 512-dim embedding (AGENT-03)
+
+**Wave 2** *(blocked on Wave 1 — planner composition + grounding)*
+
+- [ ] 05-04-PLAN.md — ToolLoopAgent planner + Q12 reconciliation (D-05) + code-level grounding/refusal gate (D-02) + askQuestion()/CLI (D-01) + 6-locked-question eval (AGENT-01, AGENT-02, AGENT-05, AGENT-07)
+
 **Risk**: HIGH UNKNOWN. First-time custom-agent build (PROJECT.md). The curated-vs-generated split, the claim-level grounding check, AQL-safety gate, and planner trace assembly all warrant pattern research during planning. This is the headline-differentiator phase and a likely long pole.
 
 ### Phase 6: Next.js/Vercel UI + Sourcing Display
@@ -204,7 +218,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 | 2. Synthetic Data + Integrity Linter | 5/5 | Complete    | 2026-06-17 |
 | 3. Build Both Graphs (parallel) | 5/5 | Complete    | 2026-06-17 |
 | 4. Canonical Entity Layer | 4/4 | Complete   | 2026-06-18 |
-| 5. Custom Reasoning Agent | 0/TBD | Not started | - |
+| 5. Custom Reasoning Agent | 0/4 | Not started | - |
 | 6. Next.js/Vercel UI + Sourcing Display | 0/TBD | Not started | - |
 | 7. Grounding/Eval + Demo Hardening | 0/TBD | Not started | - |
 
