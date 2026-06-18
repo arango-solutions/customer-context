@@ -17,7 +17,7 @@ A reusable, internal graph-based Customer 360 demo over 100%-synthetic data for 
 - [x] **Phase 2: Synthetic Data + Integrity Linter** - Generate 2 coherent ArangoDB-domain accounts from a canonical event-spine + entity registry (6-question arc), gated by a linter (~1–1.5 weeks) (completed 2026-06-17)
 - [x] **Phase 3: Build Both Graphs (parallel)** - Hand-modeled structured graph + unstructured graph built via the AutoGraph platform (import→build→orchestrate to Layer-3 KG in the customer360 DB) + post-build account_id UPSERT, both idempotently reloadable (~1.5–2.5 weeks) (completed 2026-06-17)
 - [x] **Phase 4: Canonical Entity Layer** - The document-level cross-graph `same_as` bridge (`account_id`) that links the same entity across both graphs and shows in the trace (~0.5 weeks) (completed 2026-06-18 — 04-04 closed CR-01/CR-02: both demo-critical gates now use denominator 9, resolve via the same_as bridge path (not the KG stamp / raw mention join), proven by live-DB-free negative + positive tests; re-verification PASSED 3/3, see 04-VERIFICATION.md)
-- [ ] **Phase 5: Custom Reasoning Agent** - Planner + specialists, ~6 curated AQL tools (generated-AQL fallback deferred to v2), claim-level sourcing, refusal path (~1.5–2.5 weeks)
+- [x] **Phase 5: Custom Reasoning Agent** - Planner + specialists, ~6 curated AQL tools (generated-AQL fallback deferred to v2), claim-level sourcing, refusal path (~1.5–2.5 weeks) (completed 2026-06-18)
 - [ ] **Phase 6: Next.js/Vercel UI + Sourcing Display** - Free-form box, streamed reasoning, claim-level provenance, citation cards (React Flow traversal viz deferred to v2) (~1 week)
 - [ ] **Phase 7: Grounding/Eval + Demo Hardening** - Light faithfulness eval over the 6 locked questions, pre-warm, backup path, adversarial rehearsal (~0.5–1 week)
 
@@ -164,16 +164,16 @@ A reusable, internal graph-based Customer 360 demo over 100%-synthetic data for 
 
 **Wave 0** *(infra/DDL/env/spikes — gates the phase)*
 
-- [ ] 05-01-PLAN.md — TS package scaffold + Zod envelope contract (D-03a) + db singleton + Chunks BM25 view DDL + arangojs read spike + hybrid RRF sourced-retrieval spike + ANTHROPIC_API_KEY checkpoint (AGENT-01, AGENT-03)
+- [x] 05-01-PLAN.md — TS package scaffold + Zod envelope contract (D-03a) + db singleton + Chunks BM25 view DDL + arangojs read spike + hybrid RRF sourced-retrieval spike + ANTHROPIC_API_KEY checkpoint (AGENT-01, AGENT-03)
 
 **Wave 1** *(parallel — the 3 curated-AQL specialists; no file overlap)*
 
-- [ ] 05-02-PLAN.md — structuredQuery (named-graph AQL per facet) + bridgeResolve (same_as bridge, ported from probe_trace) (AGENT-03)
-- [ ] 05-03-PLAN.md — hybridRetrieve (vector+BM25+RRF over Chunks, PART_OF-sourced) + pure-TS RRF fusion + 512-dim embedding (AGENT-03)
+- [x] 05-02-PLAN.md — structuredQuery (named-graph AQL per facet) + bridgeResolve (same_as bridge, ported from probe_trace) (AGENT-03)
+- [x] 05-03-PLAN.md — hybridRetrieve (vector+BM25+RRF over Chunks, PART_OF-sourced) + pure-TS RRF fusion + 512-dim embedding (AGENT-03)
 
 **Wave 2** *(blocked on Wave 1 — planner composition + grounding)*
 
-- [ ] 05-04-PLAN.md — ToolLoopAgent planner + Q12 reconciliation (D-05) + code-level grounding/refusal gate (D-02) + askQuestion()/CLI (D-01) + 6-locked-question eval (AGENT-01, AGENT-02, AGENT-05, AGENT-07)
+- [x] 05-04-PLAN.md — ToolLoopAgent planner + Q12 reconciliation (D-05) + code-level grounding/refusal gate (D-02) + askQuestion()/CLI (D-01) + 6-locked-question eval (AGENT-01, AGENT-02, AGENT-05, AGENT-07)
 
 **Risk**: HIGH UNKNOWN. First-time custom-agent build (PROJECT.md). The curated-vs-generated split, the claim-level grounding check, AQL-safety gate, and planner trace assembly all warrant pattern research during planning. This is the headline-differentiator phase and a likely long pole.
 
@@ -218,7 +218,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 | 2. Synthetic Data + Integrity Linter | 5/5 | Complete    | 2026-06-17 |
 | 3. Build Both Graphs (parallel) | 5/5 | Complete    | 2026-06-17 |
 | 4. Canonical Entity Layer | 4/4 | Complete   | 2026-06-18 |
-| 5. Custom Reasoning Agent | 0/4 | Not started | - |
+| 5. Custom Reasoning Agent | 4/4 | Complete   | 2026-06-18 |
 | 6. Next.js/Vercel UI + Sourcing Display | 0/TBD | Not started | - |
 | 7. Grounding/Eval + Demo Hardening | 0/TBD | Not started | - |
 
