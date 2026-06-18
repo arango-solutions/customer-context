@@ -170,70 +170,89 @@ def check_bridge_collections(db) -> tuple[bool, str]:
 
 def check_entity_id_stamp(db) -> tuple[bool, str]:
     """
-    Verify demo-critical entity_ids are stamped onto customer360_Entities rows.
+    Report demo-critical entity_id stamping against the authoritative full 9-id set.
 
-    Checks only entities that appear in canonical_entities (i.e., those the
-    bridge builder actually matched). Entities absent from the KG entirely
-    (e.g., contracts not extracted by AutoGraph) are noted, not failed.
+    The KG-side stamp (entity_id on customer360_Entities rows) only ever exists for
+    the ~3 demo-critical ids AutoGraph actually extracted; the other 6 have no KG row
+    to stamp. This check therefore reports, over a denominator of 9:
+      - which ids are KG-stamped, and
+      - which unstamped ids nonetheless have a structured-side same_as link
+        (the demo-traversal signal — see check_demo_critical).
+    The hard block lives in check_demo_critical (structured-side linkage). This
+    check is consistent with it: it surfaces a demo-critical id that is BOTH
+    unstamped AND has no structured edge as a problem, but does not itself block
+    (so the two checks never disagree on the same denominator).
 
-    AQL safety: @demo_critical_ids is a Python list bound via bind_vars.
+    AQL safety: @demo_critical_ids is a Python list bound via bind_vars; collection
+    names are hardcoded constants.
     """
-    if not db.has_collection(_COLLECTION_ENTITIES):
-        return (True, f"SKIP: {_COLLECTION_ENTITIES} not found — run build_unstructured.py first")
-
     if not db.has_collection(_COLLECTION_CANONICAL):
         return (True, f"SKIP: {_COLLECTION_CANONICAL} not found — run build_entity_bridge.py first")
 
-    # Find which demo-critical entities are actually in canonical_entities (hub exists)
-    aql_hubs = """
-        FOR h IN canonical_entities
-          FILTER h.canonical_id IN @demo_critical_ids
-          RETURN h.canonical_id
+    if not db.has_collection(_COLLECTION_SAME_AS):
+        return (True, f"SKIP: {_COLLECTION_SAME_AS} not found — run build_entity_bridge.py first")
+
+    denominator = len(_DEMO_CRITICAL_IDS)  # == 9
+
+    # Structured-side link per id (same signal as check_demo_critical).
+    aql_linked = """
+        WITH canonical_entities, Account, Contract, Contact, customer360_Entities
+        FOR id IN @demo_critical_ids
+          LET hub = FIRST(
+            FOR h IN canonical_entities
+              FILTER h.canonical_id == id
+              LIMIT 1 RETURN h
+          )
+          LET structured_edges = hub == null ? 0 : LENGTH(
+            FOR ed IN same_as
+              FILTER ed._to == hub._id
+              FILTER NOT IS_SAME_COLLECTION("customer360_Entities", DOCUMENT(ed._from))
+              LIMIT 1 RETURN 1
+          )
+          RETURN { id: id, structured_linked: structured_edges > 0 }
     """
-    cursor = db.aql.execute(aql_hubs, bind_vars={"demo_critical_ids": _DEMO_CRITICAL_IDS})
-    hub_ids = set(cursor)
+    rows = list(
+        db.aql.execute(aql_linked, bind_vars={"demo_critical_ids": _DEMO_CRITICAL_IDS})
+    )
+    structured_linked = {r["id"] for r in rows if r["structured_linked"]}
 
-    # Of those, check which have entity_id stamped in customer360_Entities
-    aql_stamped = """
-        FOR e IN customer360_Entities
-          FILTER e.entity_id IN @hub_ids
-          RETURN DISTINCT e.entity_id
-    """
-    cursor2 = db.aql.execute(aql_stamped, bind_vars={"hub_ids": list(hub_ids)})
-    stamped_ids = set(cursor2)
-
-    # Report entities in canonical_entities but NOT stamped in customer360_Entities
-    missing_stamp = [
-        f"{_DEMO_CRITICAL_ENTITIES[eid]['display_name']} ({eid})"
-        for eid in hub_ids
-        if eid not in stamped_ids
-    ]
-
-    # Report entities NOT in the KG at all (no hub, no stamp — AutoGraph didn't extract them)
-    not_in_kg = [
-        f"{_DEMO_CRITICAL_ENTITIES[eid]['display_name']} ({_DEMO_CRITICAL_ENTITIES[eid]['type']})"
-        for eid in _DEMO_CRITICAL_IDS
-        if eid not in hub_ids
-    ]
-
-    if not_in_kg:
-        print(
-            f"[bridge-verify] NOTE: {len(not_in_kg)} demo-critical entities not extracted "
-            f"by AutoGraph (expected for contract/product types): {not_in_kg}"
+    # KG-side stamp coverage over the full 9.
+    if db.has_collection(_COLLECTION_ENTITIES):
+        aql_stamped = """
+            FOR e IN customer360_Entities
+              FILTER e.entity_id IN @demo_critical_ids
+              RETURN DISTINCT e.entity_id
+        """
+        stamped_ids = set(
+            db.aql.execute(aql_stamped, bind_vars={"demo_critical_ids": _DEMO_CRITICAL_IDS})
         )
+    else:
+        stamped_ids = set()
 
-    if missing_stamp:
+    # A problem: neither stamped NOR structured-linked (truly absent from the bridge).
+    orphaned = [
+        f"{_DEMO_CRITICAL_ENTITIES[eid]['display_name']} ({eid})"
+        for eid in _DEMO_CRITICAL_IDS
+        if eid not in stamped_ids and eid not in structured_linked
+    ]
+
+    stamped_count = len(stamped_ids)
+    linked_count = len(structured_linked)
+
+    if orphaned:
         return (
             False,
-            f"entity_id stamp missing for {len(missing_stamp)} hub-linked entities "
-            f"(in canonical_entities but not stamped in customer360_Entities): {missing_stamp}",
+            f"{stamped_count}/{denominator} KG-stamped, {linked_count}/{denominator} "
+            f"structured-linked; {len(orphaned)} demo-critical entities have NEITHER "
+            f"a stamp nor a structured same_as edge (absent from the bridge): {orphaned}",
         )
 
-    linked = len(hub_ids)
     return (
         True,
-        f"All {linked}/{linked} canonical-hub-linked entities have entity_id stamped "
-        f"in customer360_Entities ({len(not_in_kg)} not in KG — AutoGraph extraction limit)",
+        f"{stamped_count}/{denominator} demo-critical entities KG-stamped, "
+        f"{linked_count}/{denominator} structured-linked "
+        f"(unstamped ids are reachable via the structured same_as edge — "
+        f"AutoGraph extraction limit on the KG side)",
     )
 
 
@@ -325,85 +344,102 @@ def check_bijection(db) -> tuple[bool, str]:
 
 def check_demo_critical(db) -> tuple[bool, str]:
     """
-    D-05 hard gate — 100% of demo-critical entities in canonical_entities are correctly
-    stamped in customer360_Entities.
+    D-05 hard gate — ALL 9 demo-critical entities must have a complete bridge.
 
-    Entities not extracted by AutoGraph (absent from customer360_Entities entirely,
-    e.g., contracts whose names did not appear as standalone KG entities) are counted
-    separately and noted — they do not block since the upstream limit is AutoGraph's
-    entity extraction, not the bridge builder.
+    The denominator is the authoritative full 9-id set (`len(_DEMO_CRITICAL_IDS)`),
+    NOT the subset of hubs/stamps that happen to exist (CR-01 fix). An id is
+    "fully linked" iff BOTH:
+      (a) a hub exists in canonical_entities with canonical_id == id, AND
+      (b) at least one same_as edge points to that hub from a structured leaf
+          (Account/Contact/Contract) — i.e. the bridge reached the structured side.
+    The structured-side edge is the authoritative "linked" signal because every
+    demo-critical id has a structured node (5 contacts + 2 accounts + 2 contracts),
+    whereas the KG side depends on AutoGraph extraction (only ~3 of 9). The KG-side
+    stamp is computed for reporting only, never for the verdict.
 
-    Blocks on failure: caller treats False return as sys.exit(1).
-    AQL safety: @demo_critical_ids is a Python list bound via bind_vars.
+    An absent / unstamped / unlinked demo-critical id is a FAILURE (returns False
+    → caller exits 1). The only SKIP is the genuine "collections not built yet"
+    guard below.
+
+    AQL safety: @demo_critical_ids is a Python list bound via bind_vars; collection
+    names are hardcoded constants.
     """
-    if not db.has_collection(_COLLECTION_ENTITIES):
-        return (True, f"SKIP: {_COLLECTION_ENTITIES} not found")
-
     if not db.has_collection(_COLLECTION_CANONICAL):
-        return (True, f"SKIP: {_COLLECTION_CANONICAL} not found")
+        return (True, f"SKIP: {_COLLECTION_CANONICAL} not found — run build_entity_bridge.py first")
 
-    # Step 1: find which demo-critical entities have canonical hubs
-    aql_hubs = """
-        FOR h IN canonical_entities
-          FILTER h.canonical_id IN @demo_critical_ids
-          RETURN h.canonical_id
+    if not db.has_collection(_COLLECTION_SAME_AS):
+        return (True, f"SKIP: {_COLLECTION_SAME_AS} not found — run build_entity_bridge.py first")
+
+    denominator = len(_DEMO_CRITICAL_IDS)  # == 9; the authoritative total
+
+    # Authoritative "linked" signal: per demo-critical id, does a hub with
+    # canonical_id == id exist AND is it reached by a same_as edge from a
+    # structured leaf (Account/Contact/Contract)?
+    aql_linked = """
+        WITH canonical_entities, Account, Contract, Contact, customer360_Entities
+        FOR id IN @demo_critical_ids
+          LET hub = FIRST(
+            FOR h IN canonical_entities
+              FILTER h.canonical_id == id
+              LIMIT 1 RETURN h
+          )
+          LET structured_edges = hub == null ? 0 : LENGTH(
+            FOR ed IN same_as
+              FILTER ed._to == hub._id
+              FILTER NOT IS_SAME_COLLECTION("customer360_Entities", DOCUMENT(ed._from))
+              LIMIT 1 RETURN 1
+          )
+          RETURN {
+            id: id,
+            has_hub: hub != null,
+            structured_linked: structured_edges > 0
+          }
     """
-    cursor = db.aql.execute(aql_hubs, bind_vars={"demo_critical_ids": _DEMO_CRITICAL_IDS})
-    hub_ids = set(cursor)
+    rows = list(
+        db.aql.execute(aql_linked, bind_vars={"demo_critical_ids": _DEMO_CRITICAL_IDS})
+    )
 
-    # Step 2: of those, find which are stamped in customer360_Entities
-    if hub_ids:
+    fully_linked = {
+        r["id"] for r in rows if r["has_hub"] and r["structured_linked"]
+    }
+
+    # KG-side stamp — reporting only (AutoGraph extracts ~3 of 9; not the verdict).
+    if db.has_collection(_COLLECTION_ENTITIES):
         aql_stamped = """
             FOR e IN customer360_Entities
-              FILTER e.entity_id IN @hub_ids
+              FILTER e.entity_id IN @demo_critical_ids
               RETURN DISTINCT e.entity_id
         """
-        cursor2 = db.aql.execute(aql_stamped, bind_vars={"hub_ids": list(hub_ids)})
-        stamped_ids = set(cursor2)
+        stamped_ids = set(
+            db.aql.execute(aql_stamped, bind_vars={"demo_critical_ids": _DEMO_CRITICAL_IDS})
+        )
     else:
         stamped_ids = set()
 
-    total_in_kg   = len(hub_ids)
-    correct_in_kg = len(stamped_ids)
-    not_in_kg     = len(_DEMO_CRITICAL_IDS) - total_in_kg
-
     missing = [
         f"{_DEMO_CRITICAL_ENTITIES[eid]['display_name']} ({eid})"
-        for eid in hub_ids
-        if eid not in stamped_ids
+        for eid in _DEMO_CRITICAL_IDS
+        if eid not in fully_linked
     ]
 
-    if not_in_kg > 0:
-        not_in_kg_names = [
-            _DEMO_CRITICAL_ENTITIES[eid]["display_name"]
-            for eid in _DEMO_CRITICAL_IDS
-            if eid not in hub_ids
-        ]
-        print(
-            f"[bridge-verify] NOTE: {not_in_kg}/{len(_DEMO_CRITICAL_IDS)} demo-critical "
-            f"entities not in KG (AutoGraph didn't extract them): {not_in_kg_names}"
-        )
-
-    if total_in_kg == 0:
-        return (
-            True,
-            f"SKIP: No demo-critical entities found in canonical_entities — "
-            "run build_entity_bridge.py first",
-        )
-
-    ratio = f"{correct_in_kg}/{total_in_kg} = {correct_in_kg / total_in_kg * 100:.0f}%"
+    linked_count = len(fully_linked)
+    ratio = f"{linked_count}/{denominator} = {linked_count / denominator * 100:.0f}%"
+    kg_note = (
+        f"{len(stamped_ids)}/{denominator} also KG-stamped "
+        f"(AutoGraph extraction limit — structured link is the demo signal)"
+    )
 
     if missing:
         return (
             False,
-            f"D-05 FAIL: {ratio} KG-linked demo-critical entities correctly stamped. "
-            f"Missing stamps: {missing}",
+            f"D-05 FAIL: {ratio} demo-critical entities fully linked "
+            f"(hub + structured same_as edge). Not linked: {missing}. {kg_note}",
         )
 
     return (
         True,
-        f"D-05 PASS: {ratio} KG-linked demo-critical entities correctly stamped "
-        f"({not_in_kg} not in KG — contract/product extraction limit)",
+        f"D-05 PASS: {ratio} demo-critical entities fully linked "
+        f"(hub + structured same_as edge). {kg_note}",
     )
 
 
