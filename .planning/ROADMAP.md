@@ -130,7 +130,7 @@ A reusable, internal graph-based Customer 360 demo over 100%-synthetic data for 
   2. Cross-graph entity links are queryable by AQL and appear in the retrieval path, so the bridge is visible (e.g., "joined Salesforce/Account/365 ↔ KG/Entities/acme_corp via `same_as`") — ENT-02.
   3. No entity resolves to two different canonical IDs, and every entity appearing in both graphs has exactly one resolution edge (validated as part of the data-integrity checks).
 
-**Plans**: 2 plans
+**Plans**: 4 plans (2 original + 2 gap-closure)
 
 **Wave 1** *(no dependencies)*
 
@@ -139,6 +139,11 @@ A reusable, internal graph-based Customer 360 demo over 100%-synthetic data for 
 **Wave 2** *(blocked on Wave 1 completion)*
 
 - [x] 04-02-PLAN.md — Wave 2: verify_entity_bridge.py (D-04 integrity gate + ENT-02 trace probe) + extend verify_coref_eval.py (D-05 100% demo-critical gate) (ENT-01, ENT-02, per D-04/D-05)
+
+**Gap closure** *(after re-verification)*
+
+- [x] 04-03-PLAN.md — Gap closure: builder-side conflict detection (ValueError before DB write) + verify_coref_eval exit-code/label consistency (D-04/D-05)
+- [ ] 04-04-PLAN.md — Gap closure: fix the false-guarantee demo-critical gate — denominator=9 in both gates (CR-01), resolution-path join key (CR-02), hard-fail on uncovered ids, shared DEMO_CRITICAL_IDS source (IN-03) + negative test (ENT-01, ENT-02, per D-05)
 
 **Risk**: MEDIUM. The keystone dependency for nearly every dual-graph answer, but de-risked by baking shared IDs into the generator (Phase 2) — this converts hard real-world ER into deterministic linkage. The gate is timing: it cannot start until both graphs have IDs.
 
