@@ -46,6 +46,14 @@ if str(_REPO_ROOT) not in sys.path:
 # from shadowing the valid .env values (e.g., stale OPENAI_API_KEY causes 401).
 load_dotenv(_REPO_ROOT / ".env", override=True)
 
+# Demo-critical 9-id set — single source of truth (IN-03 closed). Imported
+# after the _REPO_ROOT/sys.path block so `from scripts...` resolves under a
+# `python scripts/verify_coref_eval.py` invocation from repo root.
+from scripts.demo_critical import (  # noqa: E402
+    DEMO_CRITICAL_ENTITIES,
+    DEMO_CRITICAL_ID_SET,
+)
+
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
@@ -339,28 +347,18 @@ def main() -> None:
 
     # Step 7 (Phase 4 extension): demo-critical subset hard gate (D-05).
     # Block if any demo-critical entity_id is missing from the coref evaluation.
-    # These 9 entity_ids are the entities the 6 locked questions traverse.
-    # Self-contained: duplicated from verify_entity_bridge.py for independence.
-    DEMO_CRITICAL_IDS = {
-        "633f43bd-5cbd-579e-9105-2ded0f2e7c76",   # James Okafor
-        "135970e6-29ec-5bcb-8cd1-887973aa326d",   # Taylor Brooks
-        "ead03ac6-14ab-5dd9-8bf8-794c507ff628",   # Patricia Vance
-        "4818c0ff-b555-5395-8950-ae3916c176a3",   # Sarah Chen
-        "0b5c0005-9e04-5d41-8cb4-abbe369f0e4f",   # Michael Torres
-        "9eff6d7b-7311-5525-be75-5b82a855ece7",   # Meridian Logistics
-        "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",   # Northwind Analytics
-        "47a06e4c-42ce-59ad-865c-cbeef04f1708",   # Enterprise 2026 contract
-        "629062eb-1233-51c3-a74c-6821b2020df3",   # ArangoGraph 2026 contract
-    }
-
+    # The 9-id set is imported from scripts.demo_critical (IN-03 — single source
+    # of truth). NOTE: the resolution logic below is replaced in Task 3 with the
+    # same_as bridge-path gate; this Task-1 form preserves prior behavior while
+    # removing the duplicated literal.
     demo_critical_correct = sum(
         1 for d in result["details"]
-        if d["expected_entity_id"] in DEMO_CRITICAL_IDS and d["match"]
+        if d["expected_entity_id"] in DEMO_CRITICAL_ID_SET and d["match"]
     )
     demo_critical_total = len({
         d["expected_entity_id"]
         for d in result["details"]
-        if d["expected_entity_id"] in DEMO_CRITICAL_IDS
+        if d["expected_entity_id"] in DEMO_CRITICAL_ID_SET
     })
 
     if demo_critical_total > 0:

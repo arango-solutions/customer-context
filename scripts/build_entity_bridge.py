@@ -47,6 +47,10 @@ if str(_REPO_ROOT) not in sys.path:
 # MANDATORY — prevents stale shell OPENAI_API_KEY (…5CAA) from shadowing .env
 load_dotenv(_REPO_ROOT / ".env", override=True)
 
+# Demo-critical 9-id set — single source of truth (IN-03 closed). The builder's
+# embedding-residual fallback needs id -> display_name for the canonical map.
+from scripts.demo_critical import DEMO_CRITICAL_ENTITIES  # noqa: E402
+
 # ---------------------------------------------------------------------------
 # Collection name constants
 # (hardcoded strings — NOT from user input; AQL injection cannot occur)
@@ -635,18 +639,12 @@ def main() -> None:
     else:
         print("[bridge] Step 6: Pass 2 — embedding-residual matching...")
 
-        # Build canonical_entity_map from deterministic matches + hardcoded fallback set
-        # (ensures embedding step always has canonical targets even if alias dict was empty)
+        # Build canonical_entity_map from deterministic matches + shared fallback set
+        # (ensures embedding step always has canonical targets even if alias dict was empty).
+        # Source of truth: scripts/demo_critical.py (IN-03 — no duplicated id literal here).
         _HARDCODED_CANONICAL: dict[str, str] = {
-            "633f43bd-5cbd-579e-9105-2ded0f2e7c76": "James Okafor",
-            "135970e6-29ec-5bcb-8cd1-887973aa326d": "Taylor Brooks",
-            "ead03ac6-14ab-5dd9-8bf8-794c507ff628": "Patricia Vance",
-            "4818c0ff-b555-5395-8950-ae3916c176a3": "Sarah Chen",
-            "0b5c0005-9e04-5d41-8cb4-abbe369f0e4f": "Michael Torres",
-            "9eff6d7b-7311-5525-be75-5b82a855ece7": "Meridian Logistics",
-            "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16": "Northwind Analytics",
-            "47a06e4c-42ce-59ad-865c-cbeef04f1708": "Enterprise 2026",
-            "629062eb-1233-51c3-a74c-6821b2020df3": "ArangoGraph 2026",
+            eid: entry["display_name"]
+            for eid, entry in DEMO_CRITICAL_ENTITIES.items()
         }
         canonical_entity_map: dict[str, str] = dict(_HARDCODED_CANONICAL)
         # Augment with display names from deterministic matches

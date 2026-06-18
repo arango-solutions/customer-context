@@ -76,63 +76,16 @@ _COLLECTION_CANONICAL = "canonical_entities"      # Phase 4 hub (vertex)
 _COLLECTION_SAME_AS   = "same_as"                 # Phase 4 bridge (edge)
 
 # ---------------------------------------------------------------------------
-# Demo-critical entity set constant
-# These are the named entities the 6 locked questions traverse.
-# Phase 4 D-05 gate: ALL of these that are present in canonical_entities
-# must also be stamped in customer360_Entities. Entities not extracted
-# by AutoGraph (absent from customer360_Entities) are noted as warnings.
-# Source: RESEARCH.md §5, cross-referenced with locked-questions-and-data-map.md.
+# Demo-critical entity set — imported from the single source of truth.
+# These are the named entities the 6 locked questions traverse (IN-03 closed:
+# the 9-id mapping lives only in scripts/demo_critical.py). Phase 4 D-05 gate:
+# ALL 9 must have a complete bridge; an absent/unlinked/mis-linked id FAILS.
 # ---------------------------------------------------------------------------
 
-_DEMO_CRITICAL_ENTITIES: dict[str, dict] = {
-    "633f43bd-5cbd-579e-9105-2ded0f2e7c76": {
-        "display_name": "James Okafor",
-        "type": "Contact",
-        "account": "meridian",
-    },
-    "135970e6-29ec-5bcb-8cd1-887973aa326d": {
-        "display_name": "Taylor Brooks",
-        "type": "Contact",
-        "account": "meridian",
-    },
-    "ead03ac6-14ab-5dd9-8bf8-794c507ff628": {
-        "display_name": "Patricia Vance",
-        "type": "Contact",
-        "account": "meridian",
-    },
-    "4818c0ff-b555-5395-8950-ae3916c176a3": {
-        "display_name": "Sarah Chen",
-        "type": "Contact",
-        "account": "northwind",
-    },
-    "0b5c0005-9e04-5d41-8cb4-abbe369f0e4f": {
-        "display_name": "Michael Torres",
-        "type": "Contact",
-        "account": "northwind",
-    },
-    "9eff6d7b-7311-5525-be75-5b82a855ece7": {
-        "display_name": "Meridian Logistics",
-        "type": "Account",
-        "account": "meridian",
-    },
-    "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16": {
-        "display_name": "Northwind Analytics",
-        "type": "Account",
-        "account": "northwind",
-    },
-    "47a06e4c-42ce-59ad-865c-cbeef04f1708": {
-        "display_name": "Enterprise 2026",
-        "type": "Contract",
-        "account": "meridian",
-    },
-    "629062eb-1233-51c3-a74c-6821b2020df3": {
-        "display_name": "ArangoGraph 2026",
-        "type": "Contract",
-        "account": "northwind",
-    },
-}
-
-_DEMO_CRITICAL_IDS = list(_DEMO_CRITICAL_ENTITIES.keys())
+from scripts.demo_critical import (  # noqa: E402
+    DEMO_CRITICAL_ENTITIES as _DEMO_CRITICAL_ENTITIES,
+    DEMO_CRITICAL_IDS as _DEMO_CRITICAL_IDS,
+)
 
 
 # ---------------------------------------------------------------------------
