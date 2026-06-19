@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: verifying
-last_updated: "2026-06-19T01:22:20.312Z"
+status: in-progress
+last_updated: "2026-06-19T19:40:00.000Z"
 last_activity: 2026-06-19
 progress:
   total_phases: 7
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 29
   completed_plans: 28
-  percent: 71
+  percent: 86
 ---
 
 # Project State
@@ -20,16 +20,18 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-15)
 
 **Core value:** A free-form question only answerable by joining the structured and unstructured graphs returns a correct, fully-sourced answer — every fact traceable to the record and graph it came from.
-**Current focus:** Phase 04 — canonical-entity-layer
+**Current focus:** Phase 07 — grounding/eval + demo hardening (next; not started)
 
 ## Current Position
 
-Phase: 04 (canonical-entity-layer) — EXECUTING
-Plan: 3 of 3
-Status: Phase complete — ready for verification
-Last activity: 2026-06-19 - Completed quick task 260619-f7c: Fix Vercel monorepo build failure
+Phase: 06 (next-js-vercel-ui-sourcing-display) — COMPLETE (verified + secured)
+Plan: 5 of 5
+Status: Phases 1–6 complete. Phase 6 deployed live (customer360-demo-jade.vercel.app), UAT 8/8 passed (2 issues found+fixed+re-verified on prod), security 14/14 threats closed. Phase 7 not started.
+Last activity: 2026-06-19 - Phase 6 verified (UAT) + secured; live Vercel deploy working (Q12 end-to-end)
 
-Progress: [██████████] 100%
+Carry-forward into Phase 7: per-IP rate-limit on /api/ask (AR-06-2); external-access decision (custom domain vs. SSO protection).
+
+Progress: [█████████░] 86% (6/7 phases)
 
 ## Performance Metrics
 
