@@ -1,6 +1,17 @@
 import type { NextConfig } from 'next';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+// Monorepo file-tracing root. web/ is an npm-workspace package; its deps (Next's
+// own styled-jsx and the customer360-agent dist) hoist to the repo-root
+// node_modules. Without this, a prebuilt deploy's serverless function bundle
+// omits those hoisted files (ENOENT styled-jsx on Vercel). Pointing the trace
+// root at the repo root makes Next include the hoisted deps in each .func.
+const _repoRoot = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 const nextConfig: NextConfig = {
+  outputFileTracingRoot: _repoRoot,
+
   // AGENT IMPORT — dist fallback (RESEARCH Assumption A2 resolved FALSE).
   //
   // We attempted the raw-TS import via `transpilePackages: ['customer360-agent']`,
