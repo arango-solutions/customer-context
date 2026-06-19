@@ -54,6 +54,14 @@ function makeEnvelope(claims: Claim[]): Envelope {
 }
 
 // ---------------------------------------------------------------------------
+// Fake evidence fetcher: returns pre-canned text without touching ArangoDB.
+// ---------------------------------------------------------------------------
+
+async function fakeEvidenceFetcher(_id: string): Promise<string> {
+  return `Fake evidence for ${_id}: ArangoDB is a multi-model graph database.`;
+}
+
+// ---------------------------------------------------------------------------
 // Fake LanguageModelV3 factory.
 // Each instance is pre-loaded with a queue of verdicts to return in order.
 // ---------------------------------------------------------------------------
@@ -105,21 +113,21 @@ describe('judgeClaim — injected fake model (no live OpenAI)', () => {
   it('returns "supported" when the model verdict is supported', async () => {
     const model = makeFakeModel(['supported']);
     const claim = makeClaim('Northwind adopted ArangoDB Enterprise.');
-    const verdict = await judgeClaim(claim, model);
+    const verdict = await judgeClaim(claim, model, fakeEvidenceFetcher);
     expect(verdict).toBe('supported');
   });
 
   it('returns "unsupported" when the model verdict is unsupported', async () => {
     const model = makeFakeModel(['unsupported']);
     const claim = makeClaim('Northwind uses PostgreSQL exclusively.');
-    const verdict = await judgeClaim(claim, model);
+    const verdict = await judgeClaim(claim, model, fakeEvidenceFetcher);
     expect(verdict).toBe('unsupported');
   });
 
   it('returns "abstain" when evidence is unreadable/irrelevant', async () => {
     const model = makeFakeModel(['abstain']);
     const claim = makeClaim('Unknown claim with irrelevant evidence.');
-    const verdict = await judgeClaim(claim, model);
+    const verdict = await judgeClaim(claim, model, fakeEvidenceFetcher);
     expect(verdict).toBe('abstain');
   });
 });
@@ -131,7 +139,7 @@ describe('faithfulness — injected fake model (no live OpenAI)', () => {
       makeClaim('Claim A', 'Col/1'),
       makeClaim('Claim B', 'Col/2'),
     ]);
-    const result = await faithfulness(env, model);
+    const result = await faithfulness(env, model, fakeEvidenceFetcher);
     expect(result.score).toBe(1);
     expect(result.unsupported).toHaveLength(0);
   });
@@ -141,7 +149,7 @@ describe('faithfulness — injected fake model (no live OpenAI)', () => {
     const claimA = makeClaim('Claim A', 'Col/1');
     const claimB = makeClaim('Claim B — abstained', 'Col/2');
     const env = makeEnvelope([claimA, claimB]);
-    const result = await faithfulness(env, model);
+    const result = await faithfulness(env, model, fakeEvidenceFetcher);
     expect(result.score).toBe(0.5);
     expect(result.unsupported).toHaveLength(1);
     expect(result.unsupported[0]?.text).toBe('Claim B — abstained');
@@ -150,7 +158,7 @@ describe('faithfulness — injected fake model (no live OpenAI)', () => {
   it('score 1.0 vacuously when claims array is empty', async () => {
     const model = makeFakeModel([]);
     const env = makeEnvelope([]);
-    const result = await faithfulness(env, model);
+    const result = await faithfulness(env, model, fakeEvidenceFetcher);
     expect(result.score).toBe(1);
     expect(result.unsupported).toHaveLength(0);
   });
