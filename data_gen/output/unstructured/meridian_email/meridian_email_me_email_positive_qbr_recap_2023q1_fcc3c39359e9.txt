@@ -1,0 +1,16 @@
+<!-- module=meridian_email account_id=9eff6d7b-7311-5525-be75-5b82a855ece7 entity_id=8797c27c-3d08-53d8-b6b9-6cde41d77708 citable_url=https://arangodb.com/demo/meridian/email/me_email_positive_qbr_recap_2023q1 -->
+
+From: Alex Rivera
+To: James Okafor
+Date: February 2023
+Subject: Quarterly Business Review Summary
+
+Dear James,
+
+I hope this message finds you well. I wanted to take a moment to share a summary of our recent quarterly business review for Meridian Logistics, highlighting some key achievements and areas of focus moving forward.
+
+During the review, we discussed the progress made in various initiatives and the positive impact they have had on our operations. We are excited about the opportunities ahead and are committed to continuing our collaborative efforts to drive success for Meridian Logistics.
+
+Best regards,
+Alex Rivera
+Alex Rivera

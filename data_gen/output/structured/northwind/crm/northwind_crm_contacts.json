@@ -1,0 +1,22 @@
+[
+  {
+    "entity_id": "4818c0ff-b555-5395-8950-ae3916c176a3",
+    "account_id": "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",
+    "full_name": "Sarah Chen",
+    "title": "VP of Data Platform",
+    "role": "champion",
+    "email": "sarah.chen@northwindanalytics.com",
+    "active_from": "2020-03-01",
+    "active_to": null
+  },
+  {
+    "entity_id": "0b5c0005-9e04-5d41-8cb4-abbe369f0e4f",
+    "account_id": "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",
+    "full_name": "Michael Torres",
+    "title": "CTO",
+    "role": "economic_buyer",
+    "email": "m.torres@northwindanalytics.com",
+    "active_from": "2020-03-01",
+    "active_to": null
+  }
+]

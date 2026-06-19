@@ -1,0 +1,7 @@
+<!-- module=northwind_slack account_id=0d5b5863-d3da-51e3-b117-ddbfa7ba2d16 entity_id=192d9a4c-4079-5603-b12d-fc6e75ad67d4 citable_url=https://arangodb.com/demo/northwind/slack/nw_slack_scale_mention_2022q2 -->
+
+[May 2022] Sarah Chen: I wanted to provide an update on the recent support case for Northwind Analytics.
+
+[May 2022] Sarah Chen: Sarah Chen and Michael Torres have been actively collaborating to resolve the outstanding support case. Their efforts have led to significant progress, and we anticipate a resolution soon. This teamwork is a great example of our commitment to customer success.
+
+[May 2022] Sarah Chen: I will keep you posted on any further developments.

@@ -1,0 +1,7 @@
+<!-- module=northwind_slack account_id=0d5b5863-d3da-51e3-b117-ddbfa7ba2d16 entity_id=b804e5ed-e59b-5958-9283-1b8a571fec5b citable_url=https://arangodb.com/demo/northwind/slack/nw_slack_deployment_status_2020q3 -->
+
+[July 2020] Sarah Chen: Here's a quick update on the deployment status for Northwind Analytics.
+
+[July 2020] Sarah Chen: The deployment is progressing as planned, and we are currently on track with the timeline established in our last meeting. Sarah Chen and Michael Torres have been actively collaborating to ensure all requirements are being met and any potential issues are addressed promptly.
+
+[July 2020] Sarah Chen: I will keep you updated on any further developments as we move forward.

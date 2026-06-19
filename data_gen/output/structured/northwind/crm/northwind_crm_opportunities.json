@@ -1,0 +1,57 @@
+[
+  {
+    "entity_id": "3b239da6-6695-53ce-9da6-b5f4f133a392",
+    "account_id": "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",
+    "stage": "closed-won",
+    "close_date": "2020-03-01",
+    "amount_usd": 0,
+    "opportunity_type": "new",
+    "product_scope": "Community",
+    "contract_entity_id": "2f6e4458-4d01-50b2-8f82-78533382f844",
+    "renewal_date": "2021-02-28"
+  },
+  {
+    "entity_id": "8bafa6fe-9ade-52a2-8249-e8d3aede84e5",
+    "account_id": "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",
+    "stage": "closed-won",
+    "close_date": "2021-03-01",
+    "amount_usd": 120000,
+    "opportunity_type": "expansion",
+    "product_scope": "Enterprise",
+    "contract_entity_id": "c65fbe81-f074-56ed-acf1-df70f3833822",
+    "renewal_date": "2022-02-28"
+  },
+  {
+    "entity_id": "ab9e492c-095c-59a5-bfd4-1bcad97dabfc",
+    "account_id": "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",
+    "stage": "closed-won",
+    "close_date": "2022-03-01",
+    "amount_usd": 145000,
+    "opportunity_type": "expansion",
+    "product_scope": "Enterprise",
+    "contract_entity_id": "f7a0769c-4acb-5da9-8d5a-ad45601c6fa4",
+    "renewal_date": "2023-02-28"
+  },
+  {
+    "entity_id": "ba094aff-d9f7-50b1-9049-ab3335b46c2d",
+    "account_id": "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",
+    "stage": "closed-won",
+    "close_date": "2023-06-01",
+    "amount_usd": 200000,
+    "opportunity_type": "expansion",
+    "product_scope": "ArangoGraph",
+    "contract_entity_id": "bfbc464c-6dbf-5872-b2e1-52ed2df3bc8f",
+    "renewal_date": "2024-05-31"
+  },
+  {
+    "entity_id": "ac6d73e7-1bcb-5514-ac11-51ee54cbf8ae",
+    "account_id": "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",
+    "stage": "proposal",
+    "close_date": "2025-06-01",
+    "amount_usd": 240000,
+    "opportunity_type": "renewal",
+    "product_scope": "ArangoGraph",
+    "contract_entity_id": null,
+    "renewal_date": null
+  }
+]

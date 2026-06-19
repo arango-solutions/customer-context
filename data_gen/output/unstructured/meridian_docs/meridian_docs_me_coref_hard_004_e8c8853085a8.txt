@@ -1,0 +1,11 @@
+<!-- {"module": "meridian_docs", "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7", "entity_id": "373ebf4c-64f4-5d99-a26b-982ece3eb2d9", "citable_url": "https://arangodb.com/demo/meridian/docs/me_coref_hard_004"} -->
+
+Finance Coordination Note — Budget Review Cycle
+
+PV joined the cross-functional budget review today and provided the finance team's perspective on the upcoming planning cycle. She confirmed that the operating budget allocations have been finalized and are ready for sign-off from the respective team leads.
+
+Per the CFO, the approval workflow will follow the standard process and all teams should submit their finalized cost center reports before the deadline. She also noted that her team will send a reminder to any outstanding approvers early next week.
+
+Action items: (1) PV to confirm receipt of all submitted reports, (2) team leads to review and approve cost center allocations by Friday, (3) her team will issue final consolidated figures after approval.
+
+Reference from prior note: Vaance flagged a minor discrepancy in the previous cycle's reporting but confirmed it has since been resolved.

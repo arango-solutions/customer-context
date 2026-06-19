@@ -1,0 +1,16 @@
+<!-- module=meridian_email account_id=9eff6d7b-7311-5525-be75-5b82a855ece7 entity_id=0ef4f487-0bf9-54cc-89f0-aa1cf958b4ed citable_url=https://arangodb.com/demo/meridian/email/me_email_license_renewal_confirmed_2022q1 -->
+
+From: Alex Rivera
+To: James Okafor
+Date: January 2022
+Subject: Contract Renewal Confirmation and Next Steps
+
+Dear James,
+
+I hope this message finds you well. I am writing to confirm the renewal of our contract with Meridian Logistics and to outline the next steps in the process.
+
+As we move forward, please let me know if there are any specific details or adjustments you would like to discuss. I am here to assist you in ensuring a smooth transition into the new contract period.
+
+Best regards,
+Alex Rivera
+Alex Rivera

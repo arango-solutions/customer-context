@@ -1,0 +1,7 @@
+<!-- module=meridian_slack account_id=9eff6d7b-7311-5525-be75-5b82a855ece7 entity_id=a2c8797f-b154-56b6-a6e2-53367cb31b27 citable_url=https://arangodb.com/demo/meridian/slack/me_slack_product_changelog_v3_8_2022q1 -->
+
+[January 2022] Alex Rivera: I wanted to provide an update on the support case for Meridian Logistics.
+
+[January 2022] Alex Rivera: James Okafor and Taylor Brooks have been actively collaborating to resolve the recent support case. They are making good progress and have outlined the next steps to ensure a timely resolution.
+
+[January 2022] Alex Rivera: I will keep you posted on any further developments.

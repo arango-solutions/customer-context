@@ -1,0 +1,125 @@
+// web/components/ExampleChips.tsx
+//
+// The guided example chips (UI-01). Pill chips whose `onClick` FILLS the QuestionBox
+// (via `setInput`) — they do NOT auto-submit. Free-form natural language is the premise
+// (PROJECT.md / D-discretion): the chip is a starter the user can edit before asking.
+//
+// The 6 chips are the VERBATIM locked eval prompts (agent/test/questions.eval.test.ts).
+// The Q12 chip is FIRST and visually FEATURED (an accent focus ring) — it is the
+// showcase: structured usage looks green, unstructured sentiment is red.
+//
+// Each chip shows a short label; clicking inserts the full prompt text into the box.
+
+'use client';
+
+/** A locked example: short label shown on the chip, full verbatim prompt inserted. */
+export interface ExamplePrompt {
+  /** Stable id (the eval question number). */
+  id: string;
+  /** Short chip label. */
+  label: string;
+  /** The full verbatim prompt inserted into the box. */
+  prompt: string;
+  /** Featured (Q12 showcase) — rendered first with an accent ring. */
+  featured?: boolean;
+}
+
+/**
+ * The 6 locked example prompts, VERBATIM from agent/test/questions.eval.test.ts.
+ * Q12 is first and featured (the dual-graph centerpiece).
+ */
+export const EXAMPLE_PROMPTS: ReadonlyArray<ExamplePrompt> = [
+  {
+    id: 'Q12',
+    label: 'Usage green vs. sentiment red',
+    featured: true,
+    prompt:
+      'Meridian Logistics looks green on every usage metric and their NPS score is fine — ' +
+      'but are they ACTUALLY happy? Compare the structured usage/NPS-score signal against ' +
+      'the sentiment in their Slack escalations, QBR notes, exec emails, and NPS verbatim ' +
+      'comments, and tell me explicitly if there is a contradiction.',
+  },
+  {
+    id: 'Q2',
+    label: 'Renewal risk — and why',
+    prompt:
+      'Is Meridian Logistics at risk at their upcoming renewal, and WHY? Use their ' +
+      'contract renewal date and usage trend together with the CSM Slack notes, renewal ' +
+      'emails, and QBR documents that explain any risk.',
+  },
+  {
+    id: 'Q9',
+    label: 'Is our champion still engaged?',
+    prompt:
+      'Is our champion at Meridian Logistics still engaged? Use the CRM contact record and ' +
+      'renewal context together with their recent emails, Slack notes, and meeting-notes ' +
+      'attendance to judge whether they have gone quiet.',
+  },
+  {
+    id: 'Q5',
+    label: 'Ready for an upsell?',
+    prompt:
+      'Is Northwind Analytics ready for an ArangoGraph or GenAI upsell? Use their edition, ' +
+      'product whitespace, and usage thresholds from the structured graph together with ' +
+      'any documented trigger (scale pain, ops burden, or RAG intent) in their Slack notes, ' +
+      'success plan, and exec emails.',
+  },
+  {
+    id: 'Q8',
+    label: 'What did we promise — did we deliver?',
+    prompt:
+      'What did we promise Meridian Logistics, and did we deliver? Reconcile the contract ' +
+      'SLA and product scope and the usage telemetry that shows delivery against any ' +
+      'promise made in emails, Slack, or meeting notes — including a commitment that was ' +
+      'never logged in the CRM.',
+  },
+  {
+    id: 'Q7',
+    label: 'Product-ladder adoption (structured only)',
+    prompt:
+      'For Northwind Analytics, show how they have adopted ArangoDB across the product ' +
+      'ladder (Community to Enterprise to ArangoGraph) and the ROI we have delivered. ' +
+      'Answer purely from the structured graph — their usage telemetry, contracts, and ' +
+      'expansion opportunities; do not use any unstructured documents for this one.',
+  },
+];
+
+export interface ExampleChipsProps {
+  /** FILL the box with the chip's full prompt (never auto-submit). */
+  onPick: (prompt: string) => void;
+  /** Optional className for layout. */
+  className?: string;
+}
+
+export function ExampleChips({ onPick, className }: ExampleChipsProps) {
+  return (
+    <div
+      className={`flex flex-wrap gap-2 ${className ?? ''}`}
+      role="list"
+      aria-label="Example questions"
+    >
+      {EXAMPLE_PROMPTS.map((ex) => (
+        <button
+          key={ex.id}
+          type="button"
+          role="listitem"
+          // Chips FILL the box — they do NOT submit. Free-form NL is the premise.
+          onClick={() => onPick(ex.prompt)}
+          aria-label={`Fill the question box with: ${ex.label}`}
+          title={ex.prompt}
+          className={[
+            'rounded-full px-3 py-1.5 text-sm font-semibold transition-colors',
+            'bg-secondary text-secondary-foreground hover:bg-secondary/80',
+            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+            ex.featured
+              ? 'ring-2 ring-primary ring-offset-1' // the Q12 showcase accent ring
+              : '',
+          ].join(' ')}
+          data-featured={ex.featured ? 'true' : undefined}
+        >
+          {ex.label}
+        </button>
+      ))}
+    </div>
+  );
+}

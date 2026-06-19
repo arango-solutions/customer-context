@@ -1,0 +1,7 @@
+<!-- module=northwind_slack account_id=0d5b5863-d3da-51e3-b117-ddbfa7ba2d16 entity_id=1ae61c52-95c7-5429-8ac5-eb0d16a3a382 citable_url=https://arangodb.com/demo/northwind/slack/nw_slack_scale_limit_2024q2 -->
+
+[April 2024] Sarah Chen: Northwind Analytics has raised concerns regarding their platform's limitations and readiness for adoption.
+
+[April 2024] Sarah Chen: The customer is experiencing challenges with scaling their operations and is uncertain about the platform's ability to support their growth. They are particularly focused on ensuring that the technology can meet their evolving needs as they move forward with implementation.
+
+[April 2024] Sarah Chen: We should discuss potential solutions and next steps to address their concerns.

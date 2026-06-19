@@ -1,0 +1,7 @@
+<!-- module=northwind_slack account_id=0d5b5863-d3da-51e3-b117-ddbfa7ba2d16 entity_id=ac4001cc-8973-5d22-8e05-6360e33d3c32 citable_url=https://arangodb.com/demo/northwind/slack/nw_slack_positive_qbr_summary_2023q1 -->
+
+[February 2023] Sarah Chen: I wanted to provide an update on our quarterly business review preparation for Northwind Analytics.
+
+[February 2023] Sarah Chen: Sarah Chen and Michael Torres are currently collaborating on the materials for the upcoming review. They are focusing on key performance metrics and insights that will be valuable for our discussion with the client.
+
+[February 2023] Sarah Chen: I will keep you posted on any developments as we approach the review date.

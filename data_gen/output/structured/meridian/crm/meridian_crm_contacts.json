@@ -1,0 +1,32 @@
+[
+  {
+    "entity_id": "633f43bd-5cbd-579e-9105-2ded0f2e7c76",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "full_name": "James Okafor",
+    "title": "Director of Engineering",
+    "role": "champion",
+    "email": "j.okafor@meridianlogistics.com",
+    "active_from": "2021-01-15",
+    "active_to": "2024-09-01"
+  },
+  {
+    "entity_id": "135970e6-29ec-5bcb-8cd1-887973aa326d",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "full_name": "Taylor Brooks",
+    "title": "Engineering Manager",
+    "role": "user",
+    "email": "t.brooks@meridianlogistics.com",
+    "active_from": "2024-07-01",
+    "active_to": null
+  },
+  {
+    "entity_id": "ead03ac6-14ab-5dd9-8bf8-794c507ff628",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "full_name": "Patricia Vance",
+    "title": "CFO",
+    "role": "economic_buyer",
+    "email": "p.vance@meridianlogistics.com",
+    "active_from": "2021-01-15",
+    "active_to": null
+  }
+]

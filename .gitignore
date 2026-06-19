@@ -1,7 +1,9 @@
 # Secrets — never commit
 .env
 .env.*
+# …but DO track the value-less templates (they carry NO secrets, only empty keys)
 !.env.example
+!.env.local.example
 
 # GSD planning + agent state — internal, not tracked
 .planning/
@@ -24,9 +26,15 @@ infra/
 
 # Node / Python (in case app code lands later)
 node_modules/
+agent/node_modules
 .venv/
 __pycache__/
 *.pyc
 .next/
 dist/
 build/
+
+# AutoGraph service discovery (infra URLs/ids — never commit)
+service_discovery.json
+build_manifest.json
+.vercel

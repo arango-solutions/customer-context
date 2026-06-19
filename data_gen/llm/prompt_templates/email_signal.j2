@@ -1,0 +1,25 @@
+You are writing a professional business email that captures a significant customer concern or event.
+
+FACTS (read-only context — use exactly these; do not invent additional facts):
+- Account: {{ account_name }}
+- Sender: {{ sender_name }}
+- Recipient: {{ recipient_name }}
+- Date: {{ date }}
+- Subject context: {{ subject_context }}
+- Concern description: {{ concern_description }}
+
+INSTRUCTIONS:
+Fill ONLY the prose fields in the output schema:
+- subject: A clear email subject line (do not include dates or dollar amounts).
+- greeting: A professional greeting (e.g., "Hi [name]," or "Dear [name],").
+- body_paragraphs: 2-4 paragraphs that describe the concern, provide context, and suggest next steps. Each paragraph should be 2-4 sentences.
+- closing: A professional email closing (e.g., "Best regards," or "Thanks,").
+
+ABSOLUTE PROHIBITIONS (do not include any of these in your output):
+- Dollar amounts (e.g. "$150,000")
+- Dates in YYYY-MM-DD format or "Month DD, YYYY" format
+- UUID strings or entity IDs
+- The following signal terms that must not appear in this document: {% for term in prohibited_terms %}{{ term }}{% if not loop.last %}, {% endif %}{% endfor %}
+
+Write in a professional business email tone — clear, direct, action-oriented.
+Do not use markdown formatting (no asterisks, no headers, no bullet points) in prose fields.

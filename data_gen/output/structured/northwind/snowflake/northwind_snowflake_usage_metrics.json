@@ -1,0 +1,200 @@
+[
+  {
+    "entity_id": "0cbd1a79-efcc-5f64-aebb-c04c2dd6dccf",
+    "account_id": "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",
+    "period": "2021-Q1",
+    "query_volume_m": 2.5,
+    "cluster_nodes": 3,
+    "edition": "Enterprise",
+    "smartgraphs_enabled": true,
+    "graphrag_enabled": false,
+    "query_volume_growth_pct": null
+  },
+  {
+    "entity_id": "eb627ccc-5102-5fc2-96fc-dff77ab2e004",
+    "account_id": "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",
+    "period": "2021-Q2",
+    "query_volume_m": 2.88,
+    "cluster_nodes": 3,
+    "edition": "Enterprise",
+    "smartgraphs_enabled": true,
+    "graphrag_enabled": false,
+    "query_volume_growth_pct": 15.2
+  },
+  {
+    "entity_id": "39a9b381-4c82-5e34-abc2-0db03f08bf9f",
+    "account_id": "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",
+    "period": "2021-Q3",
+    "query_volume_m": 3.31,
+    "cluster_nodes": 3,
+    "edition": "Enterprise",
+    "smartgraphs_enabled": true,
+    "graphrag_enabled": false,
+    "query_volume_growth_pct": 14.9
+  },
+  {
+    "entity_id": "4d8206ae-d956-5043-89d9-6148d48ac3ca",
+    "account_id": "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",
+    "period": "2021-Q4",
+    "query_volume_m": 3.81,
+    "cluster_nodes": 4,
+    "edition": "Enterprise",
+    "smartgraphs_enabled": true,
+    "graphrag_enabled": false,
+    "query_volume_growth_pct": 15.1
+  },
+  {
+    "entity_id": "68676635-32a2-55b0-ac71-bceae3e594cc",
+    "account_id": "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",
+    "period": "2022-Q1",
+    "query_volume_m": 4.38,
+    "cluster_nodes": 4,
+    "edition": "Enterprise",
+    "smartgraphs_enabled": true,
+    "graphrag_enabled": false,
+    "query_volume_growth_pct": 15.0
+  },
+  {
+    "entity_id": "a93a453c-6e54-5ca8-bb66-095d8913a930",
+    "account_id": "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",
+    "period": "2022-Q2",
+    "query_volume_m": 5.04,
+    "cluster_nodes": 4,
+    "edition": "Enterprise",
+    "smartgraphs_enabled": true,
+    "graphrag_enabled": false,
+    "query_volume_growth_pct": 15.1
+  },
+  {
+    "entity_id": "b10b0393-13f9-5468-bcce-684156f6627e",
+    "account_id": "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",
+    "period": "2022-Q3",
+    "query_volume_m": 5.79,
+    "cluster_nodes": 6,
+    "edition": "Enterprise",
+    "smartgraphs_enabled": true,
+    "graphrag_enabled": false,
+    "query_volume_growth_pct": 14.9
+  },
+  {
+    "entity_id": "12a827ce-f429-5262-9692-5fb3c0fd837f",
+    "account_id": "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",
+    "period": "2022-Q4",
+    "query_volume_m": 6.66,
+    "cluster_nodes": 6,
+    "edition": "Enterprise",
+    "smartgraphs_enabled": true,
+    "graphrag_enabled": false,
+    "query_volume_growth_pct": 15.0
+  },
+  {
+    "entity_id": "a86509a3-8f89-509a-999c-c201ec8a7069",
+    "account_id": "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",
+    "period": "2023-Q1",
+    "query_volume_m": 7.66,
+    "cluster_nodes": 6,
+    "edition": "Enterprise",
+    "smartgraphs_enabled": true,
+    "graphrag_enabled": false,
+    "query_volume_growth_pct": 15.0
+  },
+  {
+    "entity_id": "f976775c-218c-5f73-a5aa-b1d1bec3f76a",
+    "account_id": "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",
+    "period": "2023-Q2",
+    "query_volume_m": 8.81,
+    "cluster_nodes": 8,
+    "edition": "ArangoGraph",
+    "smartgraphs_enabled": true,
+    "graphrag_enabled": false,
+    "query_volume_growth_pct": 15.0
+  },
+  {
+    "entity_id": "0491286c-7535-584e-80bf-5465dad129fe",
+    "account_id": "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",
+    "period": "2023-Q3",
+    "query_volume_m": 9.13,
+    "cluster_nodes": 8,
+    "edition": "ArangoGraph",
+    "smartgraphs_enabled": true,
+    "graphrag_enabled": false,
+    "query_volume_growth_pct": 3.6
+  },
+  {
+    "entity_id": "9784b497-84a3-5072-8423-c04dc0cba966",
+    "account_id": "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",
+    "period": "2023-Q4",
+    "query_volume_m": 9.48,
+    "cluster_nodes": 8,
+    "edition": "ArangoGraph",
+    "smartgraphs_enabled": true,
+    "graphrag_enabled": false,
+    "query_volume_growth_pct": 3.8
+  },
+  {
+    "entity_id": "8b0403bd-7abb-5fac-bb87-95714064e982",
+    "account_id": "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",
+    "period": "2024-Q1",
+    "query_volume_m": 9.84,
+    "cluster_nodes": 8,
+    "edition": "ArangoGraph",
+    "smartgraphs_enabled": true,
+    "graphrag_enabled": false,
+    "query_volume_growth_pct": 3.8
+  },
+  {
+    "entity_id": "d97b3bd3-abfd-5863-804a-53e9f829f6ad",
+    "account_id": "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",
+    "period": "2024-Q2",
+    "query_volume_m": 10.22,
+    "cluster_nodes": 10,
+    "edition": "ArangoGraph",
+    "smartgraphs_enabled": true,
+    "graphrag_enabled": false,
+    "query_volume_growth_pct": 3.9
+  },
+  {
+    "entity_id": "cb7af120-eed6-5c6f-a09c-b4902bda9d1b",
+    "account_id": "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",
+    "period": "2024-Q3",
+    "query_volume_m": 10.61,
+    "cluster_nodes": 10,
+    "edition": "ArangoGraph",
+    "smartgraphs_enabled": true,
+    "graphrag_enabled": false,
+    "query_volume_growth_pct": 3.8
+  },
+  {
+    "entity_id": "ddbb6f3f-d3ca-5c1c-87e9-31280eb7fff1",
+    "account_id": "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",
+    "period": "2024-Q4",
+    "query_volume_m": 11.01,
+    "cluster_nodes": 10,
+    "edition": "ArangoGraph",
+    "smartgraphs_enabled": true,
+    "graphrag_enabled": false,
+    "query_volume_growth_pct": 3.8
+  },
+  {
+    "entity_id": "592ae426-bf7e-52c3-8707-c6026c9ea1e5",
+    "account_id": "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",
+    "period": "2025-Q1",
+    "query_volume_m": 11.43,
+    "cluster_nodes": 10,
+    "edition": "ArangoGraph",
+    "smartgraphs_enabled": true,
+    "graphrag_enabled": false,
+    "query_volume_growth_pct": 3.8
+  },
+  {
+    "entity_id": "8939e077-9af4-59d0-8f99-efbffd0b117c",
+    "account_id": "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",
+    "period": "2025-Q2",
+    "query_volume_m": 11.87,
+    "cluster_nodes": 10,
+    "edition": "ArangoGraph",
+    "smartgraphs_enabled": true,
+    "graphrag_enabled": false,
+    "query_volume_growth_pct": 3.8
+  }
+]
