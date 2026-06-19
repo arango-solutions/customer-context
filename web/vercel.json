@@ -1,5 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "installCommand": "npm install --prefix ..",
   "functions": {
     "app/api/ask/route.ts": {
       "maxDuration": 60
