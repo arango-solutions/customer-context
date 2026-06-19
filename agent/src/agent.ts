@@ -19,7 +19,7 @@
 // serialized into the envelope (the OPENAI_API_KEY is loaded via dotenv override by
 // the entrypoint, never printed, T-05-14).
 
-import { ToolLoopAgent, stepCountIs, Output, NoObjectGeneratedError } from 'ai';
+import { ToolLoopAgent, stepCountIs, Output, NoObjectGeneratedError, type ToolSet } from 'ai';
 import { openai } from '@ai-sdk/openai';
 import { z } from 'zod';
 import { EnvelopeSchema, GraphEnum, type Envelope } from './envelope.js';
@@ -61,7 +61,7 @@ const SynthRetrievalPath = z.object({
   query: z.string(),
 });
 
-const SynthEnvelopeSchema = z.object({
+export const SynthEnvelopeSchema = z.object({
   answer: z.string(),
   refused: z.boolean(),
   claims: z.array(SynthClaim),
@@ -72,7 +72,7 @@ const SynthEnvelopeSchema = z.object({
 type SynthEnvelope = z.infer<typeof SynthEnvelopeSchema>;
 
 /** Normalize the strict-synthesis envelope (nullable traversal) into the canonical Envelope. */
-function toCanonicalEnvelope(s: SynthEnvelope): Envelope {
+export function toCanonicalEnvelope(s: SynthEnvelope): Envelope {
   const fixCite = (c: SynthEnvelope['citations'][number]) => ({
     graph: c.graph,
     collection: c.collection,
@@ -111,7 +111,7 @@ export const ROUTING_MODEL = process.env.ROUTING_MODEL ?? 'gpt-4o-mini';
  * reconciliation directive (Pattern 3, D-05) → per-claim citations + separate
  * reasoning trace (D-03) → refuse rather than guess (D-02).
  */
-export const PLANNER_SYSTEM_PROMPT = `You are the Customer 360 reasoning planner. You answer questions about synthetic
+export const PLANNER_SYSTEM_PROMPT: string = `You are the Customer 360 reasoning planner. You answer questions about synthetic
 customer accounts by querying TWO graphs and you NEVER guess.
 
 You have exactly four tools — you may not invent any other capability:
@@ -174,7 +174,12 @@ export interface RunAgentResult {
 
 /** The curated specialists — the ONLY tools the planner may call (D-04). entityLookup
  * is the name→id resolver added in Wave 2 so the planner can bootstrap from a prose name. */
-const TOOLS = { entityLookup, structuredQuery, hybridRetrieve, bridgeResolve } as const;
+export const TOOLS: ToolSet = {
+  entityLookup,
+  structuredQuery,
+  hybridRetrieve,
+  bridgeResolve,
+};
 
 /**
  * Assemble + run the ToolLoopAgent for one question.
