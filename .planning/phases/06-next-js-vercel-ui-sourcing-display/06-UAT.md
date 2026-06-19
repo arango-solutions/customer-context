@@ -68,18 +68,20 @@ skipped: 1
 ## Gaps
 
 - truth: "Clicking an example chip gives clear visual feedback (a selected/active highlight state on the chosen chip)."
-  status: failed
+  status: fixed
   reason: "User reported: the highlight does not work when you click on one of the questions"
   severity: cosmetic
   test: 2
-  artifacts: []  # Filled by diagnosis
-  missing: []    # Filled by diagnosis
+  root_cause: "ExampleChips had only a static featured ring on Q12; no selected state tracked on click."
+  fix: "Pass current input value; highlight the chip whose prompt matches (filled accent + aria-current), auto-deselect on edit. Commit 1204072. + unit test."
+  retest: pending (production)
 
 - truth: "The reasoning-timeline phases check off in their logical order during streaming."
-  status: failed
+  status: fixed
   reason: "User reported: verified but the steps don't check-off in order (no-dead-air core passed)"
   severity: minor
   test: 4
-  artifacts: []  # Filled by diagnosis
-  missing: []    # Filled by diagnosis
+  root_cause: "Parallel specialists' data-step events arrived out of canonical order; use-ask setPhase adopted each, dragging the timeline backward."
+  fix: "STREAM_PHASE_ORDER single source of truth + laterPhase() monotonic guard in use-ask onData. Commit 46b134f."
+  retest: pending (production)
 </content>
