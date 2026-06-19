@@ -121,8 +121,9 @@ export default function Home() {
         onStop={stop}
       />
 
-      {/* IDLE — the only screen with no rail (EmptyState): chips FILL the box. */}
-      {isIdle ? <ExampleChips onPick={setInput} /> : null}
+      {/* IDLE — the only screen with no rail (EmptyState): chips FILL the box.
+          `value` lets the picked chip render selected (and deselect on edit). */}
+      {isIdle ? <ExampleChips onPick={setInput} value={input} /> : null}
 
       {/* Once a question is asked, the two-column desktop layout (main + sticky rail).
           The rail stacks below the main column on tablet/mobile; during the empty-answer

@@ -42,6 +42,29 @@ describe('ExampleChips', () => {
     expect(EXAMPLE_PROMPTS[0].id).toBe('Q12');
   });
 
+  it('marks the chip whose prompt equals `value` as selected (visual feedback on pick)', () => {
+    const q12 = EXAMPLE_PROMPTS[0];
+    const selectedChips = () =>
+      screen
+        .getAllByRole('listitem')
+        .filter((c) => c.getAttribute('data-selected') === 'true');
+
+    const { rerender } = render(<ExampleChips onPick={() => {}} />);
+    // No value → nothing selected.
+    expect(selectedChips()).toHaveLength(0);
+
+    // value matches Q12's full prompt → exactly Q12 is selected (data-selected + aria-current).
+    rerender(<ExampleChips onPick={() => {}} value={q12.prompt} />);
+    const selected = selectedChips();
+    expect(selected).toHaveLength(1);
+    expect(selected[0]).toHaveTextContent(q12.label);
+    expect(selected[0]).toHaveAttribute('aria-current', 'true');
+
+    // Editing the box (value no longer matches any prompt) deselects.
+    rerender(<ExampleChips onPick={() => {}} value={q12.prompt + ' (edited)'} />);
+    expect(selectedChips()).toHaveLength(0);
+  });
+
   it('the chip is a button (keyboard-reachable), not a one-click run control', () => {
     render(<ExampleChips onPick={() => {}} />);
     for (const chip of screen.getAllByRole('listitem')) {

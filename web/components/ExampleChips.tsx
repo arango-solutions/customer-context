@@ -87,39 +87,53 @@ export const EXAMPLE_PROMPTS: ReadonlyArray<ExamplePrompt> = [
 export interface ExampleChipsProps {
   /** FILL the box with the chip's full prompt (never auto-submit). */
   onPick: (prompt: string) => void;
+  /**
+   * The current question-box value. A chip whose full prompt equals this value is
+   * rendered SELECTED (filled accent) — so clicking a chip gives clear visual
+   * feedback, and editing the box (value no longer matches) auto-deselects it.
+   */
+  value?: string;
   /** Optional className for layout. */
   className?: string;
 }
 
-export function ExampleChips({ onPick, className }: ExampleChipsProps) {
+export function ExampleChips({ onPick, value, className }: ExampleChipsProps) {
   return (
     <div
       className={`flex flex-wrap gap-2 ${className ?? ''}`}
       role="list"
       aria-label="Example questions"
     >
-      {EXAMPLE_PROMPTS.map((ex) => (
-        <button
-          key={ex.id}
-          type="button"
-          role="listitem"
-          // Chips FILL the box — they do NOT submit. Free-form NL is the premise.
-          onClick={() => onPick(ex.prompt)}
-          aria-label={`Fill the question box with: ${ex.label}`}
-          title={ex.prompt}
-          className={[
-            'rounded-full px-3 py-1.5 text-sm font-semibold transition-colors',
-            'bg-secondary text-secondary-foreground hover:bg-secondary/80',
-            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
-            ex.featured
-              ? 'ring-2 ring-primary ring-offset-1' // the Q12 showcase accent ring
-              : '',
-          ].join(' ')}
-          data-featured={ex.featured ? 'true' : undefined}
-        >
-          {ex.label}
-        </button>
-      ))}
+      {EXAMPLE_PROMPTS.map((ex) => {
+        const selected = value !== undefined && value === ex.prompt;
+        return (
+          <button
+            key={ex.id}
+            type="button"
+            role="listitem"
+            // Chips FILL the box — they do NOT submit. Free-form NL is the premise.
+            onClick={() => onPick(ex.prompt)}
+            aria-label={`Fill the question box with: ${ex.label}`}
+            aria-current={selected ? 'true' : undefined}
+            title={ex.prompt}
+            className={[
+              'rounded-full px-3 py-1.5 text-sm font-semibold transition-colors',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+              selected
+                ? // SELECTED: filled accent so the chosen chip is unmistakable.
+                  'bg-primary text-primary-foreground ring-2 ring-primary ring-offset-1'
+                : 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
+              !selected && ex.featured
+                ? 'ring-2 ring-primary ring-offset-1' // the Q12 showcase accent ring
+                : '',
+            ].join(' ')}
+            data-featured={ex.featured ? 'true' : undefined}
+            data-selected={selected ? 'true' : undefined}
+          >
+            {ex.label}
+          </button>
+        );
+      })}
     </div>
   );
 }
