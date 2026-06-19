@@ -26,7 +26,22 @@ import { useCallback, useState } from 'react';
 import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport, type UIMessage, type UIDataTypes } from 'ai';
 import type { Envelope } from 'customer360-agent';
-import type { C360UIDataParts } from './ui-message';
+import type { C360UIDataParts, StreamPhase } from './ui-message';
+import { STREAM_PHASE_ORDER } from './ui-message';
+
+/**
+ * Advance the live phase MONOTONICALLY. The planner runs specialists in parallel, so
+ * `data-step` events can arrive out of canonical order — without this, a late step
+ * would drag the timeline backward and steps would un-check (UAT 06 issue). Returns
+ * the later of `prev`/`next` by canonical index; an unknown phase never moves it back.
+ */
+function laterPhase(prev: string | undefined, next: string): string {
+  const ni = STREAM_PHASE_ORDER.indexOf(next as StreamPhase);
+  if (ni < 0) return prev ?? next; // unknown next → keep prev
+  if (prev === undefined) return next;
+  const pi = STREAM_PHASE_ORDER.indexOf(prev as StreamPhase);
+  return ni > pi ? next : prev; // only ever move forward
+}
 
 /**
  * The app's custom data parts, widened to satisfy the SDK's `UIDataTypes`
@@ -95,7 +110,8 @@ export function useAsk(): UseAskResult {
       // Transient progress only — advance the live rail, never treat as a claim.
       if (part.type === 'data-step') {
         const data = part.data as { phase?: string };
-        if (data?.phase) setPhase(data.phase);
+        // Monotonic: never let a late parallel step drag the timeline backward.
+        if (data?.phase) setPhase((prev) => laterPhase(prev, data.phase!));
       }
     },
   });

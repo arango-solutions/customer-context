@@ -22,6 +22,21 @@ export type StreamPhase =
   | 'reconciling'
   | 'answer';
 
+/**
+ * The canonical phase order — the SINGLE source of truth for sequencing.
+ * The planner dispatches specialists in parallel, so their `data-step` events can
+ * arrive out of order; consumers compare against this array to advance the live
+ * phase MONOTONICALLY (a step never un-checks once passed).
+ */
+export const STREAM_PHASE_ORDER: readonly StreamPhase[] = [
+  'planning',
+  'querying structured',
+  'searching docs',
+  'resolving entities',
+  'reconciling',
+  'answer',
+];
+
 /** Transient progress part: the currently-active planner phase. */
 export interface DataStepPart {
   phase: StreamPhase | string;
