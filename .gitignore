@@ -37,3 +37,4 @@ build/
 # AutoGraph service discovery (infra URLs/ids — never commit)
 service_discovery.json
 build_manifest.json
+.vercel

@@ -18,7 +18,7 @@ A reusable, internal graph-based Customer 360 demo over 100%-synthetic data for 
 - [x] **Phase 3: Build Both Graphs (parallel)** - Hand-modeled structured graph + unstructured graph built via the AutoGraph platform (import→build→orchestrate to Layer-3 KG in the customer360 DB) + post-build account_id UPSERT, both idempotently reloadable (~1.5–2.5 weeks) (completed 2026-06-17)
 - [x] **Phase 4: Canonical Entity Layer** - The document-level cross-graph `same_as` bridge (`account_id`) that links the same entity across both graphs and shows in the trace (~0.5 weeks) (completed 2026-06-18 — 04-04 closed CR-01/CR-02: both demo-critical gates now use denominator 9, resolve via the same_as bridge path (not the KG stamp / raw mention join), proven by live-DB-free negative + positive tests; re-verification PASSED 3/3, see 04-VERIFICATION.md)
 - [x] **Phase 5: Custom Reasoning Agent** - Planner + specialists, ~6 curated AQL tools (generated-AQL fallback deferred to v2), claim-level sourcing, refusal path (~1.5–2.5 weeks) (completed 2026-06-18 — standalone TS ToolLoopAgent on OpenAI (D-06, no Anthropic key); 3 per-capability specialists + entityLookup; pure-code grounding/refusal gate; live 6-question eval 7/7 incl. Q12 reconciliation + out-of-scope refusal; 58 tests green; verification PASSED 4/4. Surfaced+fixed an upstream Phase-4 bridge gap — the 2 demo-critical Contracts were never linked (KG-driven build); added a structured-anchor step, rebuilt the live bridge, demo-critical now 9/9.)
-- [ ] **Phase 6: Next.js/Vercel UI + Sourcing Display** - Free-form box, streamed reasoning, claim-level provenance, citation cards (React Flow traversal viz deferred to v2) (~1 week)
+- [x] **Phase 6: Next.js/Vercel UI + Sourcing Display** - Free-form box, streamed reasoning, claim-level provenance, citation cards (React Flow traversal viz deferred to v2) (~1 week) (completed 2026-06-19)
 - [ ] **Phase 7: Grounding/Eval + Demo Hardening** - Light faithfulness eval over the 6 locked questions, pre-warm, backup path, adversarial rehearsal (~0.5–1 week)
 
 ## Phase Details
@@ -219,7 +219,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 | 3. Build Both Graphs (parallel) | 5/5 | Complete    | 2026-06-17 |
 | 4. Canonical Entity Layer | 4/4 | Complete   | 2026-06-18 |
 | 5. Custom Reasoning Agent | 4/4 | Complete   | 2026-06-18 |
-| 6. Next.js/Vercel UI + Sourcing Display | 1/5 | In Progress|  |
+| 6. Next.js/Vercel UI + Sourcing Display | 5/5 | Complete   | 2026-06-19 |
 | 7. Grounding/Eval + Demo Hardening | 0/TBD | Not started | - |
 
 ## Time Estimates (research-grounded REVISED — lean demo)
