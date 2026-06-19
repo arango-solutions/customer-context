@@ -1,7 +1,9 @@
 # Secrets — never commit
 .env
 .env.*
+# …but DO track the value-less templates (they carry NO secrets, only empty keys)
 !.env.example
+!.env.local.example
 
 # GSD planning + agent state — internal, not tracked
 .planning/
