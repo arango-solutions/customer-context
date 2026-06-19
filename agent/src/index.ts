@@ -27,6 +27,24 @@ export { assertReconciliation } from './grounding.js';
 export { PLANNER_MODEL } from './agent.js';
 
 /**
+ * The Q7 structured-only anchor prompt — the SINGLE source of truth for this
+ * fixed question. Consumed by BOTH:
+ *   (a) the Phase-7 eval (agent/test/questions.eval.test.ts) — drives the Q7 it()
+ *   (b) the Phase-7 web canary (web/app/api/canary/route.ts, plan 07-02) — uses
+ *       this as the canned end-to-end probe question (cheapest / fastest / most
+ *       deterministic of the six; structured-only means no hybrid embedding call).
+ *
+ * This constant ships through the `customer360-agent` package `.` exports map
+ * (agent/dist/index.d.ts + agent/dist/index.js) so the web canary's bare-package
+ * import resolves it. Do NOT inline this literal in any other file; import from here.
+ */
+export const Q7_ANCHOR_PROMPT =
+  'For Northwind Analytics, show how they have adopted ArangoDB across the product ' +
+  'ladder (Community to Enterprise to ArangoGraph) and the ROI we have delivered. ' +
+  'Answer purely from the structured graph — their usage telemetry, contracts, and ' +
+  'expansion opportunities; do not use any unstructured documents for this one.';
+
+/**
  * Answer a free-form question, returning a code-grounded, Zod-shaped envelope.
  *
  * The grounding gate runs over (envelope, returnedIds) where returnedIds is the set of

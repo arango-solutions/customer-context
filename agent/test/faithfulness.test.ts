@@ -16,7 +16,12 @@
 // generateObject requests a JSON object; the fake model returns the JSON text directly.
 
 import { describe, it, expect } from 'vitest';
-import type { LanguageModelV3, LanguageModelV3GenerateResult } from '@ai-sdk/provider';
+import type {
+  LanguageModelV3,
+  LanguageModelV3GenerateResult,
+  LanguageModelV3FinishReason,
+  LanguageModelV3Usage,
+} from '@ai-sdk/provider';
 import { judgeClaim, faithfulness, JUDGE_MODEL } from '../src/faithfulness.js';
 import type { Claim, Envelope } from '../src/envelope.js';
 
@@ -82,10 +87,15 @@ function makeFakeModel(verdicts: FakeVerdict[]): LanguageModelV3 {
       callIndex++;
       // generateObject parses the text content as JSON.
       const responseJson = JSON.stringify({ verdict, rationale: `fake rationale for ${verdict}` });
+      const finishReason: LanguageModelV3FinishReason = { unified: 'stop', raw: 'stop' };
+      const usage: LanguageModelV3Usage = {
+        inputTokens: { total: 10, noCache: 10, cacheRead: 0, cacheWrite: 0 },
+        outputTokens: { total: 10, text: 10, reasoning: 0 },
+      };
       return {
         content: [{ type: 'text', text: responseJson }],
-        finishReason: 'stop',
-        usage: { inputTokens: 10, outputTokens: 10 },
+        finishReason,
+        usage,
         warnings: [],
       };
     },

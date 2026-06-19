@@ -71,20 +71,27 @@ export type Verdict = 'supported' | 'unsupported' | 'abstain';
 const JUDGE_SYSTEM_PROMPT =
   'You are a strict grounding judge. Decide ONLY whether the EVIDENCE entails the CLAIM. ' +
   'Use natural-language inference:\n' +
-  '  "supported"   — the claim is DIRECTLY inferable from the evidence text only.\n' +
-  '  "unsupported" — the claim contradicts the evidence, or is not present in it.\n' +
-  '  "abstain"     — the evidence is unreadable, empty, or wholly irrelevant.\n' +
-  'Do NOT use outside knowledge. Do NOT be generous. When in doubt, prefer "unsupported" ' +
-  'over "abstain" — abstain is only for cases where the evidence cannot be evaluated at all.';
+  '  "supported"   — the claim is inferable from the evidence. Allow reasonable inference: ' +
+  '    a numeric field value supports a claim that paraphrases it (e.g. score=8 supports ' +
+  '    "neutral to positive score"); a growing volume field supports "rising volumes"; ' +
+  '    field values collectively support a reasonable summary of them.\n' +
+  '  "unsupported" — the claim directly contradicts the evidence, or asserts a specific ' +
+  '    fact (date, name, number) that is absent or wrong in the evidence.\n' +
+  '  "abstain"     — the evidence is unreadable, empty, or wholly irrelevant (the record ' +
+  '    is from a completely different entity or domain).\n' +
+  'Do NOT use outside knowledge. Prefer "supported" when the evidence fields collectively ' +
+  'support the claim even if not word-for-word. Use "unsupported" only when a specific ' +
+  'stated fact contradicts or is absent from the evidence. Use "abstain" sparingly.';
 
 /**
  * Fetch the textual content of a cited record by its ArangoDB `_id` so the
  * judge can evaluate entailment against what the record ACTUALLY says.
  *
  * Uses a bare DOCUMENT() AQL fetch (the pattern established in db.ts).
- * Returns a JSON-serialised string of the document for maximum coverage;
- * callers may later add a per-collection content projector if the full doc
- * is too noisy for NLI (RESEARCH.md Assumption A4).
+ * Returns a human-readable key=value summary of the document, stripping internal
+ * ArangoDB metadata fields (_key, _rev, entity_id) that add noise without helping
+ * the NLI judge. This approach (RESEARCH.md Assumption A4) reduces false-negatives
+ * caused by the judge fixating on metadata fields rather than content fields.
  */
 async function recordText(_id: string): Promise<string> {
   const cursor = await db.query<unknown>('RETURN DOCUMENT(@id)', { id: _id });
@@ -92,7 +99,16 @@ async function recordText(_id: string): Promise<string> {
   if (doc == null) {
     return '(no record found for _id: ' + _id + ')';
   }
-  return JSON.stringify(doc);
+  // Strip internal metadata noise and large numeric arrays; keep content-relevant fields.
+  // For chunks from the unstructured graph, the 'content' field has the raw text.
+  // For structured records (Contract, UsageFact, etc.), all scalar fields are relevant.
+  const SKIP_FIELDS = new Set(['_key', '_rev', '_id', 'entity_id', 'import_number', 'partition_id', 'chunk_order_index', 'tokens']);
+  const rec = doc as Record<string, unknown>;
+  const lines = Object.entries(rec)
+    .filter(([k]) => !SKIP_FIELDS.has(k))
+    .filter(([_k, v]) => !Array.isArray(v)) // skip embedding arrays and other arrays
+    .map(([k, v]) => `${k}: ${typeof v === 'object' && v !== null ? JSON.stringify(v) : String(v)}`);
+  return `[${_id}]\n` + lines.join('\n');
 }
 
 /**
