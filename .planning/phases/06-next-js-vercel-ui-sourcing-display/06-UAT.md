@@ -19,10 +19,8 @@ result: pass
 
 ### 2. Landing screen — free-form box + example chips (UI-01)
 expected: The landing screen shows a headline, a multiline free-form question box with an "Ask" button, and 6 example-question chips — with "Usage green vs. sentiment red" (Q12) first and visually featured.
-result: issue
-reported: "the highlight does not work when you click on one of the questions"
-severity: cosmetic
-note: Layout (box + 6 chips + Q12 featured) appears present; the gap is that clicking a chip gives no visible selected/active highlight state on the chip.
+result: pass
+note: Initially failed — clicking a chip gave no selected highlight (cosmetic). FIXED (1204072) + permanent-Q12-border follow-up (later commit); RE-VERIFIED on production: chips show a selected highlight on pick, deselect on edit, no permanent border.
 
 ### 3. Example chip fills the box (does not auto-submit)
 expected: Clicking any example chip FILLS the question box with that full prompt but does NOT auto-submit — you still press Ask to run it.
@@ -30,10 +28,8 @@ result: pass
 
 ### 4. Streamed reasoning — no dead air (UI-03)
 expected: After Ask, within ~1s a reasoning timeline appears and advances through phases (planning → querying both graphs → … → answer). No blank/frozen screen during the ~14–25s wait. A Stop affordance is available while streaming.
-result: issue
-reported: "verified but the steps don't check-off in order"
-severity: minor
-note: Core UI-03 (timeline appears, no dead air) PASSED. Gap: the reasoning phases do not check off in their logical order — likely phaseFor() advancing in tool-COMPLETION order (parallel specialists finish out of sequence) rather than a fixed planning→query→reconcile→answer order.
+result: pass
+note: Initially failed — timeline steps checked off out of order (minor; no-dead-air core passed). FIXED (46b134f) via monotonic phase advance; RE-VERIFIED on production: steps now check off top-to-bottom in order.
 
 ### 5. Numbered claims + dual-graph citation cards (SRC-01/02, UI-02)
 expected: The final answer is prose with numbered claim markers [1], [2]…; a sourcing rail lists citation cards, each with a graph badge (green = structured / slate-blue = unstructured, with a text label — never color-only), a collection, and a record _id.
@@ -60,10 +56,11 @@ reason: Not readily triggerable on demand. (Error state was incidentally observe
 ## Summary
 
 total: 9
-passed: 6
-issues: 2
+passed: 8
+issues: 0
 pending: 0
 skipped: 1
+note: 2 issues found during UAT (chip highlight, timeline order) were fixed and RE-VERIFIED on production — now counted as passed.
 
 ## Gaps
 
@@ -73,8 +70,8 @@ skipped: 1
   severity: cosmetic
   test: 2
   root_cause: "ExampleChips had only a static featured ring on Q12; no selected state tracked on click."
-  fix: "Pass current input value; highlight the chip whose prompt matches (filled accent + aria-current), auto-deselect on edit. Commit 1204072. + unit test."
-  retest: pending (production)
+  fix: "Pass current input value; highlight the chip whose prompt matches (filled accent + aria-current), auto-deselect on edit. Commit 1204072. + permanent-Q12-border follow-up. + unit test."
+  retest: verified (production)
 
 - truth: "The reasoning-timeline phases check off in their logical order during streaming."
   status: fixed
@@ -83,5 +80,5 @@ skipped: 1
   test: 4
   root_cause: "Parallel specialists' data-step events arrived out of canonical order; use-ask setPhase adopted each, dragging the timeline backward."
   fix: "STREAM_PHASE_ORDER single source of truth + laterPhase() monotonic guard in use-ask onData. Commit 46b134f."
-  retest: pending (production)
+  retest: verified (production)
 </content>
