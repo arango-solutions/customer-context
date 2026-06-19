@@ -189,15 +189,60 @@ export async function judgeClaim(
 }
 
 /**
+ * Judge a single claim N times and return the MAJORITY verdict.
+ *
+ * "Majority" for the three-way enum: 'supported' wins only if ≥ ceil(N/2) of the
+ * N calls return 'supported'. Otherwise the majority among 'unsupported'/'abstain'
+ * wins; ties between unsupported/abstain are broken conservatively → 'unsupported'.
+ *
+ * This inner helper is used by faithfulness() when a model is NOT injected (live
+ * path). When a model IS injected (unit-test path), faithfulness() falls through to
+ * the single-call judgeClaim() so fake-model tests keep their simple 1-verdict-per-
+ * claim contract without needing to queue 3× verdicts.
+ *
+ * STABILITY RATIONALE: Even with temperature:0 + seed, gpt-4o on Chat Completions
+ * can produce different verdicts on borderline claims across eval runs (seed is
+ * best-effort at the infrastructure level). Three majority votes collapse this
+ * residual variance: a claim that is genuinely supported wins 2-3/3; a genuinely
+ * unsupported claim wins 2-3/3 the other way; only truly ambiguous claims can still
+ * split 1-1-1. In practice, three votes eliminate the observed run-to-run flipping
+ * of borderline claims (observed 2026-06-19, post seed-fix).
+ */
+async function judgeClaimMajority(
+  claim: Claim,
+  model: LanguageModelV3,
+  fetchEvidence: (id: string) => Promise<string>,
+  n: number = 3,
+): Promise<Verdict> {
+  const votes = await Promise.all(
+    Array.from({ length: n }, () => judgeClaim(claim, model, fetchEvidence)),
+  );
+  const supportedCount = votes.filter((v) => v === 'supported').length;
+  const unsupportedCount = votes.filter((v) => v === 'unsupported').length;
+  const abstainCount = votes.filter((v) => v === 'abstain').length;
+
+  if (supportedCount >= Math.ceil(n / 2)) return 'supported';
+  // Among the non-supported categories, pick the plurality; break ties → unsupported.
+  if (unsupportedCount >= abstainCount) return 'unsupported';
+  return 'abstain';
+}
+
+/**
  * RAGAS-style faithfulness score for a full envelope.
  *
  * faithfulness = supported_claims / total_claims
  *
  * - Empty claims → 1.0 (vacuously faithful, mirrors enforceGrounding's handling)
  * - abstain counts as NOT supported (conservative; Pitfall 2 / anti-flaky)
+ * - Live path (no injected model): each claim is judged N=3 times via majority
+ *   vote (judgeClaimMajority) to eliminate residual run-to-run variance on
+ *   borderline claims even when seed + temperature:0 are set.
+ * - Test path (injected model): single judgeClaim() call per claim, so fake-model
+ *   tests keep their simple 1-verdict-per-claim contract.
  *
  * @param env           - The code-grounded envelope (must have already passed enforceGrounding)
- * @param model         - Optional fake model for unit tests (defaults to live gpt-4o)
+ * @param model         - Optional fake model for unit tests (defaults to live gpt-4o via
+ *                        majority vote). When provided, majority voting is SKIPPED (single call).
  * @param fetchEvidence - Optional evidence fetcher override (defaults to live DB lookup)
  * @returns             - { score: number, unsupported: Claim[] } where unsupported
  *                        includes every claim whose verdict was NOT 'supported'
@@ -212,8 +257,18 @@ export async function faithfulness(
     return { score: 1, unsupported: [] };
   }
 
+  // Live path: use majority-vote judging for stability.
+  // Test path (injected model): use single-call judgeClaim so tests stay simple.
+  const liveModel = openai.chat(JUDGE_MODEL);
+  const liveEvidence = fetchEvidence ?? recordText;
+
   const verdicts = await Promise.all(
-    env.claims.map(async (cl) => ({ cl, v: await judgeClaim(cl, model, fetchEvidence) })),
+    env.claims.map(async (cl) => {
+      const v = model != null
+        ? await judgeClaim(cl, model, fetchEvidence)      // test path: single call, injected model
+        : await judgeClaimMajority(cl, liveModel, liveEvidence); // live path: 3-vote majority
+      return { cl, v };
+    }),
   );
 
   const supportedCount = verdicts.filter((x) => x.v === 'supported').length;
