@@ -213,7 +213,14 @@ A reusable, internal graph-based Customer 360 demo over 100%-synthetic data for 
   2. Demo hardening is complete: serverless/DB pre-warm routine, a recorded/scripted backup path, and adversarial + concurrent rehearsal on the real Vercel deploy — EVAL-02.
   3. The Q12 reconciliation moment and at least one graceful-refusal moment are rehearsed and reliable.
 
-**Plans**: TBD
+**Plans**: 3 plans (planned + verified 2026-06-19)
+
+- [ ] 07-01-PLAN.md — Wave 1: EVAL-01 — faithfulness LLM-judge (advisory, test-time only) + shared `Q7_ANCHOR_PROMPT` + extend `questions.eval.test.ts` (faithfulness===1.0 over 6 Qs + adversarial refusals) + rebuild agent dist
+- [ ] 07-02-PLAN.md — Wave 2: EVAL-02 — CRON_SECRET-gated `/api/canary` (DB + Q7 end-to-end) + vercel.json cron pre-warm (depends on 07-01)
+- [ ] 07-03-PLAN.md — Wave 3: EVAL-02 — `scripts/rehearse.ts` concurrent + adversarial rehearsal on the live deploy (depends on 07-02)
+
+> Scope note: the "recorded/scripted backup path" (criterion 2) is intentionally DEFERRED per discuss-phase D-04 — replaced by a failure-surfacing health/canary signal while in dev. Revisit a recorded backup when a demo date is set; end-of-phase verifier must not score the deferred backup as a miss.
+
 **Risk**: MEDIUM. Last line of defense against the defined failure mode (a confident wrong answer in front of the audience). PROJECT.md makes eval-before-demo a hard constraint — treated as a gated phase, not a checkbox. Lower technical unknown than Phases 1/2/5 but high consequence.
 
 ## Progress
