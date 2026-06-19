@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "predev": "npm run build -w customer360-agent",
+    "predev": "npm --prefix ../agent run build",
     "dev": "next dev",
-    "prebuild": "npm run build -w customer360-agent",
+    "prebuild": "npm --prefix ../agent run build",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
