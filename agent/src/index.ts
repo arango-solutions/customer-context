@@ -15,7 +15,14 @@ import { runAgent } from './agent.js';
 import { enforceGrounding } from './grounding.js';
 import type { Envelope } from './envelope.js';
 
-export type { Envelope } from './envelope.js';
+export type { Envelope, Citation, Claim, GraphKind } from './envelope.js';
+export {
+  EnvelopeSchema,
+  CitationSchema,
+  ClaimSchema,
+  RetrievalPathFragment,
+  GraphEnum,
+} from './envelope.js';
 export { assertReconciliation } from './grounding.js';
 export { PLANNER_MODEL } from './agent.js';
 
