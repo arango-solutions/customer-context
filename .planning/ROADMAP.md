@@ -219,7 +219,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 | 3. Build Both Graphs (parallel) | 5/5 | Complete    | 2026-06-17 |
 | 4. Canonical Entity Layer | 4/4 | Complete   | 2026-06-18 |
 | 5. Custom Reasoning Agent | 4/4 | Complete   | 2026-06-18 |
-| 6. Next.js/Vercel UI + Sourcing Display | 0/TBD | Not started | - |
+| 6. Next.js/Vercel UI + Sourcing Display | 1/5 | In Progress|  |
 | 7. Grounding/Eval + Demo Hardening | 0/TBD | Not started | - |
 
 ## Time Estimates (research-grounded REVISED — lean demo)
