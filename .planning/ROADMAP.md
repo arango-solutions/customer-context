@@ -238,3 +238,26 @@ Single builder + AI assistance, working primarily **sequentially** (Phase 6 UI c
 | **Total to demo-ready** | **~5–6 weeks** (~4–5 if Phase 5 goes clean) | **REVISED** | — | Supersedes the 13–20-week fully-custom estimate. Reduction is structural (scope + architecture). |
 
 **Riskiest / most-unknown phase:** Phase 5 (first-of-kind custom-agent build) — the planner orchestration, Q12 cross-graph reconciliation, and claim-level sourcing are the residual variance; the ~6 curated AQL tools are a firm work item. ~4 weeks is a stretch, not the expectation; iteration on the Q12 reconciliation likely lands the task nearer 5–6.
+
+## Backlog
+
+### Phase 999.1: Cross-graph subgraph visualization (BACKLOG)
+
+**Goal:** Render the actual sub-graph — nodes + edges across BOTH graphs — that produced each answer, as a React Flow viz beside the citation cards (the deferred v2 differentiator: "the strongest possible expression of the core value").
+**Requirements:** TBD
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd-review-backlog when ready)
+
+**LOCKED requirement (user, 2026-06-19):** fully general / data-driven — must render for ANY question (incl. free-form, beyond the 6 locked) purely from the runtime `retrievalPath`. **Never hardcoded per question**, no per-question templates/layouts.
+
+**Dependency:** v1 live demo ships first (v1 stays lean — citation cards carry sourcing). Deep-plan via `/gsd-plan-phase` when v1 ships.
+
+**Verified technical spine** (agent/src inspection, 2026-06-19):
+- `RetrievalPathFragment` = `{ graph, collection, _ids, query }` (agent/src/envelope.ts) — node `_ids` + AQL string only; **no edges persisted** anywhere today.
+- Tools differ: `hybridRetrieve` traverses Chunk-`PART_OF`->Document; `bridgeResolve` traverses `same_as` (hub->leaf) — both walk real edges but return only endpoint `_ids`. `structuredQuery` is flat `FILTER account_id ==` collection scans — **no traversal**.
+- Approach (hybrid, both inherently general): (1) **enrich** `hybridRetrieve` + `bridgeResolve` to also RETURN the traversed edge (`e._id/_from/_to` + edge collection) and add `edges[]` to `RetrievalPathFragment` — faithful to what the agent walked; (2) structured cluster = account-anchored star / induced subgraph from whatever `_ids` came back, keyed on `account_id`, drawn as **structural** (NOT a traversal that never ran).
+- Cross-graph link rendered = the real `same_as` bridge edge. Render: React Flow (`@xyflow/react`), two clusters joined by the bridge.
+- **Honesty bar** (no-confident-wrong-answer): build strictly from the grounded `retrievalPath` the answer cites — never a decorative re-query. Distinct visual styles for traversed (`PART_OF`/`same_as`) vs. structural (`account_id`) vs. hybrid-retrieval (vector+BM25) edges. Cap node count to cited records; pick KG granularity (Document→Chunk→Entity, hide community internals) for legibility.
+- **Effort:** low-to-moderate; no schema/architecture change (tiny RETURN-clause edge enrichment in 2 tools + the React Flow layout/curation pass).
