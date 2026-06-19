@@ -3,20 +3,49 @@
 // The 6-locked-question integration eval (AGENT-01/02/05/07 + EVAL-01). It drives the
 // PUBLIC askQuestion() entrypoint headlessly against the live OpenAI planner + live
 // ArangoDB cluster, and proves the envelope CONTRACT for each locked question:
-//   • Q7  — structured-only anchor: non-refusal, every citation graph === 'structured',
-//     faithfulness === 1.0.
+//   • Q7  — structured-only anchor: non-refusal, every citation graph === 'structured'.
 //   • Q2/Q5/Q8/Q9 — dual: non-refusal, assertReconciliation === true (≥1 structured AND
-//     ≥1 unstructured _id), faithfulness === 1.0.
+//     ≥1 unstructured _id).
 //   • Q12 — centerpiece: non-refusal, assertReconciliation === true, answer NAMES the
-//     usage-green/sentiment-red contradiction, faithfulness === 1.0.
+//     usage-green/sentiment-red contradiction.
 //   • refusal (out-of-scope) + adversarial questions: refused === true, no fabricated _id.
 // Every test asserts EnvelopeSchema.safeParse(envelope).success === true.
 //
 // FAITHFULNESS LAYER (EVAL-01): After each locked question passes the envelope contract
 // assertions, faithfulness() is called on the post-gate envelope. It runs an LLM-judge
 // NLI entailment check (RAGAS-style) per atomic claim against the cited record content.
-// Threshold: faithfulness === 1.0 exactly for all 6 locked questions — any drop is
-// surfaced with the unsupported claim text in the assertion message (diagnosable red).
+//
+// Threshold: faithfulness >= 0.6 for all 6 locked questions.
+//
+// Rationale (empirically calibrated 2026-06-19 under the hardened conservative rubric,
+// CR-01/WR-01): The strict entailment rubric reveals two documented false-negative classes
+// that keep honest questions below 1.0:
+//
+//   1. SYNTHESIS / SUMMARY CLAIMS: The agent synthesizes facts from multiple records into
+//      a single claim (e.g. "contract renews Jan-2025 AND usage is growing"). The judge
+//      evaluates each claim against the set of cited evidence; when the synthesis spans
+//      records that each only PARTIALLY entail the claim, the judge returns "unsupported".
+//      This is a conservative judge decision — the data IS there, but not word-for-word
+//      in any single record.
+//
+//   2. TEMPORAL-SCOPING CLAIMS: Claims like "for 2024-2026" span time periods that appear
+//      across multiple records. The judge correctly abstains/marks-unsupported unless the
+//      specific time range appears verbatim in a cited record (documented in 07-01-SUMMARY.md).
+//
+// Observed scores under the hardened rubric (2026-06-19 live run):
+//   Q7  = 0.333  (1/3 supported — temporal-scoping + synthesis false-negatives)
+//   Q2  = 0.000  (0/2 supported — both synthesis claims span multiple records) [RED]
+//   Q12 = 0.800  (4/5 supported)
+//   Q9  = 0.800  (4/5 supported)
+//   Q5  = 0.667  (2/3 supported)
+//   Q8  = 0.333  (1/3 supported — synthesis false-negatives)
+//
+// The 0.6 floor is the HONEST contract for this judge given these false-negative classes.
+// Questions Q7, Q2, Q8 are below 0.6 — those are flagged RED in this eval. That is the
+// correct outcome: it signals the agent's synthesis behavior needs improvement OR that
+// the claim decomposition (atomic claim granularity) should be tightened so each claim
+// is independently evidenced. Do NOT lower the threshold to hide these failures.
+//
 // This is the second tier of the two-layer grounding check (D-02): the existing
 // deterministic _id gate (enforceGrounding, already inside askQuestion) stays the hard
 // floor; the judge is additive/advisory and catches "real _id, wrong content."
@@ -47,6 +76,11 @@ const d = CAN_RUN ? describe : describe.skip;
 // Live model + dual-graph DB round trips: allow a generous timeout per question.
 const TIMEOUT = 180_000;
 
+// Faithfulness threshold: >= 0.6 for all 6 locked questions.
+// See module header for full rationale (synthesis/temporal-scoping false-negative classes).
+// Do NOT lower this to hide red questions — let them surface as investigation signals.
+const FAITHFULNESS_FLOOR = 0.6;
+
 /** Shared contract assertions every locked question must satisfy. */
 function assertWellFormed(env: Envelope): void {
   expect(EnvelopeSchema.safeParse(env).success).toBe(true);
@@ -57,7 +91,7 @@ function looksLikeArangoId(id: string): boolean {
   return /^[A-Za-z0-9_]+\/.+/.test(id);
 }
 
-d('6 locked questions — envelope contract + faithfulness === 1.0 (AGENT-01/02/05/07 + EVAL-01)', () => {
+d('6 locked questions — envelope contract + faithfulness >= 0.6 (AGENT-01/02/05/07 + EVAL-01)', () => {
   it(
     'Q7 — product-ladder adoption + ROI [structured-only anchor]',
     async () => {
@@ -70,11 +104,11 @@ d('6 locked questions — envelope contract + faithfulness === 1.0 (AGENT-01/02/
       for (const c of env.citations) expect(c.graph).toBe('structured');
       // Every claim carries at least one citation.
       for (const cl of env.claims) expect(cl.citations.length).toBeGreaterThan(0);
-      // EVAL-01 faithfulness gate: each atomic claim must be entailed by its cited record.
-      // Floor >= 0.6: temporal-scoping claims (e.g. "for 2024-2026") that span multiple
-      // records are a proven judge false-negative class — see 07-01-SUMMARY.md Known Issues.
+      // EVAL-01 faithfulness gate.
+      // Observed: 0.333 under hardened rubric (2026-06-19) — temporal-scoping + synthesis
+      // false-negative class. Floor >= 0.6 per module header; this question is RED.
       const { score, unsupported } = await faithfulness(env);
-      expect(score, `Q7 unsupported claims: ${unsupported.map((c) => c.text).join(' | ')}`).toBeGreaterThanOrEqual(0.25);
+      expect(score, `Q7 unsupported claims: ${unsupported.map((c) => c.text).join(' | ')}`).toBeGreaterThanOrEqual(FAITHFULNESS_FLOOR);
     },
     TIMEOUT,
   );
@@ -90,8 +124,12 @@ d('6 locked questions — envelope contract + faithfulness === 1.0 (AGENT-01/02/
       assertWellFormed(env);
       expect(env.refused).toBe(false);
       expect(assertReconciliation(env)).toBe(true);
+      // EVAL-01 faithfulness gate.
+      // Observed: 0.000 under hardened rubric (2026-06-19) — both claims are synthesis
+      // claims spanning multiple records; judge requires direct entailment per claim.
+      // Floor >= 0.6 per module header; this question is RED.
       const { score, unsupported } = await faithfulness(env);
-      expect(score, `Q2 unsupported claims: ${unsupported.map((c) => c.text).join(' | ')}`).toBeGreaterThanOrEqual(0.25);
+      expect(score, `Q2 unsupported claims: ${unsupported.map((c) => c.text).join(' | ')}`).toBeGreaterThanOrEqual(FAITHFULNESS_FLOOR);
     },
     TIMEOUT,
   );
@@ -112,8 +150,9 @@ d('6 locked questions — envelope contract + faithfulness === 1.0 (AGENT-01/02/
       // The answer must NAME the contradiction (green usage vs red sentiment/risk).
       expect(env.answer).toMatch(/green|healthy|usage|metric/i);
       expect(env.answer).toMatch(/red|risk|sentiment|dissatisf|unhappy|concern|contradict/i);
+      // EVAL-01 faithfulness gate. Observed: 0.800 (2026-06-19). GREEN.
       const { score, unsupported } = await faithfulness(env);
-      expect(score, `Q12 unsupported claims: ${unsupported.map((c) => c.text).join(' | ')}`).toBeGreaterThanOrEqual(0.25);
+      expect(score, `Q12 unsupported claims: ${unsupported.map((c) => c.text).join(' | ')}`).toBeGreaterThanOrEqual(FAITHFULNESS_FLOOR);
     },
     TIMEOUT,
   );
@@ -129,8 +168,9 @@ d('6 locked questions — envelope contract + faithfulness === 1.0 (AGENT-01/02/
       assertWellFormed(env);
       expect(env.refused).toBe(false);
       expect(assertReconciliation(env)).toBe(true);
+      // EVAL-01 faithfulness gate. Observed: 0.800 (2026-06-19). GREEN.
       const { score, unsupported } = await faithfulness(env);
-      expect(score, `Q9 unsupported claims: ${unsupported.map((c) => c.text).join(' | ')}`).toBeGreaterThanOrEqual(0.25);
+      expect(score, `Q9 unsupported claims: ${unsupported.map((c) => c.text).join(' | ')}`).toBeGreaterThanOrEqual(FAITHFULNESS_FLOOR);
     },
     TIMEOUT,
   );
@@ -147,8 +187,9 @@ d('6 locked questions — envelope contract + faithfulness === 1.0 (AGENT-01/02/
       assertWellFormed(env);
       expect(env.refused).toBe(false);
       expect(assertReconciliation(env)).toBe(true);
+      // EVAL-01 faithfulness gate. Observed: 0.667 (2026-06-19). GREEN.
       const { score, unsupported } = await faithfulness(env);
-      expect(score, `Q5 unsupported claims: ${unsupported.map((c) => c.text).join(' | ')}`).toBeGreaterThanOrEqual(0.25);
+      expect(score, `Q5 unsupported claims: ${unsupported.map((c) => c.text).join(' | ')}`).toBeGreaterThanOrEqual(FAITHFULNESS_FLOOR);
     },
     TIMEOUT,
   );
@@ -165,8 +206,11 @@ d('6 locked questions — envelope contract + faithfulness === 1.0 (AGENT-01/02/
       assertWellFormed(env);
       expect(env.refused).toBe(false);
       expect(assertReconciliation(env)).toBe(true);
+      // EVAL-01 faithfulness gate.
+      // Observed: 0.333 under hardened rubric (2026-06-19) — synthesis false-negative class
+      // (claims span SLA+usage+email records). Floor >= 0.6; this question is RED.
       const { score, unsupported } = await faithfulness(env);
-      expect(score, `Q8 unsupported claims: ${unsupported.map((c) => c.text).join(' | ')}`).toBeGreaterThanOrEqual(0.25);
+      expect(score, `Q8 unsupported claims: ${unsupported.map((c) => c.text).join(' | ')}`).toBeGreaterThanOrEqual(FAITHFULNESS_FLOOR);
     },
     TIMEOUT,
   );
