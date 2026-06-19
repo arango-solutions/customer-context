@@ -121,11 +121,10 @@ export function ExampleChips({ onPick, value, className }: ExampleChipsProps) {
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
               selected
                 ? // SELECTED: filled accent so the chosen chip is unmistakable.
+                  // Green (the accent) now means ONLY "selected" — no permanent
+                  // featured ring competing with it (UAT 06 follow-up).
                   'bg-primary text-primary-foreground ring-2 ring-primary ring-offset-1'
                 : 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
-              !selected && ex.featured
-                ? 'ring-2 ring-primary ring-offset-1' // the Q12 showcase accent ring
-                : '',
             ].join(' ')}
             data-featured={ex.featured ? 'true' : undefined}
             data-selected={selected ? 'true' : undefined}
