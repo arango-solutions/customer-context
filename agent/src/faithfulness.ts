@@ -208,7 +208,7 @@ export async function judgeClaim(
  * split 1-1-1. In practice, three votes eliminate the observed run-to-run flipping
  * of borderline claims (observed 2026-06-19, post seed-fix).
  */
-async function judgeClaimMajority(
+export async function judgeClaimMajority(
   claim: Claim,
   model: LanguageModelV3,
   fetchEvidence: (id: string) => Promise<string>,
