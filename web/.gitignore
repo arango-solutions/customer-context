@@ -21,3 +21,9 @@ npm-debug.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# playwright (E2E artifacts — not source)
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
