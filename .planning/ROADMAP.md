@@ -189,7 +189,16 @@ A reusable, internal graph-based Customer 360 demo over 100%-synthetic data for 
   3. A user can click a claim to view the underlying source record/thread inline, and the planner's reasoning steps are visible — SRC-03, SRC-04.
   4. Responses stream with no dead air and acceptable live-demo latency, with graceful error/timeout handling and a global-scope keep-alive ArangoDB client on the serverless path — UI-03.
 
-**Plans**: TBD
+**Plans**: 3 plans
+
+**Wave 1** *(no dependencies — parallel; no file overlap)*
+
+- [ ] 07-01-PLAN.md — EVAL-01: faithfulness LLM-judge module + extend questions.eval.test.ts (6 questions faithfulness===1.0 + adversarial refusals)
+- [ ] 07-02-PLAN.md — EVAL-02: CRON_SECRET-gated /api/canary (DB + Q7 end-to-end) + vercel.json cron pre-warm
+
+**Wave 2** *(blocked on 07-02 — needs the deployed canary/warm path)*
+
+- [ ] 07-03-PLAN.md — EVAL-02: scripts/rehearse.ts — concurrent + adversarial rehearsal against the live deploy
 **UI hint**: yes
 **Risk**: LOWER. Established patterns (Next.js 15 + AI SDK UI streaming + shadcn citation cards; React Flow deferred to v2). Main carry-over risks are serverless↔ArangoDB connection handling (validate on a real Vercel deploy) and mapping claim-level citations cleanly into the UI.
 
