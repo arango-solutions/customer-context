@@ -35,6 +35,13 @@ Everything is gated by the existing **6-test linter** (referential integrity, ch
 ### Hard Gates (locked, carried forward)
 - **D-06:** The **6-test linter** is the pre-ingest hard gate; the **Phase 8 eval gate must stay GREEN** post-change (SC-5). Deterministic keys (`canonical_uuid` / `make_file_name` / `make_citable_url`, `GLOBAL_SEED = 42`), per-account `entity_id` namespace, and the 8-module account×source grain are **locked** and reused as-is.
 
+### Unstructured Ingest / Updatability (AutoGraph KG) — research item
+- **D-07:** The **unstructured side** (AutoGraph `{proj}_kg`) is the only non-trivial ingest path; the structured graph is hand-modeled and updated with idempotent AQL UPSERT (trivial). The design of record is `.planning/spikes/001-autograph-kg-claim-sourcing/UPDATE-PIPELINE.md`. Two implications the **researcher/planner must confirm**:
+  1. **Adding Account C = 4 NEW unstructured modules** (`c_slack`, `c_docs`, `c_email`, `c_pdf` — account×source grain). Because similarity + **Leiden run per-module**, building C's new modules via the **ADD lane** (`import-multiple` → `corpus/builds incremental:true modules:[…] cluster_threshold:1` → `rag-strategizer`) should **NOT re-cluster Northwind/Meridian modules**. This largely *mitigates* the prior STATE blocker about Leiden re-clustering scope — but **verify empirically** that existing partitions/answers are untouched after C's modules build.
+  2. **DATA-05 deepening of EXISTING docs** splits across lanes: pure **content edits** (membership stable) take the partition-scoped **EDIT lane** (delete-partition + re-orchestrate, no module re-cluster); **adding new docs** to an existing module takes the **ADD lane** and **re-clusters that whole module**. The planner must decide deepening style per module accordingly, and budget the re-ingest + re-strategize cost.
+  - **Concurrency constraint:** only one corpus build and one orchestration at a time (409 on collision) → ingest steps must **serialize**.
+  - See memory: AutoGraph updatability = module-scoped rebuild, per-module Leiden, deterministic Layer-2 keys.
+
 ### Claude's Discretion
 - Exact **Account C name + specific vertical** (must be distinct from Analytics/Logistics and clear the near-miss guard).
 - Exact **wording of the 2–3 new questions** (Q13–15 or equivalent), within the framings in D-04.
@@ -73,6 +80,12 @@ Everything is gated by the existing **6-test linter** (referential integrity, ch
 ### Eval gate (SC-5 — must stay green after data change)
 - `agent/test/questions.eval.test.ts` — the 6 locked questions (Q7 anchor; Q2/Q5/Q8/Q9 dual; Q12 centerpiece) and `FAITHFULNESS_FLOOR = 0.6`; **add C's 2–3 questions here**. `Q7_ANCHOR_PROMPT` is imported from `agent/src/index.ts` (single source of truth).
 - `scripts/eval-gate.ts` — the Phase 8 green/red pre-demo command; re-run after data changes (SC-5).
+
+### Unstructured ingest / updatability (AutoGraph KG)
+- `.planning/spikes/001-autograph-kg-claim-sourcing/UPDATE-PIPELINE.md` — **the ingest design of record**: EDIT/ADD/DELETE lanes, module=account×source grain, per-module Leiden, `partition_id` scheme, concurrency (one build/orchestrate at a time). **MUST read before planning the C ingest + DATA-05 re-ingest.**
+- `.planning/spikes/001-autograph-kg-claim-sourcing/README.md` — spike 001 context (claim-level sourcing validation).
+- `lib/autograph_client.py` — the ingest HTTP client: `import_multiple(module=…)`, `create_corpus_build(modules, incremental, cluster_threshold)`, `orchestrate`. The mechanism for building C's 4 new modules + re-ingesting deepened docs.
+- `scripts/setup_autograph.py` — AutoGraph service provisioning/discovery (URL probe, discovery file).
 
 ### Output shape (reference)
 - `data_gen/output/structured/{northwind,meridian}/...` and `data_gen/output/unstructured/...` — existing per-account output layout C must mirror.
