@@ -32,7 +32,10 @@ A graph-based Customer 360 demo over 100%-synthetic data: a Next.js/Vercel dashb
   3. A genuine regression (a question that should pass actually failing) produces a red exit code — the gate is honest, not a rubber stamp.
   4. The eval gate is the confirmed pre-demo command: run it, see green, demo with confidence.
   5. The answer envelope emits a deterministic `groundingScore` (and/or `faithfulnessScore`) field from the eval path, so the UI can surface it as a visible per-answer trust signal in Phase 11 (UI-06) without recomputing. *(Scope tweak, 2026-06-22 — feeds UI-06.)*
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [ ] 08-01-PLAN.md — Planner determinism (temperature:0) + groundingScore field + enforceGrounding injection + eval-gate.ts pre-demo command
+
 **Risk**: Medium-low — the eval infrastructure exists (07-01 shipped faithfulness.ts + majority vote). The work is closing the residual ~5% flake, extending the adversarial set, and wiring a clean summary reporter. The open risk is that stabilizing the planner (not just the judge) is needed — an under-citing planner run will still dip trend questions. Keep the gate honest rather than loosening the floor.
 
 ### Phase 9: Data Depth & 3rd Account
@@ -138,7 +141,7 @@ A graph-based Customer 360 demo over 100%-synthetic data: a Next.js/Vercel dashb
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 8. Deterministic Eval Harness | 0/TBD | Not started | - |
+| 8. Deterministic Eval Harness | 0/1 | In progress | - |
 | 9. Data Depth & 3rd Account | 0/TBD | Not started | - |
 | 10. Answer-Provenance Edge Enrichment | 0/TBD | Not started | - |
 | 11. Graph Viz + UI Refresh + Latency | 0/TBD | Not started | - |
