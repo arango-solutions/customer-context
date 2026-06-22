@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Live, Visible, Trustworthy
-status: planning
-last_updated: "2026-06-22T00:00:00.000Z"
+status: verifying
+last_updated: "2026-06-22T20:18:47.666Z"
 last_activity: 2026-06-22
 progress:
-  total_phases: 8
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  total_phases: 9
+  completed_phases: 1
+  total_plans: 1
+  completed_plans: 1
+  percent: 11
 ---
 
 # Project State
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-22)
 
 **Core value:** A free-form question only answerable by joining the structured and unstructured graphs returns a correct, fully-sourced answer — every fact traceable to the record and graph it came from.
-**Current focus:** v2.0 roadmap defined — Phase 08 is next (Deterministic Eval Harness)
+**Current focus:** Phase 08 — deterministic-eval-harness
 
 ## Current Position
 
-Phase: Not started (roadmap defined, ready to plan Phase 08)
-Plan: —
-Status: Roadmap defined — awaiting `/gsd-plan-phase 8`
-Last activity: 2026-06-22 — v2.0 roadmap (Phases 08–15) created
+Phase: 08 (deterministic-eval-harness) — EXECUTING
+Plan: 1 of 1
+Status: Phase complete — ready for verification
+Last activity: 2026-06-22
 
 ## Performance Metrics
 
@@ -71,6 +71,7 @@ Last activity: 2026-06-22 — v2.0 roadmap (Phases 08–15) created
 | Phase 05 P04 | 22 | 3 tasks | 9 files |
 | Phase 06 P01 | 75min | 2 tasks | 30 files |
 | Phase 06 P02 | 8min | 1 tasks | 3 files |
+| Phase 08-deterministic-eval-harness P01 | 38min | 4 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -105,6 +106,7 @@ Recent decisions affecting current work:
 - [v2.0 Roadmap 2026-06-22]: Phase 999.1 backlog (React Flow viz) promoted to v2.0 as Phase 10 (edge enrichment) + Phase 11 (React Flow render + UI refresh + latency). The verified technical spine and LOCKED data-driven requirement from the backlog carry forward verbatim.
 - [v2.0 Roadmap 2026-06-22]: UI-06 (confidence score) placed in Phase 11 alongside the viz because it depends on eval metrics being surfaced in the answer envelope, and Phase 11 is the UI composition phase.
 - [v2.0 Roadmap 2026-06-22]: DEMO-01 control panel deferred to Phase 15 (last) because the CDC trigger (Phase 12) and multi-turn (AGENT-08) must exist before a control panel can surface them.
+- [Phase ?]: Phase 08-01: temperature:0 on ToolLoopAgent; seed NOT set (Responses API ignores it); EnvelopeSchema gains groundingScore required field; PreGroundingEnvelope for type safety; eval-gate.ts is the pre-demo command
 
 ### Pending Todos
 
@@ -139,7 +141,7 @@ Items acknowledged and deferred at v1.0 milestone close on 2026-06-22:
 
 ## Session Continuity
 
-Last session: 2026-06-22
-Stopped at: v2.0 roadmap created (Phases 08–15, 17/17 requirements mapped)
+Last session: 2026-06-22T20:18:47.660Z
+Stopped at: Completed 08-01-PLAN.md — Phase 8 deterministic eval harness
 Resume file: None
 Next action: `/gsd-plan-phase 8`

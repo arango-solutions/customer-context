@@ -23,8 +23,8 @@ Each maps to a roadmap phase (assigned by the roadmapper). Grouped by the 8 conf
 
 ### Area 3 — Robust / Deterministic Eval Harness
 
-- [ ] **EVAL-03**: The eval harness is deterministic/stable across runs — the v1 ~5% stochastic refusal + faithfulness-score flake no longer cause spurious failures (seed/temperature control, multi-sample majority, and/or bounded retry on transient infra so a real green stays green).
-- [ ] **EVAL-04**: An on-demand green/red gate reports pass/fail over the full locked + adversarial question set with deterministic metrics (faithfulness, refusal-correctness, grounding) and a clear summary — runnable as the single pre-demo "is it working" command.
+- [x] **EVAL-03**: The eval harness is deterministic/stable across runs — the v1 ~5% stochastic refusal + faithfulness-score flake no longer cause spurious failures (seed/temperature control, multi-sample majority, and/or bounded retry on transient infra so a real green stays green).
+- [x] **EVAL-04**: An on-demand green/red gate reports pass/fail over the full locked + adversarial question set with deterministic metrics (faithfulness, refusal-correctness, grounding) and a clear summary — runnable as the single pre-demo "is it working" command.
 
 ### Area 4 — ArangoDB-Brand UI Refresh + Latency
 
@@ -73,8 +73,8 @@ Phase mapping assigned by the roadmapper (2026-06-22). Continues phase numbering
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| EVAL-03 | Phase 8 | Pending |
-| EVAL-04 | Phase 8 | Pending |
+| EVAL-03 | Phase 8 | Complete |
+| EVAL-04 | Phase 8 | Complete |
 | DATA-04 | Phase 9 | Pending |
 | DATA-05 | Phase 9 | Pending |
 | VIZ-01 | Phase 10 | Pending |

@@ -10,7 +10,7 @@ A graph-based Customer 360 demo over 100%-synthetic data: a Next.js/Vercel dashb
 
 ## v2.0 Phases
 
-- [ ] **Phase 8: Deterministic Eval Harness** — Eliminate the ~5% stochastic flake; build a trustworthy green/red gate runnable before any demo
+- [x] **Phase 8: Deterministic Eval Harness** — Eliminate the ~5% stochastic flake; build a trustworthy green/red gate runnable before any demo (completed 2026-06-22)
 - [ ] **Phase 9: Data Depth & 3rd Account** — Add a 3rd synthetic account + deepen existing docs; linter-gated, building the data foundation v2 features depend on
 - [ ] **Phase 10: Answer-Provenance Edge Enrichment** — Enrich `hybridRetrieve` + `bridgeResolve` to return traversed edges; add `edges[]` to `RetrievalPathFragment`
 - [ ] **Phase 11: Graph Viz + UI Refresh + Latency** — React Flow cross-graph subgraph render, ArangoDB-brand UI refresh, confidence score, and latency pass
@@ -34,7 +34,7 @@ A graph-based Customer 360 demo over 100%-synthetic data: a Next.js/Vercel dashb
   5. The answer envelope emits a deterministic `groundingScore` (and/or `faithfulnessScore`) field from the eval path, so the UI can surface it as a visible per-answer trust signal in Phase 11 (UI-06) without recomputing. *(Scope tweak, 2026-06-22 — feeds UI-06.)*
 **Plans**: 1 plan
 Plans:
-- [ ] 08-01-PLAN.md — Planner determinism (temperature:0) + groundingScore field + enforceGrounding injection + eval-gate.ts pre-demo command
+- [x] 08-01-PLAN.md — Planner determinism (temperature:0) + groundingScore field + enforceGrounding injection + eval-gate.ts pre-demo command
 
 **Risk**: Medium-low — the eval infrastructure exists (07-01 shipped faithfulness.ts + majority vote). The work is closing the residual ~5% flake, extending the adversarial set, and wiring a clean summary reporter. The open risk is that stabilizing the planner (not just the judge) is needed — an under-citing planner run will still dip trend questions. Keep the gate honest rather than loosening the floor.
 
@@ -141,7 +141,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 8. Deterministic Eval Harness | 0/1 | In progress | - |
+| 8. Deterministic Eval Harness | 1/1 | Complete   | 2026-06-22 |
 | 9. Data Depth & 3rd Account | 0/TBD | Not started | - |
 | 10. Answer-Provenance Edge Enrichment | 0/TBD | Not started | - |
 | 11. Graph Viz + UI Refresh + Latency | 0/TBD | Not started | - |
