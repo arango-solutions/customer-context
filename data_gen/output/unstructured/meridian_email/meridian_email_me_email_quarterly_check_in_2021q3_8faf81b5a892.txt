@@ -1,0 +1,16 @@
+<!-- module=meridian_email account_id=9eff6d7b-7311-5525-be75-5b82a855ece7 entity_id=792fb758-d7c9-5f26-9090-768e4a6901c4 citable_url=https://arangodb.com/demo/meridian/email/me_email_quarterly_check_in_2021q3 -->
+
+From: Alex Rivera
+To: James Okafor
+Date: August 2021
+Subject: Quarterly Check-In with Meridian Logistics
+
+Dear James,
+
+I hope this message finds you well. As part of our routine quarterly check-in, I wanted to take a moment to touch base and see how everything is progressing with your account at Meridian Logistics.
+
+If there are any updates or changes on your end, please feel free to share. We are here to support you and ensure that everything runs smoothly as we move forward together.
+
+Best regards,
+Alex Rivera
+Alex Rivera

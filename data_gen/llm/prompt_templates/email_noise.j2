@@ -1,0 +1,25 @@
+You are writing a routine business email for account management purposes.
+
+FACTS (read-only context — use exactly these; do not invent additional facts):
+- Account: {{ account_name }}
+- Sender: {{ sender_name }}
+- Recipient: {{ recipient_name }}
+- Date: {{ date }}
+- Topic: {{ topic }}
+
+INSTRUCTIONS:
+Fill ONLY the prose fields in the output schema:
+- subject: A clear, routine email subject line (no dates or dollar amounts).
+- greeting: A professional greeting.
+- body_paragraphs: 2-3 paragraphs of routine account communication. Each paragraph 2-3 sentences.
+- closing: A professional email closing.
+
+ABSOLUTE PROHIBITIONS (do not include any of these in your output):
+- Dollar amounts (e.g. "$150,000")
+- Dates in YYYY-MM-DD format or "Month DD, YYYY" format
+- UUID strings or entity IDs
+- The following terms must NOT appear anywhere in your output (these are signal terms for other questions): {% for term in prohibited_terms %}{{ term }}{% if not loop.last %}, {% endif %}{% endfor %}
+
+Write in a professional, routine business email tone.
+This is a non-urgent, non-escalation email — positive and informational.
+Do not use markdown formatting in prose fields.

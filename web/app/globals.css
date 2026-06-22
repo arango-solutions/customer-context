@@ -1,0 +1,124 @@
+@import "tailwindcss";
+
+/*
+ * ArangoDB-branded theme tokens (Phase 6 UI-SPEC — Color / Brand-Theming).
+ * 60/30/10 split: white/dark page surface (60), slate rail surface (30),
+ * ArangoDB green accent (10). Refusal accent = warm clay (NOT alarm-red).
+ *
+ * Graph-badge convention (demo-load-bearing): structured = green #5C9E31,
+ * unstructured = slate-blue #3A6EA5. Apply everywhere a graph origin appears.
+ */
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  /* 60% dominant — page background / main answer column */
+  --background: #ffffff;
+  --foreground: #0f1b24;
+
+  /* 30% secondary — sourcing rail, citation cards, drawer, chips */
+  --secondary: #f4f6f8;
+  --secondary-foreground: #0f1b24;
+  --card: #f4f6f8;
+  --card-foreground: #0f1b24;
+  --popover: #ffffff;
+  --popover-foreground: #0f1b24;
+  --muted: #f4f6f8;
+  --muted-foreground: #51606b;
+
+  /* 10% accent — ArangoDB green (Ask button, focus ring, structured badge, claim superscript) */
+  --primary: #5c9e31;
+  --primary-foreground: #ffffff;
+
+  /* destructive / refusal — warm clay, used only on the refusal header rule */
+  --destructive: #b4451f;
+  --destructive-foreground: #ffffff;
+
+  --accent: #f4f6f8;
+  --accent-foreground: #0f1b24;
+  --border: #e2e8ee;
+  --input: #e2e8ee;
+  --ring: #5c9e31;
+
+  /* dual-graph badge tokens — the load-bearing demo signal */
+  --graph-structured: #5c9e31;
+  --graph-structured-foreground: #ffffff;
+  --graph-unstructured: #3a6ea5;
+  --graph-unstructured-foreground: #ffffff;
+
+  --radius: 0.5rem;
+}
+
+.dark {
+  /* 60% dominant — dark page surface */
+  --background: #0f1b24;
+  --foreground: #e6edf3;
+
+  /* 30% secondary — dark slate rail */
+  --secondary: #1a2733;
+  --secondary-foreground: #e6edf3;
+  --card: #1a2733;
+  --card-foreground: #e6edf3;
+  --popover: #1a2733;
+  --popover-foreground: #e6edf3;
+  --muted: #1a2733;
+  --muted-foreground: #93a1ad;
+
+  --primary: #5c9e31;
+  --primary-foreground: #ffffff;
+
+  --destructive: #b4451f;
+  --destructive-foreground: #ffffff;
+
+  --accent: #1a2733;
+  --accent-foreground: #e6edf3;
+  --border: #2a3a47;
+  --input: #2a3a47;
+  --ring: #5c9e31;
+
+  --graph-structured: #5c9e31;
+  --graph-structured-foreground: #ffffff;
+  --graph-unstructured: #3a6ea5;
+  --graph-unstructured-foreground: #ffffff;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-graph-structured: var(--graph-structured);
+  --color-graph-structured-foreground: var(--graph-structured-foreground);
+  --color-graph-unstructured: var(--graph-unstructured);
+  --color-graph-unstructured-foreground: var(--graph-unstructured-foreground);
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-jetbrains-mono);
+}
+
+* {
+  border-color: var(--border);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-inter), system-ui, sans-serif;
+}

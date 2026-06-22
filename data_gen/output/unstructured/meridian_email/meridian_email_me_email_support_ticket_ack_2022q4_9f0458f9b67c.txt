@@ -1,0 +1,16 @@
+<!-- module=meridian_email account_id=9eff6d7b-7311-5525-be75-5b82a855ece7 entity_id=18bb83b0-4fd4-546f-9307-6de2a867a4a3 citable_url=https://arangodb.com/demo/meridian/email/me_email_support_ticket_ack_2022q4 -->
+
+From: Alex Rivera
+To: James Okafor
+Date: October 2022
+Subject: Support Ticket Closure Notification
+
+Dear James,
+
+I hope this message finds you well. I wanted to inform you that the support ticket related to your recent inquiry has been successfully closed. Our team has addressed the issue, and we appreciate your patience during the process.
+
+If you have any further questions or require additional assistance, please do not hesitate to reach out. We are always here to help and ensure that your experience with Meridian Logistics remains positive.
+
+Best regards,
+Alex Rivera
+Alex Rivera

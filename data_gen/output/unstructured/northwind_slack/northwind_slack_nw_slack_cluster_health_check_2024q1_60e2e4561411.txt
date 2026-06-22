@@ -1,0 +1,7 @@
+<!-- module=northwind_slack account_id=0d5b5863-d3da-51e3-b117-ddbfa7ba2d16 entity_id=fe6f8139-51c5-5217-b1d1-ca375b297781 citable_url=https://arangodb.com/demo/northwind/slack/nw_slack_cluster_health_check_2024q1 -->
+
+[January 2024] Sarah Chen: I wanted to provide an update on the support case for Northwind Analytics.
+
+[January 2024] Sarah Chen: Sarah Chen and Michael Torres have been actively working on resolving the recent support case. They are making good progress and are in regular communication to ensure all issues are addressed promptly.
+
+[January 2024] Sarah Chen: I will keep you posted on any further developments.
