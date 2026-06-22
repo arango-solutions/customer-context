@@ -186,33 +186,40 @@ export function askQuestionStream(
       // Initial transient progress part — the rail shows life before the first tool call.
       writer.write({ type: 'data-step', data: { phase: 'planning' }, transient: true });
 
-      let result: StreamResultLike;
       try {
-        result = await agent.stream({
+        const result = await agent.stream({
           prompt: question,
           onStepFinish: ({ toolCalls }) => {
             const phase = phaseFor(toolCalls?.[0]?.toolName);
             writer.write({ type: 'data-step', data: { phase }, transient: true });
           },
         });
+
+        // Drain + collect + merge + TERMINAL grounding gate (the SAME gate askQuestion uses).
+        // NOTE: NoObjectGeneratedError can be thrown HERE — when result.output is awaited
+        // inside assembleGroundedEnvelope — not at agent.stream() setup. The model's
+        // plain-text refusal (e.g. a moderation decline on a PII/out-of-scope question)
+        // only surfaces on output resolution, so the catch below MUST cover this call too.
+        // It previously wrapped agent.stream() alone, letting the streamed refusal escape
+        // as a generic SSE error part — the deploy's adversarial-PII failure, fixed in 07-03.
+        const envelope = await assembleGroundedEnvelope(result);
+
+        // Persistent final part — the grounded answer center-stage.
+        writer.write({ type: 'data-envelope', data: envelope });
+        // Terminal transient rail tick.
+        writer.write({ type: 'data-step', data: { phase: 'answer' }, transient: true });
       } catch (err) {
-        // The model can short-circuit with a plain-text refusal; Output.object then
-        // throws NoObjectGeneratedError. Surface a structured refusal (no fabricated
-        // sourcing) rather than letting the throw escape — same guard as runAgent().
+        // The model can short-circuit with a plain-text refusal (e.g. a moderation decline
+        // on an out-of-scope/PII question); Output.object then throws NoObjectGeneratedError
+        // — whether at stream setup OR, for streamed runs, when result.output is awaited.
+        // Surface the SAME structured refusal runAgent() does (no fabricated sourcing)
+        // rather than letting the throw escape as a generic error part.
         if (NoObjectGeneratedError.isInstance(err)) {
           writer.write({ type: 'data-envelope', data: REFUSAL_ENVELOPE });
           return;
         }
         throw err;
       }
-
-      // Drain + collect + merge + TERMINAL grounding gate (the SAME gate askQuestion uses).
-      const envelope = await assembleGroundedEnvelope(result);
-
-      // Persistent final part — the grounded answer center-stage.
-      writer.write({ type: 'data-envelope', data: envelope });
-      // Terminal transient rail tick.
-      writer.write({ type: 'data-step', data: { phase: 'answer' }, transient: true });
     },
   });
 
