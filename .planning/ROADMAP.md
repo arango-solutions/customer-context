@@ -49,7 +49,10 @@ Plans:
   3. At least one new question arc is defined and answerable end-to-end from the 3rd account's data (structured + unstructured sides).
   4. Existing accounts' documents are deepened (more realistic prose, richer records) — answers citing them are more impressive — without introducing linter regressions.
   5. The eval gate (Phase 8) stays green after loading the new data — existing answers are not corrupted.
-**Plans**: TBD
+**Plans**: 3 plans
+- [ ] 09-01-PLAN.md — Account C (Helio Retail) churn-arc spine + new C questions + near-miss guard (DATA-04)
+- [ ] 09-02-PLAN.md — Broad deepening of Northwind + Meridian across all 8 modules (DATA-05)
+- [ ] 09-03-PLAN.md — Full regen + full linter sweep + KG rebuild + eval-gate GREEN (SC-1..SC-5)
 **Risk**: Medium — LLM prose coherence across a 3rd account is first-principles work (same risk class as Phase 2). Mitigated by reusing the existing spine + linter + generators as templates. The linter is the hard gate; coherence regressions found late are a full regen.
 
 ### Phase 10: Answer-Provenance Edge Enrichment
@@ -142,7 +145,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 8. Deterministic Eval Harness | 1/1 | Complete   | 2026-06-22 |
-| 9. Data Depth & 3rd Account | 0/TBD | Not started | - |
+| 9. Data Depth & 3rd Account | 0/3 | Not started | - |
 | 10. Answer-Provenance Edge Enrichment | 0/TBD | Not started | - |
 | 11. Graph Viz + UI Refresh + Latency | 0/TBD | Not started | - |
 | 12. Simulated CDC + What-Changed Diff | 0/TBD | Not started | - |
