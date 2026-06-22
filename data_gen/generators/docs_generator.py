@@ -29,11 +29,19 @@ _NORTHWIND_DOCS_PROHIBITED = [
     "scale limit", "GenAI intent", "GraphRAG", "whitespace", "upsell",
     "capacity ceiling", "at risk", "escalation",
 ]
+# Helio noise-only prohibitions — EXCLUDE contraction/churn signal vocabulary
+# (downgrade/contraction/migration/declining/churn/deprioritization).
+_HELIO_DOCS_PROHIBITED = [
+    "red annotation", "unresolved", "escalation", "competitor",
+    "silent", "disengaged", "feature gap",
+]
 
 
 def _get_prohibited_terms(module: str) -> list[str]:
     if module.startswith("meridian"):
         return _MERIDIAN_DOCS_PROHIBITED
+    if module.startswith("helio"):
+        return _HELIO_DOCS_PROHIBITED
     return _NORTHWIND_DOCS_PROHIBITED
 
 
@@ -121,6 +129,18 @@ def _derive_event_summary(doc: DocEvent, spine: AccountSpine) -> str:
             "expansion to GenAI workloads, with a specific intent to evaluate GraphRAG "
             "capabilities as part of the upcoming renewal discussion"
         )
+    if "Q13" in doc.questions_served:
+        return (
+            "QBR review documenting a sustained decline in usage and a plan downgrade, "
+            "with the account deprioritizing the graph platform and discussing a "
+            "migration-away — a contraction that puts the upcoming renewal at risk"
+        )
+    if "Q14" in doc.questions_served:
+        return (
+            "Customer save-plan outlining remediation steps to reverse the contraction: "
+            "re-engaging stakeholders, addressing the declining-usage drivers, and "
+            "structuring an offer to secure the at-risk renewal"
+        )
     return "Routine account documentation for partnership record-keeping"
 
 
@@ -167,6 +187,17 @@ def _derive_key_facts(doc: DocEvent, spine: AccountSpine) -> list[str]:
             facts.append("GraphRAG/GenAI capabilities not yet enabled on the account")
         facts.append("Account expressed specific interest in AI/ML workload expansion")
         facts.append("Current cluster approaching capacity limits based on recent usage trends")
+    if "Q13" in doc.questions_served:
+        declining_nps = [n for n in spine.nps if n.verbatim_sentiment == "negative"]
+        if declining_nps:
+            facts.append("NPS score and verbatim sentiment have both declined to their lowest levels")
+        facts.append("Usage metrics show a sustained quarter-over-quarter decline from the prior peak")
+        facts.append("The account downgraded its plan to a lower tier with a reduced contract value")
+        facts.append("The team is discussing a migration-away from the graph platform; renewal is at risk")
+    if "Q14" in doc.questions_served:
+        facts.append("A remediation / save-plan has been opened to reverse the account contraction")
+        facts.append("Save actions target the declining-usage drivers and stakeholder re-engagement")
+        facts.append("The plan aims to secure the at-risk renewal before it slips")
     if not facts:
         facts = ["Routine account activity documented", "No critical items identified"]
     return facts

@@ -32,6 +32,14 @@ _NORTHWIND_SLACK_PROHIBITED = [
     "scale limit", "GenAI", "GraphRAG", "upsell", "whitespace",
     "capacity", "renewal risk", "at risk", "escalation",
 ]
+# Helio noise-only prohibitions: EXCLUDE the contraction/churn signal vocabulary
+# (downgrade/contraction/migration/declining/churn/deprioritization) so that helio
+# signal docs keep their lexicon. Without a real helio branch, helio_slack would
+# fall through to _NORTHWIND_SLACK_PROHIBITED and strip Helio's churn signal terms.
+_HELIO_SLACK_PROHIBITED = [
+    "escalation", "competitor", "silent", "quota",
+    "red flag", "disengaged", "unresolved",
+]
 
 # Default CSM name used when no contact is available
 _DEFAULT_CSM = "Alex Rivera"
@@ -41,6 +49,8 @@ def _get_prohibited_terms(module: str, doc: DocEvent) -> list[str]:
     """Return prohibited_terms for this doc's module."""
     if module == "meridian_slack":
         return _MERIDIAN_SLACK_PROHIBITED
+    if module == "helio_slack":
+        return _HELIO_SLACK_PROHIBITED
     return _NORTHWIND_SLACK_PROHIBITED
 
 
@@ -98,6 +108,16 @@ def _derive_concern_topic(doc: DocEvent) -> str:
         return "scale limitations and GenAI platform adoption readiness"
     if "Q8" in doc.questions_served:
         return "feature delivery commitments and expectation management"
+    if "Q13" in doc.questions_served:
+        return (
+            "declining usage and a plan downgrade, with the team discussing a "
+            "migration-away from the graph platform and the contraction in adoption"
+        )
+    if "Q14" in doc.questions_served:
+        return (
+            "a remediation / save-plan to halt the account contraction and "
+            "re-engage the team before the at-risk renewal"
+        )
     return "account update requiring follow-up"
 
 

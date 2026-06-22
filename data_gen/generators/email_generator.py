@@ -31,6 +31,12 @@ _NORTHWIND_EMAIL_PROHIBITED = [
     "scale limit", "GenAI", "GraphRAG", "upsell", "whitespace",
     "capacity ceiling", "renewal risk", "at risk", "escalation",
 ]
+# Helio noise-only prohibitions — EXCLUDE contraction/churn signal vocabulary
+# (downgrade/contraction/migration/declining/churn/deprioritization).
+_HELIO_EMAIL_PROHIBITED = [
+    "escalation", "competitor", "silent", "quota",
+    "disengaged", "unresolved", "unlogged", "commitment",
+]
 
 _DEFAULT_CSM = "Alex Rivera"
 _DEFAULT_AE = "Jordan Kim"
@@ -39,6 +45,8 @@ _DEFAULT_AE = "Jordan Kim"
 def _get_prohibited_terms(module: str) -> list[str]:
     if module.startswith("meridian"):
         return _MERIDIAN_EMAIL_PROHIBITED
+    if module.startswith("helio"):
+        return _HELIO_EMAIL_PROHIBITED
     return _NORTHWIND_EMAIL_PROHIBITED
 
 
@@ -107,6 +115,16 @@ def _derive_concern_description(doc: DocEvent, spine: AccountSpine) -> str:
         return (
             "the company's strategic intent to expand into AI/ML workloads using graph "
             "capabilities, and the need to evaluate additional product options"
+        )
+    if "Q13" in doc.questions_served:
+        return (
+            "the rationale for downgrading the plan amid declining usage, including the "
+            "team's intent to migrate away from the graph platform and deprioritize it"
+        )
+    if "Q14" in doc.questions_served:
+        return (
+            "a proposed remediation / save-plan to reverse the account contraction and "
+            "secure the at-risk renewal before it slips"
         )
     return "routine account management and partnership health"
 
