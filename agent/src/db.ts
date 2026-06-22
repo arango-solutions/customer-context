@@ -25,18 +25,32 @@ const require = createRequire(import.meta.url);
 /**
  * Load the repo-root .env with override:true so .env wins over any stale shell
  * value (D-06 stale-key gotcha). Idempotent-safe to call from each entrypoint.
+ *
+ * Serverless safety (Phase 7 / 07-02): loadEnv()'s ONLY job is the LOCAL stale-shell
+ * override. On Vercel there is no repo-root `.env` and `dotenv` is not in the traced
+ * serverless bundle (Next does not follow the dynamic `require`), so the whole body
+ * must no-op gracefully there — never throw. `process.env` is already authoritative on
+ * Vercel (it injects ARANGO_ and OPENAI_API_KEY). Without this guard, askQuestion() — the
+ * public entrypoint the Vercel /api/canary route calls — threw synchronously (`ms:1`
+ * red) before any DB work. The streaming /api/ask path never calls loadEnv(), which is
+ * why only the canary surfaced it.
  */
 export function loadEnv(): void {
-  // agent/src/db.ts -> repo root is two levels up from this file's dir.
-  const here = path.dirname(fileURLToPath(import.meta.url));
-  const repoRoot = path.resolve(here, '..', '..');
-  const envPath = path.join(repoRoot, '.env');
-  // dotenv is a dependency; load it via createRequire so this stays sync (callers
-  // invoke loadEnv() synchronously at the top of CLI/test entrypoints).
-  const dotenv = require('dotenv') as typeof import('dotenv');
-  // quiet: keep stdout clean — the CLI's contract is pure-JSON envelope output,
-  // so dotenv's "injected env" banner must not pollute the pipe (Phase 5 verify warning).
-  dotenv.config({ path: envPath, override: true, quiet: true });
+  try {
+    // agent/src/db.ts -> repo root is two levels up from this file's dir.
+    const here = path.dirname(fileURLToPath(import.meta.url));
+    const repoRoot = path.resolve(here, '..', '..');
+    const envPath = path.join(repoRoot, '.env');
+    // dotenv is a dependency; load it via createRequire so this stays sync (callers
+    // invoke loadEnv() synchronously at the top of CLI/test entrypoints).
+    const dotenv = require('dotenv') as typeof import('dotenv');
+    // quiet: keep stdout clean — the CLI's contract is pure-JSON envelope output,
+    // so dotenv's "injected env" banner must not pollute the pipe (Phase 5 verify warning).
+    dotenv.config({ path: envPath, override: true, quiet: true });
+  } catch {
+    // No dotenv / no .env (Vercel serverless bundle): process.env is authoritative
+    // there, so silently skip the local override. Must NOT throw.
+  }
 }
 
 function arangoUrl(): string {
