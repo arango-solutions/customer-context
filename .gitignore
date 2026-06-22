@@ -15,7 +15,7 @@ infra/
 # Customer documents — never commit to a shared repo
 *.pdf
 
-# Sensitive — internal/customer references (Zscaler, MetaCX, prod host, personal
+# Sensitive — internal/customer references (specific account names, prod host, personal
 # links, local paths). Untracked pending sanitization. Re-add CLEAN versions only.
 /CLAUDE.md
 /docs/research/
