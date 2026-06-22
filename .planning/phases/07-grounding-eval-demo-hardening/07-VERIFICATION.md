@@ -205,5 +205,19 @@ What is NOT yet confirmed: that the faithfulness eval will reliably pass on all 
 
 ---
 
+## Post-Verification Update — SC-1 trend-citation fix (2026-06-22)
+
+The SC-1 PARTIAL driver (faithfulness floor breach on trend claims) was addressed after verification:
+
+- **Fix (commit ea911d4):** added a planner rule (`PLANNER_SYSTEM_PROMPT`) requiring AGGREGATE/TREND/COMPARATIVE claims to cite the specific underlying period records (≥ first+last) and to state the concrete figures/periods in the claim text so the claim is directly entailed by what is cited.
+- **Re-verification:** 3 consecutive live eval runs → **ZERO faithfulness-floor breaches** (the Q2/trend-claim instability the verifier hit did not recur). SC-1's faithfulness dimension is now stable across runs.
+- **Residual (unchanged, accepted for v1):** Run 1 of the 3 had a single **Q5 stochastic REFUSAL** (dual-graph question; planner honestly returned "unsupported" when hybridRetrieve under-surfaced the unstructured evidence that run). This is the SAFE failure mode (no fabrication) — the same documented ~5% residual — NOT a faithfulness-score problem. Fully eliminating it is deeper retrieval-recall tuning (Phase-5 territory), out of Phase-7 scope.
+
+**Revised SC-1 status:** faithfulness gate STABLE (3/3 runs clean on score); residual stochastic refusal on dual-graph questions remains the accepted v1 risk, mitigated by the pre-demo checklist (run the eval/rehearsal before the demo; re-ask any question that refuses).
+
+_Updated: 2026-06-22_
+
+---
+
 _Verified: 2026-06-22T10:00:00Z_
 _Verifier: Claude (gsd-verifier)_
