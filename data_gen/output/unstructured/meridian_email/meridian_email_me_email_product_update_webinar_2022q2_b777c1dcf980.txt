@@ -1,0 +1,16 @@
+<!-- module=meridian_email account_id=9eff6d7b-7311-5525-be75-5b82a855ece7 entity_id=709deaf8-5786-5b40-9a61-980beda5d0ac citable_url=https://arangodb.com/demo/meridian/email/me_email_product_update_webinar_2022q2 -->
+
+From: Alex Rivera
+To: James Okafor
+Date: April 2022
+Subject: Invitation to Upcoming Product Webinar
+
+Dear James,
+
+I hope this message finds you well. I am reaching out to invite you to our upcoming product webinar, where we will be showcasing the latest features and enhancements that can benefit Meridian Logistics.
+
+This webinar will provide valuable insights and an opportunity to ask questions directly to our product team. We believe this session will be beneficial for your team, and we would love to have you join us.
+
+Best regards,
+Alex Rivera
+Alex Rivera

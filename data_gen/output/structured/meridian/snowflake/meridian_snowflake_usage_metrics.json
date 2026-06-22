@@ -1,0 +1,200 @@
+[
+  {
+    "entity_id": "7f6eb7e3-7bd1-5f93-9506-25ccff8326a3",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "period": "2021-Q1",
+    "query_volume_m": 5.0,
+    "cluster_nodes": 4,
+    "edition": "Enterprise",
+    "smartgraphs_enabled": true,
+    "graphrag_enabled": false,
+    "query_volume_growth_pct": null
+  },
+  {
+    "entity_id": "face4ada-c6cb-5a96-b4f0-75374ab10b30",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "period": "2021-Q2",
+    "query_volume_m": 5.56,
+    "cluster_nodes": 4,
+    "edition": "Enterprise",
+    "smartgraphs_enabled": true,
+    "graphrag_enabled": false,
+    "query_volume_growth_pct": 11.2
+  },
+  {
+    "entity_id": "69f065b4-4342-5389-9fef-b0d56b47b6b7",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "period": "2021-Q3",
+    "query_volume_m": 6.17,
+    "cluster_nodes": 4,
+    "edition": "Enterprise",
+    "smartgraphs_enabled": true,
+    "graphrag_enabled": false,
+    "query_volume_growth_pct": 11.0
+  },
+  {
+    "entity_id": "d4dcb895-28fa-5121-92cb-ed075193b8b1",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "period": "2021-Q4",
+    "query_volume_m": 6.85,
+    "cluster_nodes": 6,
+    "edition": "Enterprise",
+    "smartgraphs_enabled": true,
+    "graphrag_enabled": false,
+    "query_volume_growth_pct": 11.0
+  },
+  {
+    "entity_id": "16551d4e-b19b-5b35-b9dc-1eee6d660580",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "period": "2022-Q1",
+    "query_volume_m": 7.61,
+    "cluster_nodes": 6,
+    "edition": "Enterprise",
+    "smartgraphs_enabled": true,
+    "graphrag_enabled": false,
+    "query_volume_growth_pct": 11.1
+  },
+  {
+    "entity_id": "9fb1d32d-0657-52be-b1da-104a85fa5976",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "period": "2022-Q2",
+    "query_volume_m": 8.45,
+    "cluster_nodes": 6,
+    "edition": "Enterprise",
+    "smartgraphs_enabled": true,
+    "graphrag_enabled": false,
+    "query_volume_growth_pct": 11.0
+  },
+  {
+    "entity_id": "4be7465c-5102-5e8b-9dbc-326a1f52c186",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "period": "2022-Q3",
+    "query_volume_m": 9.38,
+    "cluster_nodes": 8,
+    "edition": "Enterprise",
+    "smartgraphs_enabled": true,
+    "graphrag_enabled": false,
+    "query_volume_growth_pct": 11.0
+  },
+  {
+    "entity_id": "a7a42b36-0462-5ed2-bbf8-a026fd482216",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "period": "2022-Q4",
+    "query_volume_m": 10.41,
+    "cluster_nodes": 8,
+    "edition": "Enterprise",
+    "smartgraphs_enabled": true,
+    "graphrag_enabled": false,
+    "query_volume_growth_pct": 11.0
+  },
+  {
+    "entity_id": "46a124bd-894f-537c-993e-82b22d65c954",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "period": "2023-Q1",
+    "query_volume_m": 11.06,
+    "cluster_nodes": 8,
+    "edition": "Enterprise",
+    "smartgraphs_enabled": true,
+    "graphrag_enabled": false,
+    "query_volume_growth_pct": 6.2
+  },
+  {
+    "entity_id": "26f39fa0-160c-5848-9311-6ff6f193db86",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "period": "2023-Q2",
+    "query_volume_m": 11.74,
+    "cluster_nodes": 8,
+    "edition": "Enterprise",
+    "smartgraphs_enabled": true,
+    "graphrag_enabled": false,
+    "query_volume_growth_pct": 6.1
+  },
+  {
+    "entity_id": "c6558b62-72b8-57b2-af89-1192f0b8c023",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "period": "2023-Q3",
+    "query_volume_m": 12.45,
+    "cluster_nodes": 10,
+    "edition": "Enterprise",
+    "smartgraphs_enabled": true,
+    "graphrag_enabled": false,
+    "query_volume_growth_pct": 6.0
+  },
+  {
+    "entity_id": "a72f6f5c-453c-575b-bc3b-792b049dc189",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "period": "2023-Q4",
+    "query_volume_m": 12.77,
+    "cluster_nodes": 10,
+    "edition": "Enterprise",
+    "smartgraphs_enabled": true,
+    "graphrag_enabled": false,
+    "query_volume_growth_pct": 2.6
+  },
+  {
+    "entity_id": "b7327073-9e08-582c-af9b-7a0b271e794a",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "period": "2024-Q1",
+    "query_volume_m": 13.12,
+    "cluster_nodes": 10,
+    "edition": "Enterprise",
+    "smartgraphs_enabled": true,
+    "graphrag_enabled": false,
+    "query_volume_growth_pct": 2.7
+  },
+  {
+    "entity_id": "28e40054-d4f4-56e7-97e1-d8dec73bb5fc",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "period": "2024-Q2",
+    "query_volume_m": 13.47,
+    "cluster_nodes": 10,
+    "edition": "Enterprise",
+    "smartgraphs_enabled": true,
+    "graphrag_enabled": false,
+    "query_volume_growth_pct": 2.7
+  },
+  {
+    "entity_id": "00f4e335-5915-5b54-96bf-9c7e3b1ee56e",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "period": "2024-Q3",
+    "query_volume_m": 13.83,
+    "cluster_nodes": 12,
+    "edition": "Enterprise",
+    "smartgraphs_enabled": true,
+    "graphrag_enabled": false,
+    "query_volume_growth_pct": 2.7
+  },
+  {
+    "entity_id": "53ef0428-3deb-5ec1-bd0d-5c0e60997ede",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "period": "2024-Q4",
+    "query_volume_m": 14.2,
+    "cluster_nodes": 12,
+    "edition": "Enterprise",
+    "smartgraphs_enabled": true,
+    "graphrag_enabled": false,
+    "query_volume_growth_pct": 2.7
+  },
+  {
+    "entity_id": "d923de4c-ca0e-5958-8839-d693f8f837d9",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "period": "2025-Q1",
+    "query_volume_m": 14.59,
+    "cluster_nodes": 12,
+    "edition": "Enterprise",
+    "smartgraphs_enabled": true,
+    "graphrag_enabled": false,
+    "query_volume_growth_pct": 2.7
+  },
+  {
+    "entity_id": "ccd460ef-5774-59bc-9ce7-d2ac8f8308d1",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "period": "2025-Q2",
+    "query_volume_m": 15.0,
+    "cluster_nodes": 12,
+    "edition": "Enterprise",
+    "smartgraphs_enabled": true,
+    "graphrag_enabled": false,
+    "query_volume_growth_pct": 2.8
+  }
+]

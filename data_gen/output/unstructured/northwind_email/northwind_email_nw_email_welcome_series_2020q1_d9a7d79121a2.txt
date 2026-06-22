@@ -1,0 +1,16 @@
+<!-- module=northwind_email account_id=0d5b5863-d3da-51e3-b117-ddbfa7ba2d16 entity_id=7bbe665c-5a3d-5070-b23b-0847b42b2c90 citable_url=https://arangodb.com/demo/northwind/email/nw_email_welcome_series_2020q1 -->
+
+From: Alex Rivera
+To: Sarah Chen
+Date: March 2020
+Subject: Welcome to Northwind Analytics
+
+Dear Sarah,
+
+I hope this message finds you well. We are excited to welcome you to Northwind Analytics and look forward to supporting you as you begin your journey with us.
+
+To ensure a smooth onboarding process, we have prepared a comprehensive overview of our services and resources available to you. Our team is here to assist you every step of the way, so please do not hesitate to reach out with any questions or for further clarification on any aspect of our offerings.
+
+Best regards,
+Alex Rivera
+Alex Rivera

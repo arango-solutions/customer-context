@@ -1,0 +1,7 @@
+<!-- module=northwind_slack account_id=0d5b5863-d3da-51e3-b117-ddbfa7ba2d16 entity_id=c7b81401-e5e2-540c-92b9-b173b179f336 citable_url=https://arangodb.com/demo/northwind/slack/nw_slack_smartgraphs_enablement_2021q3 -->
+
+[July 2021] Sarah Chen: I wanted to provide an update on the Northwind Analytics account regarding product feature enablement.
+
+[July 2021] Sarah Chen: Sarah Chen and Michael Torres have been actively engaged in discussions about the latest product features. They are working together to ensure that the enablement process aligns with their needs and expectations.
+
+[July 2021] Sarah Chen: I will continue to monitor their progress and provide support as needed.

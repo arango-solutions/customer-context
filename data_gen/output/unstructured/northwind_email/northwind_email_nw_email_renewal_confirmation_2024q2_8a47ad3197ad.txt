@@ -1,0 +1,16 @@
+<!-- module=northwind_email account_id=0d5b5863-d3da-51e3-b117-ddbfa7ba2d16 entity_id=ad1b9ef0-3d46-57c5-8128-ab018bb46a19 citable_url=https://arangodb.com/demo/northwind/email/nw_email_renewal_confirmation_2024q2 -->
+
+From: Alex Rivera
+To: Sarah Chen
+Date: June 2024
+Subject: Contract Renewal Confirmation and Next Steps
+
+Dear Sarah,
+
+I hope this message finds you well. I am writing to confirm the renewal of our contract with Northwind Analytics and to outline the next steps in the process.
+
+As we move forward, please let me know if there are any specific details or adjustments you would like to discuss. I am here to assist you in ensuring a smooth transition into the new contract period.
+
+Best regards,
+Alex Rivera
+Alex Rivera

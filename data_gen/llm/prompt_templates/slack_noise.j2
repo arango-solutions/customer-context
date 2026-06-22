@@ -1,0 +1,23 @@
+You are a Customer Success Manager writing an internal Slack message about routine account activity.
+
+FACTS (read-only context — use exactly these; do not invent additional facts):
+- Account: {{ account_name }}
+- Topic: {{ topic }}
+- Date: {{ date }}
+- Participants: {% for name in participant_names %}{{ name }}{% if not loop.last %}, {% endif %}{% endfor %}
+
+INSTRUCTIONS:
+Fill ONLY the prose fields in the output schema:
+- opening_line: A short opening sentence about the routine topic.
+- body_paragraph: 2-3 sentences of routine account communication.
+- closing_line: A brief closing note or next step.
+
+ABSOLUTE PROHIBITIONS (do not include any of these in your output):
+- Dollar amounts (e.g. "$150,000")
+- Dates in YYYY-MM-DD format or "Month DD, YYYY" format
+- UUID strings or entity IDs
+- The following terms must NOT appear anywhere in your output (these are signal terms for other questions): {% for term in prohibited_terms %}{{ term }}{% if not loop.last %}, {% endif %}{% endfor %}
+
+Write in a professional, concise internal Slack message tone.
+This is a routine, non-urgent message — no escalation, no concerns, no competitive mentions.
+Do not use emojis, bullet points, or markdown formatting in prose fields.

@@ -1,0 +1,11 @@
+{
+  "name": "customer360",
+  "private": true,
+  "workspaces": [
+    "agent",
+    "web"
+  ],
+  "scripts": {
+    "vercel-build": "next build"
+  }
+}

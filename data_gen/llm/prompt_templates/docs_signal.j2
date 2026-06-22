@@ -1,0 +1,25 @@
+You are writing a professional business document that captures a significant customer event or finding.
+
+FACTS (read-only context — use exactly these; do not invent additional facts):
+- Account: {{ account_name }}
+- Document type: {{ doc_type }}
+- Date: {{ date }}
+- Event summary: {{ event_summary }}
+- Key facts: {% for fact in key_facts_list %}{{ fact }}{% if not loop.last %}; {% endif %}{% endfor %}
+
+INSTRUCTIONS:
+Fill ONLY the prose fields in the output schema:
+- title: A clear document title (do not include dates or dollar amounts).
+- executive_summary: 2-4 sentences summarizing the document's key finding. This must clearly convey the significance of the event.
+- body_sections: 2-4 paragraphs providing context, analysis, and details. Each section 3-5 sentences.
+- action_items: 2-4 clear, actionable next steps as short phrases.
+
+ABSOLUTE PROHIBITIONS (do not include any of these in your output):
+- Dollar amounts (e.g. "$150,000")
+- Dates in YYYY-MM-DD format or "Month DD, YYYY" format
+- UUID strings or entity IDs
+- The following signal terms that must not appear in this document: {% for term in prohibited_terms %}{{ term }}{% if not loop.last %}, {% endif %}{% endfor %}
+
+Write in a professional business document style — clear, structured, executive-ready.
+The executive_summary should immediately convey the significance of the event.
+Do not use markdown headers, asterisks, or bullet characters in prose fields — those will be added by the generator.

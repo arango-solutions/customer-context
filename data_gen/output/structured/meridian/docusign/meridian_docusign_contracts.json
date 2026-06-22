@@ -1,0 +1,62 @@
+[
+  {
+    "entity_id": "28413794-a510-5f8d-8d53-273cf5d74e10",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "signed_date": "2021-01-15",
+    "end_date": "2022-01-14",
+    "value_usd": 180000,
+    "product_scope": "Enterprise",
+    "auto_renew": true,
+    "renewal_date": "2022-01-15",
+    "days_to_renewal": -1613,
+    "status": "expired"
+  },
+  {
+    "entity_id": "cfe5e1d2-a8fc-5713-b5fe-6213a78cbc21",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "signed_date": "2022-01-15",
+    "end_date": "2023-01-14",
+    "value_usd": 180000,
+    "product_scope": "Enterprise",
+    "auto_renew": true,
+    "renewal_date": "2023-01-15",
+    "days_to_renewal": -1248,
+    "status": "expired"
+  },
+  {
+    "entity_id": "4bc39352-392e-5ccc-b081-d77a7cc544ee",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "signed_date": "2023-01-15",
+    "end_date": "2024-01-14",
+    "value_usd": 185000,
+    "product_scope": "Enterprise",
+    "auto_renew": true,
+    "renewal_date": "2024-01-15",
+    "days_to_renewal": -883,
+    "status": "expired"
+  },
+  {
+    "entity_id": "1665fbec-078d-5603-9efb-6197dce09a37",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "signed_date": "2024-01-15",
+    "end_date": "2025-01-14",
+    "value_usd": 188000,
+    "product_scope": "Enterprise",
+    "auto_renew": true,
+    "renewal_date": "2025-01-15",
+    "days_to_renewal": -517,
+    "status": "expired"
+  },
+  {
+    "entity_id": "47a06e4c-42ce-59ad-865c-cbeef04f1708",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "signed_date": "2025-01-15",
+    "end_date": "2026-01-14",
+    "value_usd": 190000,
+    "product_scope": "Enterprise",
+    "auto_renew": true,
+    "renewal_date": "2026-01-15",
+    "days_to_renewal": -152,
+    "status": "expired"
+  }
+]
