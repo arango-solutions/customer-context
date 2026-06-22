@@ -4,6 +4,15 @@
   "functions": {
     "app/api/ask/route.ts": {
       "maxDuration": 60
+    },
+    "app/api/canary/route.ts": {
+      "maxDuration": 60
     }
-  }
+  },
+  "crons": [
+    {
+      "path": "/api/canary",
+      "schedule": "0 0 * * *"
+    }
+  ]
 }
