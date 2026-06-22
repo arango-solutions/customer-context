@@ -1,4 +1,4 @@
-"""One-shot ArangoSearch view-link refresh for customer360_chunks_search_view.
+"""One-shot ArangoSearch full DROP + RECREATE for customer360_chunks_search_view.
 
 Why this exists: the delete-first Layer-3 truncate (build_unstructured.py Stage 3.5)
 clears customer360_Chunks and orchestrate re-inserts fresh chunks with NEW _ids.
@@ -7,16 +7,20 @@ pre-truncate chunk _ids, so BM25 search ranks stale _ids that no longer material
 -> `AQL: ... failed to materialize document ... NotFound [MaterializeNode]`, which
 breaks every hybrid/dual-graph retrieval path.
 
-A plain `updateProperties` merge with the SAME link config does NOT force a full
-re-index. The fix is a DROP of the customer360_Chunks link, a settle, then a RE-ADD
-with the captured config -> a full re-index over the current chunks.
+A plain `updateProperties` merge does NOT force a re-index, and a link-only
+drop+re-add only re-indexes the replicas the applier reaches — a lagging DBserver
+replica can retain an ORPHANED index segment holding a pre-truncate _id, surfacing
+the materialize error intermittently on the query path pinned to that replica. The
+durable fix is a FULL view DROP (discards every backing index segment across ALL
+replicas) followed by a RECREATE with the captured/proven config -> a fresh inverted
+index over the current chunks only. (User-authorized 09-03: "Full view drop + recreate".)
 
-Scope guard: this script ONLY ever touches the single link `customer360_Chunks` on
-the single view `customer360_chunks_search_view`. It never reconfigures any other
-view, link, analyzer, or the structured graph.
+Scope guard: this script ONLY ever drops + recreates the single view
+`customer360_chunks_search_view` with its proven chunks link. It never reconfigures
+any other view, link, analyzer, or the structured graph.
 
 Usage:
-    python scripts/refresh_chunks_view.py          # capture -> drop -> settle -> re-add -> probe
+    python scripts/refresh_chunks_view.py          # capture -> drop view -> recreate -> probe
 """
 
 from __future__ import annotations
@@ -61,36 +65,44 @@ def _get_db(cfg: dict):
     return ArangoClient(hosts=cfg["url"]).db(cfg["db"], user_token=jwt)
 
 
+def _view_exists(db, name: str) -> bool:
+    return any((v.get("name") == name) for v in db.views())
+
+
 def refresh_chunks_view(db) -> dict:
-    """Capture-first, then drop -> settle -> re-add the customer360_Chunks link only."""
-    view = db.view(VIEW_NAME)  # raises if absent
+    """Capture-first, then FULL DROP -> settle -> RECREATE the whole view.
+
+    The full drop discards every backing ArangoSearch index segment across ALL
+    replicas (clearing any orphaned segment a lagging DBserver replica retained);
+    recreate builds a fresh inverted index over the current chunks only.
+    """
+    if not _view_exists(db, VIEW_NAME):
+        raise SystemExit(f"[view] {VIEW_NAME} absent — nothing to refresh (the spike/agent DDL owns creation)")
     # 1. CAPTURE FIRST — record current definition so it could be restored if needed.
-    props = view  # python-arango db.view() returns the full properties dict
+    props = db.view(VIEW_NAME)  # python-arango db.view() returns the full properties dict
     links_before = (props.get("links") or {})
     captured = links_before.get(CHUNKS)
     print(f"[view] CAPTURED current {VIEW_NAME} links keys: {sorted(links_before.keys())}")
     print(f"[view] CAPTURED {CHUNKS} link config: {json.dumps(captured)}")
 
-    # 2. DROP the chunks link ONLY (None drops a single link; other links untouched).
-    print(f"[view] dropping {CHUNKS} link ...")
-    db.update_view(VIEW_NAME, {"links": {CHUNKS: None}})
-    time.sleep(SETTLE_S)
+    # 2. FULL DROP — discards every backing index segment across ALL replicas.
+    print(f"[view] dropping ENTIRE view {VIEW_NAME} ...")
+    db.delete_view(VIEW_NAME)
+    time.sleep(SETTLE_S + 3)
+    if _view_exists(db, VIEW_NAME):
+        raise SystemExit(f"[view] FAIL — {VIEW_NAME} still present after delete")
+    print("[view] view dropped (all backing segments discarded)")
 
-    after_drop = (db.view(VIEW_NAME).get("links") or {})
-    if CHUNKS in after_drop:
-        raise SystemExit(f"[view] FAIL — {CHUNKS} link still present after drop: {after_drop.get(CHUNKS)!r}")
-    print(f"[view] link dropped; remaining links: {sorted(after_drop.keys())}")
+    # 3. RECREATE with the proven config -> fresh inverted index over current chunks.
+    print(f"[view] recreating {VIEW_NAME} (chunks link, fields.content.analyzers=['text_en']) ...")
+    db.create_arangosearch_view(VIEW_NAME, properties={"links": {CHUNKS: CHUNKS_LINK}})
+    time.sleep(SETTLE_S + 3)
 
-    # 3. RE-ADD with the proven config -> forces a full re-index over current chunks.
-    print(f"[view] re-adding {CHUNKS} link (fields.content.analyzers=['text_en']) ...")
-    db.update_view(VIEW_NAME, {"links": {CHUNKS: CHUNKS_LINK}})
-    time.sleep(SETTLE_S)
-
-    after_readd = (db.view(VIEW_NAME).get("links") or {})
-    if CHUNKS not in after_readd:
-        raise SystemExit(f"[view] FAIL — {CHUNKS} link missing after re-add")
-    print(f"[view] link re-added; links now: {sorted(after_readd.keys())}")
-    return {"captured": captured, "links_after": sorted(after_readd.keys())}
+    after = (db.view(VIEW_NAME).get("links") or {})
+    if CHUNKS not in after:
+        raise SystemExit(f"[view] FAIL — {CHUNKS} link missing after recreate: {sorted(after.keys())}")
+    print(f"[view] view recreated; links now: {sorted(after.keys())}")
+    return {"captured": captured, "links_after": sorted(after.keys())}
 
 
 def probe_bm25(db, *, attempts: int = 6, interval_s: float = 5.0) -> bool:
@@ -120,17 +132,17 @@ def probe_bm25(db, *, attempts: int = 6, interval_s: float = 5.0) -> bool:
         if i < attempts:
             time.sleep(interval_s)
     if last_err is not None:
-        raise SystemExit(f"[probe] FAIL — BM25 probe still erroring after re-add: {last_err}")
-    raise SystemExit("[probe] FAIL — BM25 probe returned 0 live chunks after re-add (index not populated)")
+        raise SystemExit(f"[probe] FAIL — BM25 probe still erroring after recreate: {last_err}")
+    raise SystemExit("[probe] FAIL — BM25 probe returned 0 live chunks after recreate (index not populated)")
 
 
 def main() -> int:
     cfg = _arango_cfg()
     db = _get_db(cfg)
-    print(f"[view] refreshing {VIEW_NAME} on db={cfg['db']} ...")
+    print(f"[view] drop+recreate {VIEW_NAME} on db={cfg['db']} ...")
     refresh_chunks_view(db)
     probe_bm25(db)
-    print("[view] DONE — chunks_search_view link refreshed; BM25 materializes live chunks.")
+    print("[view] DONE — chunks_search_view dropped+recreated; BM25 materializes live chunks.")
     return 0
 
 

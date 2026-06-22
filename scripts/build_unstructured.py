@@ -16,12 +16,14 @@ service (service_discovery.json: customer360_autograph_url):
             NEVER touches the structured graph. Skip with --no-truncate.
   Stage 4 — orchestrate (kickoff; allows one at a time, retries on 409)
   Stage 5 — wait for KG collections (customer360_Documents/Chunks) to populate
-  Stage 6.5 — refresh the ArangoSearch chunks view link (drop+re-add the
-            customer360_Chunks link on customer360_chunks_search_view) so the BM25
-            inverted index re-indexes against the fresh chunks the delete-first
-            rebuild produced — otherwise stale pre-truncate _ids fail to materialize
-            and every hybrid retrieval path throws. Guarded to that one view's one
-            link; NEVER touches any other view or the structured graph.
+  Stage 6.5 — full DROP + RECREATE of customer360_chunks_search_view so the BM25
+            inverted index re-indexes cleanly against the fresh chunks the
+            delete-first rebuild produced — otherwise stale pre-truncate _ids fail to
+            materialize and every hybrid retrieval path throws. A link-only refresh
+            leaves orphaned segments on lagging DBserver replicas; the full drop
+            discards every backing segment across ALL replicas. Guarded to that one
+            view only (recreated with the proven text_en chunks link); NEVER touches
+            any other view or the structured graph.
   Stage 6 — dim check: a sampled chunk.embedding has length 512 (A2 gate)
   Stage 7 — stamp citable_url onto customer360_Documents (Pitfall 2 fix;
             account_id/entity_id stamping is Plan 03-05's stamp_account_id.py)
@@ -71,9 +73,14 @@ EXPECTED_DIM = 512
 # (Stage 3.5) clears customer360_Chunks; orchestrate re-inserts fresh chunks with
 # NEW _ids, but this view's inverted index still references the pre-truncate _ids ->
 # BM25 ranks stale _ids that no longer materialize (AQL NotFound [MaterializeNode]),
-# breaking every hybrid retrieval path. Stage 6.5 below drops+re-adds ONLY this
-# view's chunks link to force a full re-index over the fresh chunks. NEVER touches
-# any other view, link, analyzer, or the structured graph.
+# breaking every hybrid retrieval path. Stage 6.5 below FULL-DROPS + RECREATES ONLY
+# this view to force a clean re-index over the fresh chunks across ALL replicas. NEVER
+# touches any other view, link, analyzer, or the structured graph.
+# NOTE (09-03): the BM25 view is one of TWO indexes carrying orphaned segments after a
+# delete-first rebuild; the HNSW *vector* index on customer360_Chunks.embedding
+# (index "vector_cosine", APPROX_NEAR_COSINE) has the same orphaned-segment problem and
+# must ALSO be dropped+recreated for the hybrid path to fully self-heal. That vector-index
+# rebuild was NOT yet authorized for the shared prod cluster — see 09-03-SUMMARY Blocker.
 CHUNKS_SEARCH_VIEW = "customer360_chunks_search_view"
 # Proven link config (matches agent/test/hybridSpike.test.ts::ensureChunksView).
 CHUNKS_VIEW_LINK = {"fields": {"content": {"analyzers": ["text_en"]}}, "includeAllFields": False}
@@ -300,58 +307,73 @@ def wait_for_kg(cfg: dict, *, timeout_s: int = 2400, interval_s: int = 30) -> di
     raise SystemExit(f"[build] FAIL — KG collections not populated within {timeout_s}s")
 
 
-def stage_refresh_chunks_view(cfg: dict) -> None:
-    """Stage 6.5 — refresh the ArangoSearch chunks view link AFTER orchestrate so the
-    BM25 inverted index re-indexes against the fresh chunks the delete-first rebuild
-    produced. Drop -> settle -> re-add the customer360_Chunks link ONLY (a plain
-    updateProperties merge with an unchanged config does NOT force a re-index).
+def _view_exists(db, name: str) -> bool:
+    return any((v.get("name") == name) for v in db.views())
 
-    Scope guard: this stage touches the single link CHUNKS (customer360_Chunks) on the
-    single view CHUNKS_SEARCH_VIEW (customer360_chunks_search_view) ONLY. It never
-    reconfigures any other view, link, analyzer, or the structured graph. If the view
-    is absent (fresh cluster before the spike DDL has run), it skips with a notice —
-    creating the view is the spike/agent's job, not the build's.
+
+def stage_refresh_chunks_view(cfg: dict) -> None:
+    """Stage 6.5 — full DROP + RECREATE of the ArangoSearch chunks view AFTER orchestrate
+    so the BM25 inverted index re-indexes cleanly against the fresh chunks the
+    delete-first rebuild produced.
+
+    Why full drop+recreate (not link-only drop+re-add): the delete-first Layer-3
+    truncate clears customer360_Chunks and orchestrate re-inserts fresh chunks with NEW
+    _ids. A link-only refresh re-indexes the view on the replicas the applier reaches,
+    but a lagging DBserver replica can retain an ORPHANED index segment holding a
+    pre-truncate _id -> intermittent `failed to materialize document ... NotFound
+    [MaterializeNode]` on the query path that pins to that replica. Dropping the WHOLE
+    view discards every backing index segment across ALL replicas; recreate builds a
+    fresh inverted index over the current 139 chunks only. (User-authorized 09-03:
+    "Full view drop + recreate".)
+
+    Scope guard: this stage drops + recreates the single view CHUNKS_SEARCH_VIEW
+    (customer360_chunks_search_view) ONLY, with the captured/proven link config
+    (= agent/test/hybridSpike.test.ts::ensureChunksView: chunks link,
+    fields.content.analyzers=['text_en'], includeAllFields:false; empty primary_sort /
+    stored_values). It never touches any other view, link, analyzer, or the structured
+    graph. If the view is absent (fresh cluster before the spike DDL has run), it skips
+    with a notice — creating the view is the spike/agent's job, not the build's.
     """
-    print("[build] Stage 6.5 — refresh ArangoSearch chunks view link (re-index fresh chunks) ...")
+    print("[build] Stage 6.5 — full DROP + RECREATE ArangoSearch chunks view (clean re-index, clears orphaned segments) ...")
     db = _get_db(cfg)
-    try:
-        props = db.view(CHUNKS_SEARCH_VIEW)
-    except Exception:  # noqa: BLE001 — view absent (not yet created by the spike DDL)
+    if not _view_exists(db, CHUNKS_SEARCH_VIEW):
         print(f"[build]   {CHUNKS_SEARCH_VIEW} absent — skip (created by the spike/agent DDL, not the build)")
         return
+    props = db.view(CHUNKS_SEARCH_VIEW)
     links_before = sorted((props.get("links") or {}).keys())
     print(f"[build]   captured {CHUNKS_SEARCH_VIEW} links: {links_before}")
-    # Drop ONLY the chunks link (None drops a single link; any other links untouched).
-    db.update_view(CHUNKS_SEARCH_VIEW, {"links": {KG_CHUNKS: None}})
-    time.sleep(5)
-    after_drop = (db.view(CHUNKS_SEARCH_VIEW).get("links") or {})
-    if KG_CHUNKS in after_drop:
-        raise SystemExit(f"[build] FAIL — {KG_CHUNKS} link still present after drop")
-    # Re-add with the proven config -> full re-index over the current chunks.
-    db.update_view(CHUNKS_SEARCH_VIEW, {"links": {KG_CHUNKS: CHUNKS_VIEW_LINK}})
-    time.sleep(5)
-    after_readd = (db.view(CHUNKS_SEARCH_VIEW).get("links") or {})
-    if KG_CHUNKS not in after_readd:
-        raise SystemExit(f"[build] FAIL — {KG_CHUNKS} link missing after re-add")
-    # BM25 probe: materialize >=1 live chunk (a stale index throws NotFound).
+    # 1. FULL DROP — discards every backing index segment across ALL replicas.
+    db.delete_view(CHUNKS_SEARCH_VIEW)
+    time.sleep(8)  # settle DDL propagation across coordinators/DBservers
+    if _view_exists(db, CHUNKS_SEARCH_VIEW):
+        raise SystemExit(f"[build] FAIL — {CHUNKS_SEARCH_VIEW} still present after delete")
+    print("[build]   view dropped (all backing segments discarded)")
+    # 2. RECREATE with the proven captured config -> fresh inverted index over current chunks.
+    db.create_arangosearch_view(CHUNKS_SEARCH_VIEW, properties={"links": {KG_CHUNKS: CHUNKS_VIEW_LINK}})
+    time.sleep(8)
+    after = (db.view(CHUNKS_SEARCH_VIEW).get("links") or {})
+    if KG_CHUNKS not in after:
+        raise SystemExit(f"[build] FAIL — {KG_CHUNKS} link missing after recreate: {sorted(after.keys())}")
+    print(f"[build]   view recreated; links: {sorted(after.keys())}")
+    # 3. BM25 probe: materialize >=1 live chunk (a stale index throws NotFound).
     aql = (
         "FOR c IN @@view "
         "  SEARCH ANALYZER(c.content IN TOKENS(@q, 'text_en'), 'text_en') "
         "  SORT BM25(c) DESC LIMIT 3 RETURN c._id"
     )
     live: list[str] = []
-    for attempt in range(6):
+    for attempt in range(12):
         try:
             live = [x for x in db.aql.execute(aql, bind_vars={"@view": CHUNKS_SEARCH_VIEW, "q": "renewal escalation churn risk"}) if x]
             if live:
                 break
         except Exception as exc:  # noqa: BLE001
-            print(f"[build]   probe attempt {attempt + 1}/6: {type(exc).__name__} (re-index settling)")
-        time.sleep(5)
+            print(f"[build]   probe attempt {attempt + 1}/12: {type(exc).__name__} (re-index settling)")
+        time.sleep(6)
     if not live:
-        raise SystemExit("[build] FAIL — chunks view BM25 probe materialized 0 live chunks after re-add")
+        raise SystemExit("[build] FAIL — chunks view BM25 probe materialized 0 live chunks after recreate")
     print(f"[build]   view re-indexed — BM25 materialized {len(live)} live chunk(s)")
-    _update_build_manifest(chunks_view_refreshed=True, chunks_view_live_probe=len(live))
+    _update_build_manifest(chunks_view_recreated=True, chunks_view_live_probe=len(live))
 
 
 def stage_dim_check(cfg: dict) -> int:
@@ -448,8 +470,9 @@ def main() -> int:
     stage_orchestrate(client)
     counts = wait_for_kg(cfg)
     # Stage 6.5 — the delete-first rebuild gave the chunks NEW _ids; the BM25 view's
-    # inverted index still references the pre-truncate _ids. Drop+re-add its chunks
-    # link to re-index, or every hybrid retrieval path throws NotFound on stale _ids.
+    # inverted index still references the pre-truncate _ids. Full DROP+RECREATE the view
+    # to re-index cleanly across ALL replicas (a link-only refresh leaves orphaned
+    # segments on a lagging replica -> NotFound on stale _ids on the pinned query path).
     stage_refresh_chunks_view(cfg)
     dim = stage_dim_check(cfg)
     # Stage 7 — content-derived attribution repair (NOT manifest-keyed-by-file_name).
