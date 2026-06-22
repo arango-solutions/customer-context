@@ -1,0 +1,7 @@
+<!-- module=helio_slack account_id=c2de4d08-b3cf-5958-aae8-4ef84ebb81c9 entity_id=41ac1bd9-010b-5626-bd18-200e79ce1135 citable_url=https://arangodb.com/demo/helio/slack/he_slack_remediation_2024q2 -->
+
+[May 2024] Alex Rivera: Helio Retail has expressed concerns regarding their account status.
+
+[May 2024] Alex Rivera: The team is looking for a remediation plan to prevent further contraction and to re-engage before their upcoming renewal. Our last contact with Priya Nair was earlier this month, and it's crucial that we address their needs promptly to ensure a positive outcome.
+
+[May 2024] Alex Rivera: Let's discuss potential strategies to support Helio Retail and set up a follow-up with Priya.

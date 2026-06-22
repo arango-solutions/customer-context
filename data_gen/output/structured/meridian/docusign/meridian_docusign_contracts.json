@@ -8,8 +8,13 @@
     "product_scope": "Enterprise",
     "auto_renew": true,
     "renewal_date": "2022-01-15",
-    "days_to_renewal": -1613,
-    "status": "expired"
+    "days_to_renewal": -1619,
+    "status": "expired",
+    "term_months": 12,
+    "seat_count": 90,
+    "billing_frequency": "annual",
+    "payment_terms": "Net 60",
+    "is_downgrade": false
   },
   {
     "entity_id": "cfe5e1d2-a8fc-5713-b5fe-6213a78cbc21",
@@ -20,8 +25,13 @@
     "product_scope": "Enterprise",
     "auto_renew": true,
     "renewal_date": "2023-01-15",
-    "days_to_renewal": -1248,
-    "status": "expired"
+    "days_to_renewal": -1254,
+    "status": "expired",
+    "term_months": 12,
+    "seat_count": 90,
+    "billing_frequency": "annual",
+    "payment_terms": "Net 60",
+    "is_downgrade": false
   },
   {
     "entity_id": "4bc39352-392e-5ccc-b081-d77a7cc544ee",
@@ -32,8 +42,13 @@
     "product_scope": "Enterprise",
     "auto_renew": true,
     "renewal_date": "2024-01-15",
-    "days_to_renewal": -883,
-    "status": "expired"
+    "days_to_renewal": -889,
+    "status": "expired",
+    "term_months": 12,
+    "seat_count": 92,
+    "billing_frequency": "annual",
+    "payment_terms": "Net 60",
+    "is_downgrade": false
   },
   {
     "entity_id": "1665fbec-078d-5603-9efb-6197dce09a37",
@@ -44,8 +59,13 @@
     "product_scope": "Enterprise",
     "auto_renew": true,
     "renewal_date": "2025-01-15",
-    "days_to_renewal": -517,
-    "status": "expired"
+    "days_to_renewal": -523,
+    "status": "expired",
+    "term_months": 12,
+    "seat_count": 94,
+    "billing_frequency": "annual",
+    "payment_terms": "Net 60",
+    "is_downgrade": false
   },
   {
     "entity_id": "47a06e4c-42ce-59ad-865c-cbeef04f1708",
@@ -56,7 +76,12 @@
     "product_scope": "Enterprise",
     "auto_renew": true,
     "renewal_date": "2026-01-15",
-    "days_to_renewal": -152,
-    "status": "expired"
+    "days_to_renewal": -158,
+    "status": "expired",
+    "term_months": 12,
+    "seat_count": 95,
+    "billing_frequency": "annual",
+    "payment_terms": "Net 60",
+    "is_downgrade": false
   }
 ]

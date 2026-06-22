@@ -1,0 +1,7 @@
+<!-- module=helio_slack account_id=c2de4d08-b3cf-5958-aae8-4ef84ebb81c9 entity_id=f0468a23-4dc6-5045-8f9c-ae945024c906 citable_url=https://arangodb.com/demo/helio/slack/he_slack_contraction_2024q1 -->
+
+[February 2024] Alex Rivera: Helio Retail has expressed concerns regarding declining usage and a potential plan downgrade.
+
+[February 2024] Alex Rivera: The team is currently discussing a migration away from the graph platform, which indicates a contraction in adoption. Priya Nair, our champion contact, last reached out in February and highlighted these issues, suggesting that we need to address their concerns promptly to prevent further decline in engagement.
+
+[February 2024] Alex Rivera: We should consider scheduling a follow-up meeting with Priya to discuss their needs and explore potential solutions.

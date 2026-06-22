@@ -1,0 +1,16 @@
+<!-- module=helio_email account_id=c2de4d08-b3cf-5958-aae8-4ef84ebb81c9 entity_id=82a1296f-dfcf-5a3e-bc36-1957e0af92ae citable_url=https://arangodb.com/demo/helio/email/he_email_support_ticket_ack_2023q2 -->
+
+From: Alex Rivera
+To: Priya Nair
+Date: June 2023
+Subject: Support Ticket Closure Notification
+
+Dear Priya,
+
+I hope this message finds you well. I wanted to inform you that the support ticket related to your recent inquiry has been successfully closed. Our team has addressed the issue, and we appreciate your patience throughout the process.
+
+If you have any further questions or require additional assistance, please do not hesitate to reach out. We are always here to help and ensure that your experience with us remains positive.
+
+Best regards,
+Alex Rivera
+Alex Rivera

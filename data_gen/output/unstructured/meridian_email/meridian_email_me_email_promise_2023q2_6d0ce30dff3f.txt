@@ -3,13 +3,13 @@
 From: Jordan Kim
 To: James Okafor
 Date: May 2023
-Subject: Follow-Up on Feature Delivery Commitment
+Subject: Clarification on Feature Delivery Expectations
 
 Dear James,
 
-I hope this message finds you well. I wanted to address a concern regarding a specific feature delivery commitment that was discussed with you during our last conversation. It appears that this commitment has not yet been documented in our CRM system, which may lead to confusion about its status and timeline.
+I hope this message finds you well. I wanted to address a concern regarding a feature delivery that was discussed with Meridian Logistics. It has come to my attention that a verbal commitment was made by our account executive regarding the timeline for this feature, but it appears that this commitment was not documented in our CRM or any formal tracking system.
 
-To ensure we are aligned and can meet your expectations, I recommend we formally log this commitment and establish a clear timeline for its delivery. This will help us track progress effectively and keep you informed throughout the process. Please let me know a convenient time for us to discuss this further and finalize the details.
+As a result, there may be a discrepancy between the expectations set with your team and our internal capabilities. I understand that you are operating under the assumption that the feature will be delivered as discussed, and I want to ensure we are aligned moving forward. To address this, I suggest we schedule a meeting to clarify the feature roadmap and confirm our delivery timelines to avoid any misunderstandings. We value your partnership and want to ensure we meet your expectations effectively.
 
 Best regards,
 Jordan Kim

@@ -1,0 +1,18 @@
+<!-- module=helio_email account_id=c2de4d08-b3cf-5958-aae8-4ef84ebb81c9 entity_id=21530e26-d364-595e-877d-3352a402889f citable_url=https://arangodb.com/demo/helio/email/he_email_product_update_webinar_2022q4 -->
+
+From: Alex Rivera
+To: Priya Nair
+Date: October 2022
+Subject: Invitation to Upcoming Product Webinar
+
+Dear Priya,
+
+I hope this message finds you well. I am reaching out to invite you to our upcoming product webinar, where we will showcase the latest features and enhancements designed to benefit Helio Retail.
+
+This webinar will provide valuable insights and an opportunity to ask questions directly to our product team. We believe this session will be beneficial for your team as you explore new ways to leverage our offerings.
+
+Please let me know if you would like to attend, and I can provide you with the registration details. We look forward to your participation!
+
+Best regards,
+Alex Rivera
+Alex Rivera

@@ -8,7 +8,10 @@
     "edition": "Enterprise",
     "smartgraphs_enabled": true,
     "graphrag_enabled": false,
-    "query_volume_growth_pct": null
+    "query_volume_growth_pct": null,
+    "volume_trend": "baseline",
+    "queries_per_node_m": 1.25,
+    "is_peak_period": false
   },
   {
     "entity_id": "face4ada-c6cb-5a96-b4f0-75374ab10b30",
@@ -19,7 +22,10 @@
     "edition": "Enterprise",
     "smartgraphs_enabled": true,
     "graphrag_enabled": false,
-    "query_volume_growth_pct": 11.2
+    "query_volume_growth_pct": 11.2,
+    "volume_trend": "rising",
+    "queries_per_node_m": 1.39,
+    "is_peak_period": false
   },
   {
     "entity_id": "69f065b4-4342-5389-9fef-b0d56b47b6b7",
@@ -30,7 +36,10 @@
     "edition": "Enterprise",
     "smartgraphs_enabled": true,
     "graphrag_enabled": false,
-    "query_volume_growth_pct": 11.0
+    "query_volume_growth_pct": 11.0,
+    "volume_trend": "rising",
+    "queries_per_node_m": 1.54,
+    "is_peak_period": false
   },
   {
     "entity_id": "d4dcb895-28fa-5121-92cb-ed075193b8b1",
@@ -41,7 +50,10 @@
     "edition": "Enterprise",
     "smartgraphs_enabled": true,
     "graphrag_enabled": false,
-    "query_volume_growth_pct": 11.0
+    "query_volume_growth_pct": 11.0,
+    "volume_trend": "rising",
+    "queries_per_node_m": 1.14,
+    "is_peak_period": false
   },
   {
     "entity_id": "16551d4e-b19b-5b35-b9dc-1eee6d660580",
@@ -52,7 +64,10 @@
     "edition": "Enterprise",
     "smartgraphs_enabled": true,
     "graphrag_enabled": false,
-    "query_volume_growth_pct": 11.1
+    "query_volume_growth_pct": 11.1,
+    "volume_trend": "rising",
+    "queries_per_node_m": 1.27,
+    "is_peak_period": false
   },
   {
     "entity_id": "9fb1d32d-0657-52be-b1da-104a85fa5976",
@@ -63,7 +78,10 @@
     "edition": "Enterprise",
     "smartgraphs_enabled": true,
     "graphrag_enabled": false,
-    "query_volume_growth_pct": 11.0
+    "query_volume_growth_pct": 11.0,
+    "volume_trend": "rising",
+    "queries_per_node_m": 1.41,
+    "is_peak_period": false
   },
   {
     "entity_id": "4be7465c-5102-5e8b-9dbc-326a1f52c186",
@@ -74,7 +92,10 @@
     "edition": "Enterprise",
     "smartgraphs_enabled": true,
     "graphrag_enabled": false,
-    "query_volume_growth_pct": 11.0
+    "query_volume_growth_pct": 11.0,
+    "volume_trend": "rising",
+    "queries_per_node_m": 1.17,
+    "is_peak_period": false
   },
   {
     "entity_id": "a7a42b36-0462-5ed2-bbf8-a026fd482216",
@@ -85,7 +106,10 @@
     "edition": "Enterprise",
     "smartgraphs_enabled": true,
     "graphrag_enabled": false,
-    "query_volume_growth_pct": 11.0
+    "query_volume_growth_pct": 11.0,
+    "volume_trend": "rising",
+    "queries_per_node_m": 1.3,
+    "is_peak_period": false
   },
   {
     "entity_id": "46a124bd-894f-537c-993e-82b22d65c954",
@@ -96,7 +120,10 @@
     "edition": "Enterprise",
     "smartgraphs_enabled": true,
     "graphrag_enabled": false,
-    "query_volume_growth_pct": 6.2
+    "query_volume_growth_pct": 6.2,
+    "volume_trend": "rising",
+    "queries_per_node_m": 1.38,
+    "is_peak_period": false
   },
   {
     "entity_id": "26f39fa0-160c-5848-9311-6ff6f193db86",
@@ -107,7 +134,10 @@
     "edition": "Enterprise",
     "smartgraphs_enabled": true,
     "graphrag_enabled": false,
-    "query_volume_growth_pct": 6.1
+    "query_volume_growth_pct": 6.1,
+    "volume_trend": "rising",
+    "queries_per_node_m": 1.47,
+    "is_peak_period": false
   },
   {
     "entity_id": "c6558b62-72b8-57b2-af89-1192f0b8c023",
@@ -118,7 +148,10 @@
     "edition": "Enterprise",
     "smartgraphs_enabled": true,
     "graphrag_enabled": false,
-    "query_volume_growth_pct": 6.0
+    "query_volume_growth_pct": 6.0,
+    "volume_trend": "rising",
+    "queries_per_node_m": 1.24,
+    "is_peak_period": false
   },
   {
     "entity_id": "a72f6f5c-453c-575b-bc3b-792b049dc189",
@@ -129,7 +162,10 @@
     "edition": "Enterprise",
     "smartgraphs_enabled": true,
     "graphrag_enabled": false,
-    "query_volume_growth_pct": 2.6
+    "query_volume_growth_pct": 2.6,
+    "volume_trend": "rising",
+    "queries_per_node_m": 1.28,
+    "is_peak_period": false
   },
   {
     "entity_id": "b7327073-9e08-582c-af9b-7a0b271e794a",
@@ -140,7 +176,10 @@
     "edition": "Enterprise",
     "smartgraphs_enabled": true,
     "graphrag_enabled": false,
-    "query_volume_growth_pct": 2.7
+    "query_volume_growth_pct": 2.7,
+    "volume_trend": "rising",
+    "queries_per_node_m": 1.31,
+    "is_peak_period": false
   },
   {
     "entity_id": "28e40054-d4f4-56e7-97e1-d8dec73bb5fc",
@@ -151,7 +190,10 @@
     "edition": "Enterprise",
     "smartgraphs_enabled": true,
     "graphrag_enabled": false,
-    "query_volume_growth_pct": 2.7
+    "query_volume_growth_pct": 2.7,
+    "volume_trend": "rising",
+    "queries_per_node_m": 1.35,
+    "is_peak_period": false
   },
   {
     "entity_id": "00f4e335-5915-5b54-96bf-9c7e3b1ee56e",
@@ -162,7 +204,10 @@
     "edition": "Enterprise",
     "smartgraphs_enabled": true,
     "graphrag_enabled": false,
-    "query_volume_growth_pct": 2.7
+    "query_volume_growth_pct": 2.7,
+    "volume_trend": "rising",
+    "queries_per_node_m": 1.15,
+    "is_peak_period": false
   },
   {
     "entity_id": "53ef0428-3deb-5ec1-bd0d-5c0e60997ede",
@@ -173,7 +218,10 @@
     "edition": "Enterprise",
     "smartgraphs_enabled": true,
     "graphrag_enabled": false,
-    "query_volume_growth_pct": 2.7
+    "query_volume_growth_pct": 2.7,
+    "volume_trend": "rising",
+    "queries_per_node_m": 1.18,
+    "is_peak_period": false
   },
   {
     "entity_id": "d923de4c-ca0e-5958-8839-d693f8f837d9",
@@ -184,7 +232,10 @@
     "edition": "Enterprise",
     "smartgraphs_enabled": true,
     "graphrag_enabled": false,
-    "query_volume_growth_pct": 2.7
+    "query_volume_growth_pct": 2.7,
+    "volume_trend": "rising",
+    "queries_per_node_m": 1.22,
+    "is_peak_period": false
   },
   {
     "entity_id": "ccd460ef-5774-59bc-9ce7-d2ac8f8308d1",
@@ -195,6 +246,9 @@
     "edition": "Enterprise",
     "smartgraphs_enabled": true,
     "graphrag_enabled": false,
-    "query_volume_growth_pct": 2.8
+    "query_volume_growth_pct": 2.8,
+    "volume_trend": "rising",
+    "queries_per_node_m": 1.25,
+    "is_peak_period": true
   }
 ]

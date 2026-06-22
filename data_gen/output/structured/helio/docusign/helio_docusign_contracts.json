@@ -1,0 +1,53 @@
+[
+  {
+    "entity_id": "2967bfeb-9ba1-53a7-a9fe-4851af58ef2e",
+    "account_id": "c2de4d08-b3cf-5958-aae8-4ef84ebb81c9",
+    "signed_date": "2022-01-15",
+    "end_date": "2023-01-14",
+    "value_usd": 150000,
+    "product_scope": "Enterprise",
+    "auto_renew": true,
+    "renewal_date": "2023-01-15",
+    "days_to_renewal": -1254,
+    "status": "expired",
+    "term_months": 12,
+    "seat_count": 75,
+    "billing_frequency": "annual",
+    "payment_terms": "Net 60",
+    "is_downgrade": false
+  },
+  {
+    "entity_id": "a0cc2ae5-98af-5115-8cc6-b7927badfa52",
+    "account_id": "c2de4d08-b3cf-5958-aae8-4ef84ebb81c9",
+    "signed_date": "2023-01-15",
+    "end_date": "2024-01-14",
+    "value_usd": 240000,
+    "product_scope": "ArangoGraph",
+    "auto_renew": true,
+    "renewal_date": "2024-01-15",
+    "days_to_renewal": -889,
+    "status": "expired",
+    "term_months": 12,
+    "seat_count": 96,
+    "billing_frequency": "annual",
+    "payment_terms": "Net 60",
+    "is_downgrade": false
+  },
+  {
+    "entity_id": "ee5fd2b7-7511-520d-8814-305a858aa22d",
+    "account_id": "c2de4d08-b3cf-5958-aae8-4ef84ebb81c9",
+    "signed_date": "2024-03-01",
+    "end_date": "2025-02-28",
+    "value_usd": 110000,
+    "product_scope": "Enterprise",
+    "auto_renew": false,
+    "renewal_date": "2025-03-01",
+    "days_to_renewal": -478,
+    "status": "expired",
+    "term_months": 12,
+    "seat_count": 55,
+    "billing_frequency": "annual",
+    "payment_terms": "Net 30",
+    "is_downgrade": true
+  }
+]

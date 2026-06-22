@@ -10,25 +10,25 @@ doc_type: Customer Success Plan
 
 ## Executive Summary
 
-The customer success plan for Northwind Analytics outlines the account's strategic goals, particularly focusing on the expansion into AI and machine learning workloads. This plan highlights the account's interest in evaluating advanced capabilities as part of the upcoming renewal discussion, which is critical for aligning our services with their evolving needs.
+The customer success plan for Northwind Analytics outlines the account's strategic goals, particularly their intent to expand into AI-ML workloads. This plan highlights the need for evaluating the GraphRAG suite as query volumes approach current operational limits, setting the stage for an important renewal discussion.
 
 ## Details
 
 ### Section 1
 
-Northwind Analytics has expressed a strong interest in expanding their capabilities in AI and machine learning. This strategic direction aligns with industry trends and positions the account to leverage advanced technologies for enhanced operational efficiency. As they prepare for their upcoming renewal discussion, it is essential to address their specific goals and requirements to ensure continued partnership success.
+Northwind Analytics has expressed a clear interest in expanding their capabilities into AI and machine learning workloads. This strategic direction aligns with industry trends and positions the account to leverage advanced technologies for enhanced data analysis and insights. The exploration of the GraphRAG suite is a critical component of this expansion, as it offers the necessary tools to support their evolving needs.
 
 ### Section 2
 
-Currently, the account has not enabled the advanced capabilities that would support their intended expansion into AI workloads. This presents an opportunity for us to engage with Northwind Analytics and demonstrate how these capabilities can drive value for their operations. Understanding their specific use cases will be crucial in tailoring our offerings to meet their needs effectively.
+Recent usage trends indicate that the current cluster is nearing its operational limits, with query volumes reaching 11.87 million per month across 10 nodes running ArangoGraph. This increase in demand necessitates a conversation about scaling options to ensure continued performance and reliability. Addressing these capacity challenges is essential for supporting Northwind's growth and strategic initiatives.
 
 ### Section 3
 
-Recent usage trends indicate that the current cluster is nearing its operational limits. This situation necessitates a proactive approach to ensure that Northwind Analytics can scale their operations without disruption. By addressing these capacity concerns, we can facilitate a smoother transition to the desired AI and machine learning workloads, thereby reinforcing our commitment to their success.
+The upcoming renewal discussion presents an opportunity to align our offerings with Northwind's goals. By enabling the GraphRAG and AI-ML capabilities, we can directly address their stated needs and facilitate a smoother transition into their desired operational state. This proactive approach not only strengthens our partnership but also positions us as a key enabler of their success.
 
 ## Action Items
 
-- Schedule a meeting to discuss AI/ML workload expansion
-- Prepare a demonstration of advanced capabilities
-- Assess current cluster usage and capacity
+- Schedule a meeting to discuss the GraphRAG suite evaluation
+- Analyze current usage trends and prepare scaling options
 - Develop a tailored proposal for the upcoming renewal discussion
+- Engage with Northwind to understand their specific AI-ML requirements

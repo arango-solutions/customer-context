@@ -1,0 +1,7 @@
+<!-- module=helio_slack account_id=c2de4d08-b3cf-5958-aae8-4ef84ebb81c9 entity_id=6ca804f4-adf8-590f-a3a7-1c39bb76294c citable_url=https://arangodb.com/demo/helio/slack/he_slack_peak_season_readiness_2023q1 -->
+
+[March 2023] Alex Rivera: I wanted to provide an update on the support case for Helio Retail.
+
+[March 2023] Alex Rivera: Priya Nair and Marcus Webb have been actively working on resolving the recent support case. They have made significant progress and are collaborating closely to ensure a timely resolution that meets the client's needs.
+
+[March 2023] Alex Rivera: I will keep you posted on any further developments as they arise.
