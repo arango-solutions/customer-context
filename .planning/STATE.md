@@ -2,7 +2,7 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
+status: shipped
 last_updated: "2026-06-22T16:52:37.497Z"
 last_activity: 2026-06-22 -- Phase 07 execution started
 progress:
@@ -119,11 +119,18 @@ None yet.
 
 ## Deferred Items
 
-Items acknowledged and carried forward from previous milestone close:
+Items acknowledged and deferred at v1.0 milestone close on 2026-06-22:
 
 | Category | Item | Status | Deferred At |
 |----------|------|--------|-------------|
-| *(none)* | | | |
+| quick_task | 260619-f7c-vercel-monorepo-build-fix | work done (commit 8645ed6), SUMMARY missing | 2026-06-22 |
+| quick_task | 260619-f7c-vercel-monorepo-build-fix 2 | iCloud sync-conflict duplicate (junk) | 2026-06-22 |
+| todo | coreference-hard-entity-extraction-eval + 4 more | planning notes | 2026-06-22 |
+| verification_gap | 2 outstanding Nyquist/verification gaps | non-blocking | 2026-06-22 |
+| residual | ~5% stochastic planner refusal on dual-graph Qs (safe failure, no fabrication) | accepted v1 | 2026-06-22 |
+| residual | serverless↔ArangoDB root error class uncaptured (hardened; onError logger watches) | accepted v1 | 2026-06-22 |
+| follow-up | CRON_SECRET on Vercel Preview pending (CLI git-branch quirk) | non-blocking | 2026-06-22 |
+| v2 | AGENT-04 fallback, AGENT-06 Q11 timeline, React Flow traversal viz (NEXT-04) | deferred | 2026-06-22 |
 
 ## Session Continuity
 
