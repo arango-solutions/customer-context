@@ -56,11 +56,11 @@ Plans:
 
 **Wave 1**
 
-- [ ] 09-01-PLAN.md — Account C (Helio Retail) churn-arc spine + new C questions + near-miss guard (DATA-04)
+- [x] 09-01-PLAN.md — Account C (Helio Retail) churn-arc spine + new C questions + near-miss guard (DATA-04)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 09-02-PLAN.md — Broad deepening of Northwind + Meridian across all 8 modules (DATA-05)
+- [x] 09-02-PLAN.md — Broad deepening of Northwind + Meridian across all 8 modules (DATA-05)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
@@ -170,7 +170,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 8. Deterministic Eval Harness | 1/1 | Complete   | 2026-06-22 |
-| 9. Data Depth & 3rd Account | 0/3 | Not started | - |
+| 9. Data Depth & 3rd Account | 2/3 | In Progress|  |
 | 10. Answer-Provenance Edge Enrichment | 0/TBD | Not started | - |
 | 11. Graph Viz + UI Refresh + Latency | 0/TBD | Not started | - |
 | 12. Simulated CDC + What-Changed Diff | 0/TBD | Not started | - |

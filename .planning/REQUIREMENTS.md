@@ -48,8 +48,8 @@ Each maps to a roadmap phase (assigned by the roadmapper). Grouped by the 8 conf
 
 ### Area 8 — Synthetic Data Depth & Breadth
 
-- [ ] **DATA-04**: A 3rd synthetic account (distinct ArangoDB-product-ladder story) plus new question arcs are generated from the canonical event-spine + entity registry, sharing the `entity_id` namespace — passing the existing referential-integrity / timeline linter before ingest.
-- [ ] **DATA-05**: Existing accounts' documents are deepened/enriched (more realistic, more coherent prose + records) to make answers and the new viz more impressive — linter-gated, no coherence regressions.
+- [x] **DATA-04**: A 3rd synthetic account (distinct ArangoDB-product-ladder story) plus new question arcs are generated from the canonical event-spine + entity registry, sharing the `entity_id` namespace — passing the existing referential-integrity / timeline linter before ingest.
+- [x] **DATA-05**: Existing accounts' documents are deepened/enriched (more realistic, more coherent prose + records) to make answers and the new viz more impressive — linter-gated, no coherence regressions.
 
 ## v3 / Backlog (deferred)
 
@@ -75,8 +75,8 @@ Phase mapping assigned by the roadmapper (2026-06-22). Continues phase numbering
 |-------------|-------|--------|
 | EVAL-03 | Phase 8 | Complete |
 | EVAL-04 | Phase 8 | Complete |
-| DATA-04 | Phase 9 | Pending |
-| DATA-05 | Phase 9 | Pending |
+| DATA-04 | Phase 9 | Complete |
+| DATA-05 | Phase 9 | Complete |
 | VIZ-01 | Phase 10 | Pending |
 | VIZ-02 | Phase 11 | Pending |
 | UI-04 | Phase 11 | Pending |
