@@ -193,8 +193,8 @@ A reusable, internal graph-based Customer 360 demo over 100%-synthetic data for 
 
 **Wave 1** *(no dependencies — parallel; no file overlap)*
 
-- [ ] 07-01-PLAN.md — EVAL-01: faithfulness LLM-judge module + extend questions.eval.test.ts (6 questions faithfulness===1.0 + adversarial refusals)
-- [ ] 07-02-PLAN.md — EVAL-02: CRON_SECRET-gated /api/canary (DB + Q7 end-to-end) + vercel.json cron pre-warm
+- [x] 07-01-PLAN.md — EVAL-01: faithfulness LLM-judge module + extend questions.eval.test.ts (6 questions faithfulness===1.0 + adversarial refusals)
+- [x] 07-02-PLAN.md — EVAL-02: CRON_SECRET-gated /api/canary (DB + Q7 end-to-end) + vercel.json cron pre-warm
 
 **Wave 2** *(blocked on 07-02 — needs the deployed canary/warm path)*
 
@@ -215,7 +215,7 @@ A reusable, internal graph-based Customer 360 demo over 100%-synthetic data for 
 
 **Plans**: 3 plans (planned + verified 2026-06-19)
 
-- [ ] 07-01-PLAN.md — Wave 1: EVAL-01 — faithfulness LLM-judge (advisory, test-time only) + shared `Q7_ANCHOR_PROMPT` + extend `questions.eval.test.ts` (faithfulness===1.0 over 6 Qs + adversarial refusals) + rebuild agent dist
+- [x] 07-01-PLAN.md — Wave 1: EVAL-01 — faithfulness LLM-judge (advisory, test-time only) + shared `Q7_ANCHOR_PROMPT` + extend `questions.eval.test.ts` (faithfulness===1.0 over 6 Qs + adversarial refusals) + rebuild agent dist
 - [ ] 07-02-PLAN.md — Wave 2: EVAL-02 — CRON_SECRET-gated `/api/canary` (DB + Q7 end-to-end) + vercel.json cron pre-warm (depends on 07-01)
 - [ ] 07-03-PLAN.md — Wave 3: EVAL-02 — `scripts/rehearse.ts` concurrent + adversarial rehearsal on the live deploy (depends on 07-02)
 
@@ -236,7 +236,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 | 4. Canonical Entity Layer | 4/4 | Complete   | 2026-06-18 |
 | 5. Custom Reasoning Agent | 4/4 | Complete   | 2026-06-18 |
 | 6. Next.js/Vercel UI + Sourcing Display | 5/5 | Complete   | 2026-06-19 |
-| 7. Grounding/Eval + Demo Hardening | 0/TBD | Not started | - |
+| 7. Grounding/Eval + Demo Hardening | 2/3 | In Progress|  |
 
 ## Time Estimates (research-grounded REVISED — lean demo)
 
