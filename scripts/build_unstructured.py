@@ -16,6 +16,12 @@ service (service_discovery.json: customer360_autograph_url):
             NEVER touches the structured graph. Skip with --no-truncate.
   Stage 4 — orchestrate (kickoff; allows one at a time, retries on 409)
   Stage 5 — wait for KG collections (customer360_Documents/Chunks) to populate
+  Stage 6.5 — refresh the ArangoSearch chunks view link (drop+re-add the
+            customer360_Chunks link on customer360_chunks_search_view) so the BM25
+            inverted index re-indexes against the fresh chunks the delete-first
+            rebuild produced — otherwise stale pre-truncate _ids fail to materialize
+            and every hybrid retrieval path throws. Guarded to that one view's one
+            link; NEVER touches any other view or the structured graph.
   Stage 6 — dim check: a sampled chunk.embedding has length 512 (A2 gate)
   Stage 7 — stamp citable_url onto customer360_Documents (Pitfall 2 fix;
             account_id/entity_id stamping is Plan 03-05's stamp_account_id.py)
@@ -60,6 +66,17 @@ _BUILD_MANIFEST = _REPO_ROOT / "build_manifest.json"
 KG_DOCUMENTS = "customer360_Documents"
 KG_CHUNKS = "customer360_Chunks"
 EXPECTED_DIM = 512
+
+# ArangoSearch BM25 view over Chunks.content. The delete-first Layer-3 truncate
+# (Stage 3.5) clears customer360_Chunks; orchestrate re-inserts fresh chunks with
+# NEW _ids, but this view's inverted index still references the pre-truncate _ids ->
+# BM25 ranks stale _ids that no longer materialize (AQL NotFound [MaterializeNode]),
+# breaking every hybrid retrieval path. Stage 6.5 below drops+re-adds ONLY this
+# view's chunks link to force a full re-index over the fresh chunks. NEVER touches
+# any other view, link, analyzer, or the structured graph.
+CHUNKS_SEARCH_VIEW = "customer360_chunks_search_view"
+# Proven link config (matches agent/test/hybridSpike.test.ts::ensureChunksView).
+CHUNKS_VIEW_LINK = {"fields": {"content": {"analyzers": ["text_en"]}}, "includeAllFields": False}
 
 # The 5 AutoGraph-derived Layer-3 collections. These are the ONLY collections this
 # script is ever permitted to truncate. The structured hand-modeled graph
@@ -283,6 +300,60 @@ def wait_for_kg(cfg: dict, *, timeout_s: int = 2400, interval_s: int = 30) -> di
     raise SystemExit(f"[build] FAIL — KG collections not populated within {timeout_s}s")
 
 
+def stage_refresh_chunks_view(cfg: dict) -> None:
+    """Stage 6.5 — refresh the ArangoSearch chunks view link AFTER orchestrate so the
+    BM25 inverted index re-indexes against the fresh chunks the delete-first rebuild
+    produced. Drop -> settle -> re-add the customer360_Chunks link ONLY (a plain
+    updateProperties merge with an unchanged config does NOT force a re-index).
+
+    Scope guard: this stage touches the single link CHUNKS (customer360_Chunks) on the
+    single view CHUNKS_SEARCH_VIEW (customer360_chunks_search_view) ONLY. It never
+    reconfigures any other view, link, analyzer, or the structured graph. If the view
+    is absent (fresh cluster before the spike DDL has run), it skips with a notice —
+    creating the view is the spike/agent's job, not the build's.
+    """
+    print("[build] Stage 6.5 — refresh ArangoSearch chunks view link (re-index fresh chunks) ...")
+    db = _get_db(cfg)
+    try:
+        props = db.view(CHUNKS_SEARCH_VIEW)
+    except Exception:  # noqa: BLE001 — view absent (not yet created by the spike DDL)
+        print(f"[build]   {CHUNKS_SEARCH_VIEW} absent — skip (created by the spike/agent DDL, not the build)")
+        return
+    links_before = sorted((props.get("links") or {}).keys())
+    print(f"[build]   captured {CHUNKS_SEARCH_VIEW} links: {links_before}")
+    # Drop ONLY the chunks link (None drops a single link; any other links untouched).
+    db.update_view(CHUNKS_SEARCH_VIEW, {"links": {KG_CHUNKS: None}})
+    time.sleep(5)
+    after_drop = (db.view(CHUNKS_SEARCH_VIEW).get("links") or {})
+    if KG_CHUNKS in after_drop:
+        raise SystemExit(f"[build] FAIL — {KG_CHUNKS} link still present after drop")
+    # Re-add with the proven config -> full re-index over the current chunks.
+    db.update_view(CHUNKS_SEARCH_VIEW, {"links": {KG_CHUNKS: CHUNKS_VIEW_LINK}})
+    time.sleep(5)
+    after_readd = (db.view(CHUNKS_SEARCH_VIEW).get("links") or {})
+    if KG_CHUNKS not in after_readd:
+        raise SystemExit(f"[build] FAIL — {KG_CHUNKS} link missing after re-add")
+    # BM25 probe: materialize >=1 live chunk (a stale index throws NotFound).
+    aql = (
+        "FOR c IN @@view "
+        "  SEARCH ANALYZER(c.content IN TOKENS(@q, 'text_en'), 'text_en') "
+        "  SORT BM25(c) DESC LIMIT 3 RETURN c._id"
+    )
+    live: list[str] = []
+    for attempt in range(6):
+        try:
+            live = [x for x in db.aql.execute(aql, bind_vars={"@view": CHUNKS_SEARCH_VIEW, "q": "renewal escalation churn risk"}) if x]
+            if live:
+                break
+        except Exception as exc:  # noqa: BLE001
+            print(f"[build]   probe attempt {attempt + 1}/6: {type(exc).__name__} (re-index settling)")
+        time.sleep(5)
+    if not live:
+        raise SystemExit("[build] FAIL — chunks view BM25 probe materialized 0 live chunks after re-add")
+    print(f"[build]   view re-indexed — BM25 materialized {len(live)} live chunk(s)")
+    _update_build_manifest(chunks_view_refreshed=True, chunks_view_live_probe=len(live))
+
+
 def stage_dim_check(cfg: dict) -> int:
     print("[build] Stage 6 — embedding dimension check (expect 512) ...")
     db = _get_db(cfg)
@@ -376,6 +447,10 @@ def main() -> int:
 
     stage_orchestrate(client)
     counts = wait_for_kg(cfg)
+    # Stage 6.5 — the delete-first rebuild gave the chunks NEW _ids; the BM25 view's
+    # inverted index still references the pre-truncate _ids. Drop+re-add its chunks
+    # link to re-index, or every hybrid retrieval path throws NotFound on stale _ids.
+    stage_refresh_chunks_view(cfg)
     dim = stage_dim_check(cfg)
     # Stage 7 — content-derived attribution repair (NOT manifest-keyed-by-file_name).
     # AutoGraph desyncs Document.file_name from content on this service (a permutation),
