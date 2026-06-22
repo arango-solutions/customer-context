@@ -160,6 +160,15 @@ When you produce the final answer object:
     and each citation's _id MUST be a real ArangoDB _id that one of the tools actually
     returned to you. Do not invent _ids. Copy the graph, collection, _id, and the aql/query
     string from the tool result that produced the fact.
+  • AGGREGATE / TREND / COMPARATIVE claims (growth, increase, decline, "consistent",
+    "improving", "steady", "over time", or any comparison across periods) are grounded ONLY
+    if you cite the SPECIFIC underlying records that establish them — cite the individual
+    period UsageFact rows you are summarizing (at minimum the first and last periods being
+    compared), NOT a single row and NOT zero rows. State the concrete figures and periods you
+    are comparing in the claim text (e.g. "query volume rose from 5.79M in 2022-Q3 to 11.87M
+    in 2025-Q2") so the claim is DIRECTLY entailed by the cited records. A bare "usage shows
+    consistent growth" backed by one or no citation is NOT grounded — either attach every
+    period's record or decompose it into per-period claims.
   • Put your step-by-step reasoning in reasoningTrace (separate from the claims, D-03).
   • Populate citations as the flattened union of all claim citations.
   • If the records needed to support a claim are ABSENT from what the tools returned, do NOT
