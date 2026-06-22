@@ -63,7 +63,7 @@ import { loadEnv } from '../src/db.js';
 // guard sees the real env (the false-green skip lesson from 05-01).
 loadEnv();
 
-import { askQuestion, assertReconciliation, Q7_ANCHOR_PROMPT } from '../src/index.js';
+import { askQuestion, assertReconciliation, Q7_ANCHOR_PROMPT, QC_ANCHOR_PROMPT } from '../src/index.js';
 import { EnvelopeSchema, type Envelope } from '../src/envelope.js';
 import { faithfulness } from '../src/faithfulness.js';
 import { hasLiveDb, hasOpenAi } from './fixtures.js';
@@ -252,6 +252,83 @@ d('6 locked questions — envelope contract + faithfulness >= 0.6 (AGENT-01/02/0
       // voting (2026-06-19). Was 0.333 under deflated rubric + borderline 0.5 pre-voting.
       const { score, unsupported } = await faithfulness(env);
       expect(score, `Q8 unsupported claims: ${unsupported.map((c) => c.text).join(' | ')}`).toBeGreaterThanOrEqual(FAITHFULNESS_FLOOR);
+    },
+    TIMEOUT,
+  );
+
+  it(
+    'Q13 — helio churn / contraction [dual-graph]',
+    async () => {
+      const env = await askQuestion(
+        'Is Helio Retail at risk of churning, and WHY? Use their contract downgrade, ' +
+          'declining usage telemetry, and slipped renewal opportunity from the structured ' +
+          'graph together with the CSM Slack escalations, downgrade-rationale emails, QBR ' +
+          'documents, and churn-risk review that explain the contraction and any migration-away.',
+      );
+      assertWellFormed(env);
+      expect(env.refused).toBe(false);
+      // AGENT-05: cites ≥1 structured AND ≥1 unstructured _id.
+      expect(assertReconciliation(env)).toBe(true);
+      // The answer must NAME the contraction (declining usage / downgrade / churn / at-risk).
+      expect(env.answer).toMatch(/declin|contract|downgrad|churn|at.risk/i);
+      // Phase 8 groundingScore assertions (EVAL-03 / Task 4)
+      expect(typeof env.groundingScore).toBe('number');
+      expect(env.groundingScore).toBeGreaterThanOrEqual(0);
+      expect(env.groundingScore).toBeLessThanOrEqual(1);
+      // Non-refused + all citations grounded → groundingScore must be 1.0
+      expect(env.groundingScore).toBe(1.0);
+      // EVAL-01 faithfulness gate.
+      const { score, unsupported } = await faithfulness(env);
+      expect(score, `Q13 unsupported claims: ${unsupported.map((c) => c.text).join(' | ')}`).toBeGreaterThanOrEqual(FAITHFULNESS_FLOOR);
+    },
+    TIMEOUT,
+  );
+
+  it(
+    'Q14 — helio remediation / save-plan [dual-graph]',
+    async () => {
+      const env = await askQuestion(
+        'What is the plan to save Helio Retail from churning? Use their at-risk renewal ' +
+          'opportunity and declining usage from the structured graph together with the CSM ' +
+          'save-plan document and the remediation Slack thread that lay out the remediation steps.',
+      );
+      assertWellFormed(env);
+      expect(env.refused).toBe(false);
+      expect(assertReconciliation(env)).toBe(true);
+      // Phase 8 groundingScore assertions (EVAL-03 / Task 4)
+      expect(typeof env.groundingScore).toBe('number');
+      expect(env.groundingScore).toBeGreaterThanOrEqual(0);
+      expect(env.groundingScore).toBeLessThanOrEqual(1);
+      // Non-refused + all citations grounded → groundingScore must be 1.0
+      expect(env.groundingScore).toBe(1.0);
+      // EVAL-01 faithfulness gate.
+      const { score, unsupported } = await faithfulness(env);
+      expect(score, `Q14 unsupported claims: ${unsupported.map((c) => c.text).join(' | ')}`).toBeGreaterThanOrEqual(FAITHFULNESS_FLOOR);
+    },
+    TIMEOUT,
+  );
+
+  it(
+    'Q15 — helio product-tier history + usage trend [structured-only anchor]',
+    async () => {
+      // QC_ANCHOR_PROMPT is the single source of truth (same discipline as Q7_ANCHOR_PROMPT).
+      const env = await askQuestion(QC_ANCHOR_PROMPT);
+      assertWellFormed(env);
+      expect(env.refused).toBe(false);
+      // The intentional structured-only anchor: every citation is from the structured graph.
+      expect(env.citations.length).toBeGreaterThan(0);
+      for (const c of env.citations) expect(c.graph).toBe('structured');
+      // Every claim carries at least one citation.
+      for (const cl of env.claims) expect(cl.citations.length).toBeGreaterThan(0);
+      // Phase 8 groundingScore assertions (EVAL-03 / Task 4)
+      expect(typeof env.groundingScore).toBe('number');
+      expect(env.groundingScore).toBeGreaterThanOrEqual(0);
+      expect(env.groundingScore).toBeLessThanOrEqual(1);
+      // Non-refused + all citations grounded → groundingScore must be 1.0
+      expect(env.groundingScore).toBe(1.0);
+      // EVAL-01 faithfulness gate.
+      const { score, unsupported } = await faithfulness(env);
+      expect(score, `Q15 unsupported claims: ${unsupported.map((c) => c.text).join(' | ')}`).toBeGreaterThanOrEqual(FAITHFULNESS_FLOOR);
     },
     TIMEOUT,
   );

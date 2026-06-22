@@ -154,7 +154,7 @@ function extractFaithfulnessScore(failureMessage?: string): string {
 
 // ── summary table ─────────────────────────────────────────────────────────────
 
-const LOCKED_QUESTION_LABELS = ['Q7', 'Q2', 'Q12', 'Q9', 'Q5', 'Q8'];
+const LOCKED_QUESTION_LABELS = ['Q7', 'Q2', 'Q12', 'Q9', 'Q5', 'Q8', 'Q13', 'Q14', 'Q15'];
 
 function classifyTest(name: string): 'locked' | 'refusal' | 'adversarial' | 'other' {
   const upper = name.toUpperCase();

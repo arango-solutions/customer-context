@@ -206,19 +206,96 @@ def test_q8_signal_docs_present(load_manifest):
 
 
 # ---------------------------------------------------------------------------
-# Both accounts present
+# Q13 — Helio Retail churn / contraction (dual-graph flagship; Account C = Helio)
 # ---------------------------------------------------------------------------
 
 
-def test_both_accounts_have_structured_data(load_structured):
+def test_q13_signal_docs_present(load_manifest):
     """
-    Both 'northwind' and 'meridian' must appear in the structured output dict.
+    Q13 requires at least 1 signal doc with "Q13" in questions_served for
+    EACH of the 4 Helio modules: slack, email, docs, pdf.
 
-    If one account is missing entirely, the demo cannot show the Northwind
-    (healthy) vs Meridian (at-risk) contrast that drives questions Q2, Q7, Q12.
+    Q13 is Account C's flagship dual-graph question — the contraction story
+    (declining usage + downgrade + migration-away) spans all 4 unstructured
+    channels and joins the structured contraction arc.
+    """
+    required_modules = ["helio_slack", "helio_email", "helio_docs", "helio_pdf"]
+    missing_modules = []
+
+    for module in required_modules:
+        docs = _signal_docs_for(load_manifest, "Q13", [module])
+        if not docs:
+            missing_modules.append(module)
+
+    assert not missing_modules, (
+        f"Q13 flagship is incomplete — missing signal docs for modules: "
+        f"{missing_modules}"
+    )
+
+
+# ---------------------------------------------------------------------------
+# Q14 — Helio remediation / save-plan follow-up (dual-graph; Account C = Helio)
+# ---------------------------------------------------------------------------
+
+
+def test_q14_signal_docs_present(load_manifest):
+    """
+    Q14 requires at least 1 signal doc with "Q14" in questions_served from
+    Helio's modules — the remediation / save-plan lives in CSM docs and Slack.
+    """
+    helio_modules = ["helio_slack", "helio_email", "helio_docs", "helio_pdf"]
+    signal_docs = _signal_docs_for(load_manifest, "Q14", helio_modules)
+
+    assert len(signal_docs) >= 1, (
+        f"Q14 requires at least 1 signal doc in helio modules — "
+        f"found {len(signal_docs)}: {signal_docs}"
+    )
+
+
+# ---------------------------------------------------------------------------
+# Q15 — Structured-only anchor (Account C = Helio; mirrors Q7's role for A)
+# ---------------------------------------------------------------------------
+
+
+def test_q15_structured_records_present(load_structured):
+    """
+    Q15 is structured-only: assert UsageMetric, Contract, and Opportunity
+    records exist for Helio (Account C).
+
+    Without these records the contraction product-tier history cannot be
+    sourced from the structured graph alone (the non-refusal anchor for C).
     """
     missing = []
-    for account in ("northwind", "meridian"):
+
+    if not _has_records(load_structured, "helio", "usage"):
+        missing.append("helio UsageMetric records (source containing 'usage')")
+    if not _has_records(load_structured, "helio", "contract"):
+        missing.append("helio Contract records (source containing 'contract')")
+    if not _has_records(load_structured, "helio", "opportunit"):
+        missing.append("helio Opportunity records (source containing 'opportunit')")
+
+    assert not missing, (
+        "Q15 is unanswerable — missing structured records:\n"
+        + "\n".join(f"  - {m}" for m in missing)
+    )
+
+
+# ---------------------------------------------------------------------------
+# All accounts present
+# ---------------------------------------------------------------------------
+
+
+def test_all_accounts_have_structured_data(load_structured):
+    """
+    'northwind', 'meridian', and 'helio' must all appear in the structured
+    output dict.
+
+    If one account is missing entirely, the demo cannot show the portfolio
+    triad — Northwind (grows), Meridian (holds-but-grumbles), Helio (slips) —
+    that drives questions Q2, Q7, Q12, and the new C questions Q13/Q14/Q15.
+    """
+    missing = []
+    for account in ("northwind", "meridian", "helio"):
         if account not in load_structured or not load_structured[account]:
             missing.append(account)
 
@@ -240,7 +317,7 @@ def test_near_miss_docs_present_per_question(load_manifest):
     actually present. Without them the guard trivially passes and provides
     no signal about retrieval precision.
     """
-    required_questions = ["Q12", "Q2", "Q9", "Q8"]
+    required_questions = ["Q12", "Q2", "Q9", "Q8", "Q13"]
     insufficient = []
 
     for q_id in required_questions:
@@ -263,11 +340,13 @@ def test_near_miss_docs_present_per_question(load_manifest):
 
 def test_all_six_questions_have_both_graph_halves(load_manifest, load_structured):
     """
-    Composite check: for each dual-graph question (Q2, Q12, Q9, Q5, Q8), assert:
+    Composite check: for each dual-graph question (Q2, Q12, Q9, Q5, Q8, Q13, Q14),
+    assert:
       - At least 1 signal doc exists in the manifest (unstructured graph side)
       - The required structured records exist (CRM/Snowflake/DocuSign)
 
-    Q7 is structured-only and skips the unstructured side check.
+    Q7 (Account A) and Q15 (Account C) are structured-only anchors and skip the
+    unstructured side check.
 
     This is the 'both sides are present' gate — if either half is missing,
     the agent cannot produce a fully-sourced, traceable answer.
@@ -303,6 +382,16 @@ def test_all_six_questions_have_both_graph_halves(load_manifest, load_structured
                 "northwind_slack", "northwind_email", "northwind_docs",
                 "meridian_slack", "meridian_email", "meridian_docs", "meridian_pdf",
             ],
+        },
+        "Q13": {
+            "account": "helio",
+            "required_structured": ["usage", "contract"],
+            "modules": ["helio_slack", "helio_email", "helio_docs", "helio_pdf"],
+        },
+        "Q14": {
+            "account": "helio",
+            "required_structured": ["crm"],
+            "modules": ["helio_slack", "helio_email", "helio_docs", "helio_pdf"],
         },
     }
 

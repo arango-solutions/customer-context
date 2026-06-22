@@ -45,6 +45,19 @@ export const Q7_ANCHOR_PROMPT =
   'expansion opportunities; do not use any unstructured documents for this one.';
 
 /**
+ * Q15 anchor prompt for Helio Retail (Account C — structured-only contraction indicator).
+ *
+ * Mirrors Q7's role for Account A: a non-refusal, all-citations-structured anchor. Helio's
+ * contraction (downgrade ladder + declining usage telemetry + slipped renewal opportunity)
+ * is fully sourceable from the structured graph alone. Single source of truth — same
+ * discipline as Q7_ANCHOR_PROMPT; do NOT inline this literal elsewhere, import from here.
+ */
+export const QC_ANCHOR_PROMPT =
+  'For Helio Retail, summarize their product-tier history, current contract status, and ' +
+  'usage trend over time. Answer purely from the structured graph — their contracts, ' +
+  'usage telemetry, and CRM opportunities; do not use any unstructured documents for this one.';
+
+/**
  * Answer a free-form question, returning a code-grounded, Zod-shaped envelope.
  *
  * The grounding gate runs over (envelope, returnedIds) where returnedIds is the set of
