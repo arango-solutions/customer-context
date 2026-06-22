@@ -343,19 +343,22 @@ npx tsx scripts/eval-gate.ts
 | A4 | Adding C docs does not flip the 5 existing N/M near-miss guards to RED. | Pitfall 3 | Medium — depends on C's lexicon staying distinct (D-03). Verify by re-running all guard tests after C is added. |
 | A5 | The prose generator's per-doc fact-builders (`_build_facts_for_signal`, etc.) generalize to C's events without per-account special-casing. | Pattern 1 step 4 | Medium — only the slack generator's helpers were inspected; planner should spot-check email/docs/pdf fact-builders for any hardcoded `northwind`/`meridian` branches before generating C. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Does the as-shipped `build_unstructured.py` truly need a full rebuild, or can `--modules helio_*` add C in isolation?**
    - What we know: Stage 2 uses `incremental=False` over passed `file_ids`; Stage 4 orchestrates with no `partition_ids` → not isolated. `[VERIFIED: build_unstructured.py:154-203]`
    - What's unclear: UPDATE-PIPELINE.md Open Item 1 (does `partition_ids`-scoped orchestrate leave the rest of `_kg` intact?) is still untested.
    - Recommendation: Use **Option A (full rebuild)** for Phase 9. Defer isolated-add to Phase 12 (CDC), where the lane + isolation test belongs.
+   - **RESOLVED:** Adopt Option A (full rebuild) — implemented in 09-03 Task 2, which explicitly plans a single serialized full KG rebuild and forbids the per-module ADD lane. Isolated incremental add deferred to Phase 12 (CDC).
 
 2. **Re-ingest/cost budget for the full rebuild over 12 modules.**
    - What we know: poll timeouts are generous (corpus 5400s, strategy 1800s, KG-populate 2400s); orchestrate runs `replicas=2`. `[VERIFIED: build_unstructured.py:176,192,206,200]`
    - What's unclear: wall-clock for 12 modules / ~120–180 docs on the live cluster.
    - Recommendation: Plan a single serialized rebuild; use `--build-id` to resume on interruption; treat the timeouts above as the budget ceiling.
+   - **RESOLVED:** Single serialized rebuild with `--build-id` resume — adopted in 09-03 Task 2; the documented poll timeouts are the budget ceiling. Live-cluster wall-clock is an execution-time observation, not a planning blocker.
 
 3. **Do email/docs/pdf prose fact-builders contain account-specific branches?** (See A5.) Planner should read `_build_facts_for_signal` equivalents in `email_generator.py`, `docs_generator.py`, `pdf_generator.py` before generating C.
+   - **RESOLVED:** 09-01 Task 2 mandates reading all 4 unstructured generators in `<read_first>` and adds the `helio_*` `_get_prohibited_terms` branch + Q13/Q14 prose branch; any account-specific branches discovered there are handled at execution time. (Assumption A5 confirmed wrong on inspection — the fall-through-to-Northwind bug is an explicit Wave-0 fix in 09-01 Task 2.)
 
 ## Environment Availability
 
