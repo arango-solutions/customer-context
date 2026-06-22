@@ -2,7 +2,7 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Live, Visible, Trustworthy
-status: verifying
+status: phase-complete
 last_updated: "2026-06-22T20:18:47.666Z"
 last_activity: 2026-06-22
 progress:
@@ -24,9 +24,9 @@ See: .planning/PROJECT.md (updated 2026-06-22)
 
 ## Current Position
 
-Phase: 08 (deterministic-eval-harness) — EXECUTING
+Phase: 08 (deterministic-eval-harness) — COMPLETE + VERIFIED (PASSED)
 Plan: 1 of 1
-Status: Phase complete — ready for verification
+Status: Phase 08 complete + verified — EVAL-03 reconciled to bounded+gate-classified (Option A, 2026-06-22); EVAL-04 fully satisfied
 Last activity: 2026-06-22
 
 ## Performance Metrics

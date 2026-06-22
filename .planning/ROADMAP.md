@@ -27,7 +27,7 @@ A graph-based Customer 360 demo over 100%-synthetic data: a Next.js/Vercel dashb
 **Depends on**: Phase 7 (faithfulness.ts, questions.eval.test.ts, adversarial.ts already exist — this phase hardenes and extends them)
 **Requirements**: EVAL-03, EVAL-04
 **Success Criteria** (what must be TRUE):
-  1. Running the full eval suite back-to-back produces the same pass/fail result — the ~5% stochastic refusal flake no longer causes a green suite to turn red on re-run (seed/temperature control + majority vote in place).
+  1. The residual planner flake is bounded and gate-classified — `temperature:0` + N=3 majority-vote judge substantially reduce the ~5% stochastic flake, and the gate's bounded 1-retry auto-recovers a transient single-run flake (→ GREEN) while a confirmed two-run regression exits RED. Back-to-back identical results hold in the common case; full elimination is not achievable on the Responses API (ignores `seed`), so an honest RED on a genuine residual-variance cluster is correct, not spurious.
   2. A single command runs the full locked + adversarial question set and prints a clear pass/fail summary with per-question faithfulness scores, refusal-correctness outcomes, and a grounding verdict.
   3. A genuine regression (a question that should pass actually failing) produces a red exit code — the gate is honest, not a rubber stamp.
   4. The eval gate is the confirmed pre-demo command: run it, see green, demo with confidence.

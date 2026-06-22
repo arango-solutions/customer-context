@@ -23,7 +23,7 @@ Each maps to a roadmap phase (assigned by the roadmapper). Grouped by the 8 conf
 
 ### Area 3 — Robust / Deterministic Eval Harness
 
-- [x] **EVAL-03**: The eval harness is deterministic/stable across runs — the v1 ~5% stochastic refusal + faithfulness-score flake no longer cause spurious failures (seed/temperature control, multi-sample majority, and/or bounded retry on transient infra so a real green stays green).
+- [x] **EVAL-03**: The eval harness is stable across runs and the residual planner flake is *bounded and gate-classified* — `temperature:0` on both ToolLoopAgent constructors + N=3 majority-vote judge substantially reduce the v1 ~5% stochastic flake, and the gate's bounded 1-retry distinguishes a transient single-run flake (auto-recovered → GREEN) from a confirmed two-run regression (→ RED). Full elimination is not achievable on the OpenAI Responses API (it silently ignores `seed`); a genuine residual-variance cluster (e.g. Q5/Q8 under-citing on a given run) can still trip a confirmed RED, which is correct, honest behavior rather than a spurious failure. *(Reworded 2026-06-22 to match what is achievable on the Responses API; true seed-based determinism deferred — see VERIFICATION.md Option B.)*
 - [x] **EVAL-04**: An on-demand green/red gate reports pass/fail over the full locked + adversarial question set with deterministic metrics (faithfulness, refusal-correctness, grounding) and a clear summary — runnable as the single pre-demo "is it working" command.
 
 ### Area 4 — ArangoDB-Brand UI Refresh + Latency
