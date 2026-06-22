@@ -265,15 +265,25 @@ async function main(): Promise<void> {
   // ─ Run 2 (retry failing tests only) ─────────────────────────────────────────
   console.log(`\nRun-1: ${run1Failures.length} failure(s). Retrying failing tests (run 2/2) ...`);
 
-  // Build the -t filter: use the full test name (vitest -t does substring match)
-  // For multiple failures, join them with | for an OR match pattern
-  const filterPattern = run1Failures.map((t) => t.name).join('|');
+  // Build the -t filter: escape all regex special characters in test names so that
+  // names containing '/', '[', '?', etc. don't produce an invalid regex in vitest.
+  // For multiple failures, join escaped names with '|' for an OR pattern.
+  function escapeRegex(s: string): string {
+    return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
+  const filterPattern = run1Failures.map((t) => escapeRegex(t.name)).join('|');
   const run2 = runVitest(filterPattern);
 
   const run2Failures = run2.tests.filter((t) => t.status === 'failed');
-  const flakeRecoveredNames = run1Failures
-    .filter((f) => run2.tests.find((t) => t.name === f.name && t.status === 'passed'))
-    .map((f) => f.name);
+
+  // If run-2 produced no test results (vitest startup failure), treat all run-1 failures
+  // as confirmed regressions — do NOT declare them flake-recovered on an empty run.
+  const run2ProducedResults = run2.tests.length > 0;
+  const flakeRecoveredNames = run2ProducedResults
+    ? run1Failures
+        .filter((f) => run2.tests.find((t) => t.name === f.name && t.status === 'passed'))
+        .map((f) => f.name)
+    : [];
 
   const totalRun1 = run1.tests.filter((t) => t.status !== 'skipped').length;
   const passedRun1 = run1.tests.filter((t) => t.status === 'passed').length;
@@ -281,7 +291,7 @@ async function main(): Promise<void> {
   printSummaryTable(run1.tests, run2.tests, flakeRecoveredNames);
   console.log('');
 
-  if (run2Failures.length === 0) {
+  if (run2Failures.length === 0 && run2ProducedResults) {
     // All failures recovered on retry — transient flake
     console.log(
       `SUMMARY:  ${passedRun1}/${totalRun1} PASS on run-1; ${totalRun1}/${totalRun1} on run-2  |  GATE: GREEN (flake recovered — investigate)  |  exit 0`,
