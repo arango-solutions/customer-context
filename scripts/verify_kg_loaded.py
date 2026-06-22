@@ -17,6 +17,7 @@ Usage:
 
 from __future__ import annotations
 
+import json
 import os
 import sys
 from pathlib import Path
@@ -38,8 +39,16 @@ from data_gen.spine.entity_registry import (  # noqa: E402
 )
 
 KG_DOCUMENTS = "customer360_Documents"
+_MANIFEST = _REPO_ROOT / "data_gen" / "output" / "manifest.json"
 _HELIO_MODULES = ["helio_slack", "helio_email", "helio_docs", "helio_pdf"]
+_NORTHWIND_MODULES = ["northwind_slack", "northwind_email", "northwind_docs", "northwind_pdf"]
+_MERIDIAN_MODULES = ["meridian_slack", "meridian_email", "meridian_docs", "meridian_pdf"]
 _STRUCT_VERTEX_COLLS = ["Account", "Contact", "Opportunity", "NPS", "UsageFact", "Contract"]
+
+# Clean-rebuild expectation: the KG must contain exactly the manifest's docs (139),
+# NOT 244 (= 105 stale 2-account + 139 new). A count materially above the manifest
+# size means the delete-first truncate did not run (stale-doc contamination).
+_DOC_COUNT_TOLERANCE = 10  # absolute slack for AutoGraph splitting/merging a doc
 
 
 def _db():
@@ -92,31 +101,66 @@ def main() -> int:
         if acct_name == "helio" and scoped < 1:
             problems.append("helio has zero child structured vertices (load_structured failed?)")
 
-    # (b) KG documents attributed to helio modules
-    print("\n[verify] --- AutoGraph KG: helio document attribution ---")
+    # (b) KG documents — CLEAN rebuild attribution (NOT contaminated 244-doc state)
+    print("\n[verify] --- AutoGraph KG: clean-rebuild document attribution ---")
     if not db.has_collection(KG_DOCUMENTS):
         problems.append(f"KG collection {KG_DOCUMENTS} does not exist (build_unstructured failed?)")
     else:
-        helio_docs = _count(
-            db,
-            "RETURN LENGTH(FOR d IN @@coll FILTER d.module IN @mods RETURN 1)",
-            {"@coll": KG_DOCUMENTS, "mods": _HELIO_MODULES},
-        )
-        helio_by_acct = _count(
-            db,
-            "RETURN LENGTH(FOR d IN @@coll FILTER d.account_id == @aid RETURN 1)",
-            {"@coll": KG_DOCUMENTS, "aid": HELIO_ACCOUNT_ID},
-        )
+        manifest = json.loads(_MANIFEST.read_text(encoding="utf-8"))
+        expected_total = len(manifest)  # 139 clean docs
+
         total_docs = _count(db, "RETURN LENGTH(@@coll)", {"@coll": KG_DOCUMENTS})
-        # how many of all docs carry one of the 12 module tags (attribution coverage)
-        print(f"[verify]   total KG documents:            {total_docs}")
-        print(f"[verify]   docs with module in helio_*:   {helio_docs}")
-        print(f"[verify]   docs with account_id == helio: {helio_by_acct}")
-        if helio_docs < 1 and helio_by_acct < 1:
+
+        # (b1) total docs ≈ manifest size — NOT the contaminated 244
+        print(f"[verify]   total KG documents:            {total_docs} (expect ~{expected_total})")
+        if abs(total_docs - expected_total) > _DOC_COUNT_TOLERANCE:
             problems.append(
-                "KG has zero documents attributed to helio modules/account "
-                "(build_unstructured + repair_kg_attribution did not ingest Helio)"
+                f"KG document count {total_docs} deviates from manifest size {expected_total} "
+                f"by > {_DOC_COUNT_TOLERANCE} — stale-doc contamination (delete-first truncate did "
+                f"not run) OR ingest mismatch. A clean rebuild must NOT be the 244-doc contaminated set."
             )
+
+        # (b2) every doc attributed — no null module/account_id (scramble left docs unattributed)
+        null_module = _count(
+            db,
+            "RETURN LENGTH(FOR d IN @@coll FILTER d.module == null OR d.module == '' RETURN 1)",
+            {"@coll": KG_DOCUMENTS},
+        )
+        null_acct = _count(
+            db,
+            "RETURN LENGTH(FOR d IN @@coll FILTER d.account_id == null OR d.account_id == '' RETURN 1)",
+            {"@coll": KG_DOCUMENTS},
+        )
+        print(f"[verify]   docs with null/empty module:   {null_module}")
+        print(f"[verify]   docs with null/empty account:  {null_acct}")
+        if null_module > 0:
+            problems.append(f"{null_module} KG docs have null/empty module (attribution incomplete)")
+        if null_acct > 0:
+            problems.append(f"{null_acct} KG docs have null/empty account_id (attribution incomplete)")
+
+        # (b3) all 3 accounts present and attributed in the KG (module + account_id)
+        account_modules = {
+            "northwind": (_NORTHWIND_MODULES, NORTHWIND_ACCOUNT_ID),
+            "meridian": (_MERIDIAN_MODULES, MERIDIAN_ACCOUNT_ID),
+            "helio": (_HELIO_MODULES, HELIO_ACCOUNT_ID),
+        }
+        print("[verify]   per-account KG attribution:")
+        for acct_name, (mods, acct_id) in account_modules.items():
+            by_module = _count(
+                db,
+                "RETURN LENGTH(FOR d IN @@coll FILTER d.module IN @mods RETURN 1)",
+                {"@coll": KG_DOCUMENTS, "mods": mods},
+            )
+            by_acct = _count(
+                db,
+                "RETURN LENGTH(FOR d IN @@coll FILTER d.account_id == @aid RETURN 1)",
+                {"@coll": KG_DOCUMENTS, "aid": acct_id},
+            )
+            print(f"[verify]     {acct_name:9s}: module={by_module}  account_id={by_acct}")
+            if by_module < 1:
+                problems.append(f"KG has zero documents with a {acct_name}_* module (account missing from KG)")
+            if by_acct < 1:
+                problems.append(f"KG has zero documents with account_id == {acct_name} (attribution failed)")
 
     print()
     if problems:
