@@ -9,6 +9,11 @@ service (service_discovery.json: customer360_autograph_url):
              import-multiple silently no-ops on this cluster, see health360 D-13/D-14)
   Stage 2 — corpus build from file_ids (poll to completed)
   Stage 3 — rag-strategizer analyze + wait for strategy to stabilize
+  Stage 3.5 — delete-first: truncate the 5 Layer-3 derived collections
+            (Documents/Chunks/Entities/Relations/Communities) so a full rebuild
+            writes fresh into empty collections instead of appending onto the prior
+            build (spike UPDATE-PIPELINE.md line 77). Guarded to that allowlist only;
+            NEVER touches the structured graph. Skip with --no-truncate.
   Stage 4 — orchestrate (kickoff; allows one at a time, retries on 409)
   Stage 5 — wait for KG collections (customer360_Documents/Chunks) to populate
   Stage 6 — dim check: a sampled chunk.embedding has length 512 (A2 gate)
@@ -55,6 +60,22 @@ _BUILD_MANIFEST = _REPO_ROOT / "build_manifest.json"
 KG_DOCUMENTS = "customer360_Documents"
 KG_CHUNKS = "customer360_Chunks"
 EXPECTED_DIM = 512
+
+# The 5 AutoGraph-derived Layer-3 collections. These are the ONLY collections this
+# script is ever permitted to truncate. The structured hand-modeled graph
+# (Account/Contact/Opportunity/UsageFact/Contract/NPS + edges) is NEVER in this set.
+# Delete-first sidesteps the importer's additive-vs-wipe ambiguity (spike
+# UPDATE-PIPELINE.md line 77): purging Layer-3 before re-orchestrating means it
+# doesn't matter whether the importer appends or replaces — it writes fresh into
+# empty collections. Without this, a full Option-A rebuild APPENDS onto the prior
+# build's docs (244 = 105 stale + 139 new), scrambling Stage-7 attribution.
+KG_LAYER3_COLLECTIONS = (
+    "customer360_Documents",
+    "customer360_Chunks",
+    "customer360_Entities",
+    "customer360_Relations",
+    "customer360_Communities",
+)
 
 
 # ── env / connections ───────────────────────────────────────────────────────
@@ -195,6 +216,41 @@ def stage_strategize(client: AutographClient) -> None:
     _update_build_manifest(strategy_partitions=len(strategies))
 
 
+def stage_truncate_layer3(cfg: dict) -> dict[str, int]:
+    """Delete-first: truncate ONLY the 5 AutoGraph Layer-3 derived collections before
+    orchestrate, so a full rebuild writes fresh into empty collections instead of
+    appending onto a prior build (spike UPDATE-PIPELINE.md line 77).
+
+    Guard: this function operates over the hardcoded KG_LAYER3_COLLECTIONS allowlist
+    ONLY. It can never touch the structured graph. As a defence-in-depth assertion we
+    re-verify every name carries the customer360_ KG prefix and is in the allowlist
+    before issuing a single truncate.
+    """
+    print("[build] Stage 3.5 — delete-first: truncate Layer-3 derived collections ...")
+    # Defence-in-depth: refuse to run if anything outside the explicit allowlist
+    # somehow appears (structured collections have no 'customer360_' KG prefix).
+    for name in KG_LAYER3_COLLECTIONS:
+        if name not in KG_LAYER3_COLLECTIONS or not name.startswith("customer360_"):
+            raise SystemExit(f"[build] FATAL — refusing to truncate non-Layer-3 collection: {name!r}")
+    db = _get_db(cfg)
+    truncated: dict[str, int] = {}
+    for name in KG_LAYER3_COLLECTIONS:
+        if not db.has_collection(name):
+            print(f"[build]   {name}: absent (skip)")
+            truncated[name] = 0
+            continue
+        before = db.collection(name).count()
+        db.collection(name).truncate()
+        after = db.collection(name).count()
+        if after != 0:
+            raise SystemExit(f"[build] FAIL — {name} not empty after truncate (count={after})")
+        print(f"[build]   {name}: truncated {before} -> 0")
+        truncated[name] = before
+    print(f"[build]   Layer-3 cleared — {sum(truncated.values())} stale records removed")
+    _update_build_manifest(layer3_truncated=truncated)
+    return truncated
+
+
 def stage_orchestrate(client: AutographClient) -> None:
     print("[build] Stage 4 — orchestrate (replicas=2, max_retries=3) ...")
     resp, _, _ = client.orchestrate_with_wait(replicas=2, max_retries=3)
@@ -278,6 +334,11 @@ def main() -> int:
     ap.add_argument("--modules", nargs="*", help="restrict to specific modules")
     ap.add_argument("--skip-orchestrate", action="store_true", help="stop after strategizer")
     ap.add_argument("--skip-stamp", action="store_true", help="skip citable_url stamp")
+    ap.add_argument(
+        "--no-truncate",
+        action="store_true",
+        help="skip the delete-first Layer-3 truncate (default: truncate before orchestrate for a clean rebuild)",
+    )
     args = ap.parse_args()
 
     cfg = _arango_cfg()
@@ -304,6 +365,14 @@ def main() -> int:
     if args.skip_orchestrate:
         print("[build] --skip-orchestrate set — stopping after strategizer")
         return 0
+
+    # Delete-first: clear stale Layer-3 BEFORE orchestrate so the rebuild is genuinely
+    # clean (the importer appends; without this, prior-build docs persist). Skippable
+    # via --no-truncate only for diagnostic resumes that must preserve existing Layer-3.
+    if not args.no_truncate:
+        stage_truncate_layer3(cfg)
+    else:
+        print("[build] --no-truncate set — skipping Layer-3 delete-first (existing docs preserved)")
 
     stage_orchestrate(client)
     counts = wait_for_kg(cfg)
