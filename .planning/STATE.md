@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Live, Visible, Trustworthy
 status: planning
-last_updated: "2026-06-22T18:31:43.542Z"
+last_updated: "2026-06-22T00:00:00.000Z"
 last_activity: 2026-06-22
 progress:
-  total_phases: 0
+  total_phases: 8
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -17,37 +17,42 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-06-15)
+See: .planning/PROJECT.md (updated 2026-06-22)
 
 **Core value:** A free-form question only answerable by joining the structured and unstructured graphs returns a correct, fully-sourced answer — every fact traceable to the record and graph it came from.
-**Current focus:** Phase 07 — grounding-eval-demo-hardening
+**Current focus:** v2.0 roadmap defined — Phase 08 is next (Deterministic Eval Harness)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: Not started (roadmap defined, ready to plan Phase 08)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-06-22 — Milestone v2.0 started
+Status: Roadmap defined — awaiting `/gsd-plan-phase 8`
+Last activity: 2026-06-22 — v2.0 roadmap (Phases 08–15) created
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 15
+- Total plans completed: 31 (v1.0, all shipped)
 - Average duration: —
-- Total execution time: 0 hours
+- Total execution time: ~6 days (v1.0)
 
-**By Phase:**
+**v2.0 By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 1 | 5 | - | - |
-| 02 | 5 | - | - |
-| 03 | 5 | - | - |
+| 8 — Deterministic Eval Harness | TBD | - | - |
+| 9 — Data Depth & 3rd Account | TBD | - | - |
+| 10 — Answer-Provenance Edge Enrichment | TBD | - | - |
+| 11 — Graph Viz + UI Refresh + Latency | TBD | - | - |
+| 12 — Simulated CDC + What-Changed Diff | TBD | - | - |
+| 13 — Injection-Resistance + Adversarial Mode | TBD | - | - |
+| 14 — Temporal Queries | TBD | - | - |
+| 15 — Analyst Polish + Demo Control Panel | TBD | - | - |
 
 **Recent Trend:**
 
-- Last 5 plans: —
+- Last 5 plans: (v1.0 history)
 - Trend: —
 
 *Updated after each plan completion*
@@ -96,6 +101,10 @@ Recent decisions affecting current work:
 - [Phase ?]: Phase 6: agent imported into web/ as a compiled dist/ workspace dep — raw-TS transpilePackages proven unviable on Next 15
 - [Phase ?]: Phase 6: web pinned to Next 15.5.19; stray root next@^16 slopcheck-probe deps removed
 - [Phase ?]: [Phase 06]: askQuestionStream is ADDITIVE — reuses agent.ts seams + the SAME terminal enforceGrounding; streamed data-step parts are transient progress, the persistent data-envelope is the gated answer
+- [v2.0 Roadmap 2026-06-22]: Phase 08 sequenced first — closes the v1 ~5% stochastic refusal residual before any v2 feature ships; ensures later phases have a trustworthy gate to verify against.
+- [v2.0 Roadmap 2026-06-22]: Phase 999.1 backlog (React Flow viz) promoted to v2.0 as Phase 10 (edge enrichment) + Phase 11 (React Flow render + UI refresh + latency). The verified technical spine and LOCKED data-driven requirement from the backlog carry forward verbatim.
+- [v2.0 Roadmap 2026-06-22]: UI-06 (confidence score) placed in Phase 11 alongside the viz because it depends on eval metrics being surfaced in the answer envelope, and Phase 11 is the UI composition phase.
+- [v2.0 Roadmap 2026-06-22]: DEMO-01 control panel deferred to Phase 15 (last) because the CDC trigger (Phase 12) and multi-turn (AGENT-08) must exist before a control panel can surface them.
 
 ### Pending Todos
 
@@ -103,9 +112,9 @@ None yet.
 
 ### Blockers/Concerns
 
-- [Phase 1]: Load-bearing assumption to verify hands-on — AutoGraph `{proj}_kg` output must be directly AQL-queryable for claim-level sourcing; failure triggers a HIGH-cost pivot to a hand-modeled unstructured graph.
-- [Phase 1]: Confirm ArangoDB env version (3.12.9+) for the vector + BM25 path; confirm a real Vercel→ArangoDB round-trip (not localhost).
-- [Phase 2]: Synthetic-data coherence is first-principles (LOW–MEDIUM confidence) — design the LLM-for-prose/code-for-facts split + integrity linter before generating at volume.
+- [v2.0]: ~5% stochastic planner refusal residual (Phase 08 target) — safe failure mode, no fabrication, but must close before live v2 demos.
+- [v2.0]: AutoGraph `incremental` re-ingest behavior on the 3rd account (Phase 09) — the existing UPDATE-PIPELINE.md design covers 2 accounts; adding a 3rd module needs verification that Leiden re-clustering is scoped correctly.
+- [v2.0]: React Flow layout for arbitrary traversal shapes (Phase 11) — no prior art in this codebase; requires a design decision on KG granularity (Document vs Chunk vs Entity level) for legibility at cap.
 
 ### Quick Tasks Completed
 
@@ -123,13 +132,14 @@ Items acknowledged and deferred at v1.0 milestone close on 2026-06-22:
 | quick_task | 260619-f7c-vercel-monorepo-build-fix 2 | iCloud sync-conflict duplicate (junk) | 2026-06-22 |
 | todo | coreference-hard-entity-extraction-eval + 4 more | planning notes | 2026-06-22 |
 | verification_gap | 2 outstanding Nyquist/verification gaps | non-blocking | 2026-06-22 |
-| residual | ~5% stochastic planner refusal on dual-graph Qs (safe failure, no fabrication) | accepted v1 | 2026-06-22 |
+| residual | ~5% stochastic planner refusal on dual-graph Qs (safe failure, no fabrication) | targeted in Phase 08 | 2026-06-22 |
 | residual | serverless↔ArangoDB root error class uncaptured (hardened; onError logger watches) | accepted v1 | 2026-06-22 |
 | follow-up | CRON_SECRET on Vercel Preview pending (CLI git-branch quirk) | non-blocking | 2026-06-22 |
-| v2 | AGENT-04 fallback, AGENT-06 Q11 timeline, React Flow traversal viz (NEXT-04) | deferred | 2026-06-22 |
+| v2 | AGENT-04 fallback, AGENT-06 Q11 timeline | deferred to v3 | 2026-06-22 |
 
 ## Session Continuity
 
-Last session: 2026-06-19T21:44:53.377Z
-Stopped at: Phase 7 context gathered
+Last session: 2026-06-22
+Stopped at: v2.0 roadmap created (Phases 08–15, 17/17 requirements mapped)
 Resume file: None
+Next action: `/gsd-plan-phase 8`
