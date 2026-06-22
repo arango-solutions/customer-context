@@ -19,7 +19,7 @@ A reusable, internal graph-based Customer 360 demo over 100%-synthetic data for 
 - [x] **Phase 4: Canonical Entity Layer** - The document-level cross-graph `same_as` bridge (`account_id`) that links the same entity across both graphs and shows in the trace (~0.5 weeks) (completed 2026-06-18 — 04-04 closed CR-01/CR-02: both demo-critical gates now use denominator 9, resolve via the same_as bridge path (not the KG stamp / raw mention join), proven by live-DB-free negative + positive tests; re-verification PASSED 3/3, see 04-VERIFICATION.md)
 - [x] **Phase 5: Custom Reasoning Agent** - Planner + specialists, ~6 curated AQL tools (generated-AQL fallback deferred to v2), claim-level sourcing, refusal path (~1.5–2.5 weeks) (completed 2026-06-18 — standalone TS ToolLoopAgent on OpenAI (D-06, no Anthropic key); 3 per-capability specialists + entityLookup; pure-code grounding/refusal gate; live 6-question eval 7/7 incl. Q12 reconciliation + out-of-scope refusal; 58 tests green; verification PASSED 4/4. Surfaced+fixed an upstream Phase-4 bridge gap — the 2 demo-critical Contracts were never linked (KG-driven build); added a structured-anchor step, rebuilt the live bridge, demo-critical now 9/9.)
 - [x] **Phase 6: Next.js/Vercel UI + Sourcing Display** - Free-form box, streamed reasoning, claim-level provenance, citation cards (React Flow traversal viz deferred to v2) (~1 week) (completed 2026-06-19)
-- [ ] **Phase 7: Grounding/Eval + Demo Hardening** - Light faithfulness eval over the 6 locked questions, pre-warm, backup path, adversarial rehearsal (~0.5–1 week)
+- [x] **Phase 7: Grounding/Eval + Demo Hardening** - Light faithfulness eval over the 6 locked questions, pre-warm, backup path, adversarial rehearsal (~0.5–1 week) (completed 2026-06-22)
 
 ## Phase Details
 
@@ -198,7 +198,7 @@ A reusable, internal graph-based Customer 360 demo over 100%-synthetic data for 
 
 **Wave 2** *(blocked on 07-02 — needs the deployed canary/warm path)*
 
-- [ ] 07-03-PLAN.md — EVAL-02: scripts/rehearse.ts — concurrent + adversarial rehearsal against the live deploy
+- [x] 07-03-PLAN.md — EVAL-02: scripts/rehearse.ts — concurrent + adversarial rehearsal against the live deploy
 **UI hint**: yes
 **Risk**: LOWER. Established patterns (Next.js 15 + AI SDK UI streaming + shadcn citation cards; React Flow deferred to v2). Main carry-over risks are serverless↔ArangoDB connection handling (validate on a real Vercel deploy) and mapping claim-level citations cleanly into the UI.
 
@@ -217,7 +217,7 @@ A reusable, internal graph-based Customer 360 demo over 100%-synthetic data for 
 
 - [x] 07-01-PLAN.md — Wave 1: EVAL-01 — faithfulness LLM-judge (advisory, test-time only) + shared `Q7_ANCHOR_PROMPT` + extend `questions.eval.test.ts` (faithfulness===1.0 over 6 Qs + adversarial refusals) + rebuild agent dist
 - [x] 07-02-PLAN.md — Wave 2: EVAL-02 — CRON_SECRET-gated `/api/canary` (DB + Q7 end-to-end) + vercel.json cron pre-warm (depends on 07-01)
-- [ ] 07-03-PLAN.md — Wave 3: EVAL-02 — `scripts/rehearse.ts` concurrent + adversarial rehearsal on the live deploy (depends on 07-02)
+- [x] 07-03-PLAN.md — Wave 3: EVAL-02 — `scripts/rehearse.ts` concurrent + adversarial rehearsal on the live deploy (depends on 07-02)
 
 > Scope note: the "recorded/scripted backup path" (criterion 2) is intentionally DEFERRED per discuss-phase D-04 — replaced by a failure-surfacing health/canary signal while in dev. Revisit a recorded backup when a demo date is set; end-of-phase verifier must not score the deferred backup as a miss.
 
@@ -236,7 +236,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 | 4. Canonical Entity Layer | 4/4 | Complete   | 2026-06-18 |
 | 5. Custom Reasoning Agent | 4/4 | Complete   | 2026-06-18 |
 | 6. Next.js/Vercel UI + Sourcing Display | 5/5 | Complete   | 2026-06-19 |
-| 7. Grounding/Eval + Demo Hardening | 2/3 | In Progress|  |
+| 7. Grounding/Eval + Demo Hardening | 3/3 | Complete   | 2026-06-22 |
 
 ## Time Estimates (research-grounded REVISED — lean demo)
 
