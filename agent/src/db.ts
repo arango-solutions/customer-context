@@ -78,19 +78,86 @@ export function getDbSingleton(): Database {
         username: process.env.ARANGO_USERNAME!,
         password: process.env.ARANGO_PASSWORD!,
       },
+      // The singleton is shared across all concurrent /api/ask requests on a warm
+      // Vercel Fluid Compute instance. Each question fans out to several sequential
+      // tool queries, so the default poolSize of 3 enqueues requests under a few
+      // concurrent demo questions. Raise it so the concurrent rehearsal/demo path is
+      // not pool-starved (debug/arango-serverless-flaky).
+      poolSize: 10,
+      // Slim PERMANENT diagnostic (one line, no secret/body): an intermittent backend
+      // failure on the serverless path is otherwise swallowed into the AI SDK tool-error
+      // and paraphrased by the model as "backend access error". This keeps a breadcrumb
+      // in Vercel runtime logs so any recurrence is attributable to its true error class.
+      onError: (err: Error) => {
+        const e = err as Error & { code?: string; cause?: { code?: string } };
+        console.error(
+          `[arango] request error: ${e.name}: ${e.message}` +
+            (e.code ? ` code=${e.code}` : '') +
+            (e.cause?.code ? ` causeCode=${e.cause.code}` : ''),
+        );
+      },
     });
   }
   return _db;
 }
 
 /**
+ * Transient connection errors that arangojs does NOT retry on its own. Per the arangojs
+ * docs, requests bound to a specific server (e.g. fetching query results) are never
+ * retried automatically — so a reset on a reused, server-half-closed keep-alive socket
+ * (the Vercel Fluid Compute failure mode) surfaces as an unrecoverable throw. We retry
+ * these a bounded number of times: a fresh attempt opens a new socket.
+ */
+const TRANSIENT_CONN_RE =
+  /ECONNRESET|socket hang up|UND_ERR_SOCKET|ECONNREFUSED|ETIMEDOUT|EPIPE|fetch failed|other side closed|terminated|network/i;
+
+function isTransientConnError(err: unknown): boolean {
+  const e = err as
+    | { code?: string; message?: string; cause?: { code?: string; message?: string } }
+    | undefined;
+  const haystack = `${e?.code ?? ''} ${e?.message ?? ''} ${e?.cause?.code ?? ''} ${e?.cause?.message ?? ''}`;
+  return TRANSIENT_CONN_RE.test(haystack);
+}
+
+/**
+ * Run a read op with a bounded retry on transient connection errors. Reads are
+ * idempotent, so re-issuing is safe. Non-transient errors (bad AQL, 404, auth) throw
+ * immediately — we only paper over the serverless stale-socket failure mode, never a
+ * real query error (debug/arango-serverless-flaky).
+ */
+export async function withDbRetry<T>(op: () => Promise<T>, label = 'db.query'): Promise<T> {
+  const maxAttempts = 3;
+  let lastErr: unknown;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      return await op();
+    } catch (err) {
+      lastErr = err;
+      if (attempt === maxAttempts || !isTransientConnError(err)) throw err;
+      console.error(
+        `[arango] transient connection error on ${label}; retry ${attempt}/${maxAttempts - 1}`,
+      );
+      await new Promise((resolve) => setTimeout(resolve, 120 * attempt));
+    }
+  }
+  throw lastErr;
+}
+
+/**
  * Backwards/forwards-compatible named export used by the specialists in Waves 1-2.
  * It is a getter-backed proxy so `db.query(...)` works while construction stays lazy.
+ * `query` is wrapped with withDbRetry so every specialist's read transparently survives
+ * a transient serverless connection reset (debug/arango-serverless-flaky); all other
+ * members pass through unchanged.
  */
 export const db: Database = new Proxy({} as Database, {
   get(_t, prop) {
     const real = getDbSingleton() as unknown as Record<string | symbol, unknown>;
     const value = real[prop];
+    if (prop === 'query' && typeof value === 'function') {
+      return (...args: unknown[]) =>
+        withDbRetry(() => (value as (...a: unknown[]) => Promise<unknown>).apply(real, args), 'db.query');
+    }
     return typeof value === 'function' ? (value as Function).bind(real) : value;
   },
 });

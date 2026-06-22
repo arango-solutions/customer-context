@@ -37,6 +37,9 @@ async function lookup(name: string): Promise<EntityLookupResult> {
   // Case-insensitive substring match on display_name. canonical_id is the bridge key;
   // account_id scopes structuredQuery/hybridRetrieve. LIMIT-bounded (T-05 DoS).
   const needle = `%${name.toLowerCase()}%`;
+  // db.query carries a bounded transient-connection retry (see db.ts) — a reused
+  // serverless keep-alive socket reset is recovered transparently rather than aborting
+  // the planner's first hop (debug/arango-serverless-flaky).
   const cursor = await db.query(aql`
     FOR h IN canonical_entities
       FILTER LIKE(LOWER(h.display_name), ${needle})
