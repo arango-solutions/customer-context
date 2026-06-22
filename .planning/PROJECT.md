@@ -14,7 +14,23 @@ A free-form question that can only be answered by joining the structured and uns
 
 27/29 v1 requirements complete. Deferred to v2 (NEXT-04): AGENT-04 generated-AQL fallback, AGENT-06 Q11 timeline, React Flow cross-graph traversal viz. Known residuals (safe failure modes, documented in 07-VERIFICATION.md): ~5% stochastic planner refusal on dual-graph questions; serverless↔ArangoDB connection hardened but root error class uncaptured.
 
-**Next milestone:** `/gsd-new-milestone`. Candidates: live updatability demo (NEXT-01), more accounts/questions (NEXT-02), the v2 deferrals, and the backlog cross-graph subgraph viz.
+## Current Milestone: v2.0 — "Live, Visible, Trustworthy"
+
+**Goal:** Evolve the lean v1 demo into a product-grade showcase that updates live, *shows* the graph behind every answer, withstands a security audience, and proves its own correctness deterministically.
+
+**Target features (8 areas):**
+1. **Simulated CDC + what-changed diff** — watch the synthetic source files (the system-of-record), capture the delta, propagate through the existing UPSERT/incremental pipeline, and show which claims/citations changed in the answer. Real change-capture semantics; live demo moment.
+2. **Answer-provenance graph viz** — React Flow cross-graph subgraph rendered strictly from the grounded `retrievalPath` (the actual nodes/edges traversed to produce the answer; never a decorative re-query).
+3. **Robust/deterministic eval harness** — eliminate the ~5% stochastic flake; an on-demand green/red gate with deterministic metrics that proves "this works" before any demo.
+4. **ArangoDB-brand UI refresh** — cleaner, on-brand, plus a latency pass (parallel tool calls / caching / pre-warm) so answers feel fast in the room.
+5. **Injection-resistance + "try-to-break-it" mode** — agent ignores adversarial instructions embedded in customer docs; an audience-driven mode to attempt injection / out-of-scope / PII and watch it refuse. The security story for a Zscaler audience.
+6. **Temporal / time-travel queries** — "how did this account evolve over 2023→2025", leveraging the multi-year synthetic data.
+7. **Analyst polish** — multi-turn follow-ups, a live confidence/grounding score per answer, and a demo control panel (presets, reset, trigger update).
+8. **Synthetic data depth & breadth** — a 3rd account + new question arcs + richer/deeper documents, gated by the existing integrity linter.
+
+**Key context:** Build on the existing stack (Next.js/AI SDK/arangojs/AutoGraph; React Flow already specced). Continues phase numbering from v1 (Phase 08+). The grounding/no-confident-wrong-answer bar and the shared-repo no-planning/no-sensitive rule still hold. Carry-forward residuals from v1 (07-VERIFICATION.md): the deterministic-eval work (area 3) directly targets the ~5% stochastic refusal.
+
+**Next milestone:** v2.0 — replaces the v1 "next candidates" list above (NEXT-01 live-update and the React Flow viz are now in scope; NEXT-02 partially via area 8; AGENT-04 generated-AQL stays deferred per this milestone's scoping).
 
 ## Requirements
 

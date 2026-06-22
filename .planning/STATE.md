@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: milestone
-status: shipped
-last_updated: "2026-06-22T16:52:37.497Z"
-last_activity: 2026-06-22 -- Phase 07 execution started
+milestone: v2.0
+milestone_name: Live, Visible, Trustworthy
+status: planning
+last_updated: "2026-06-22T18:31:43.542Z"
+last_activity: 2026-06-22
 progress:
-  total_phases: 8
-  completed_phases: 5
-  total_plans: 32
-  completed_plans: 29
-  percent: 63
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -24,14 +24,10 @@ See: .planning/PROJECT.md (updated 2026-06-15)
 
 ## Current Position
 
-Phase: 07 (grounding-eval-demo-hardening) — EXECUTING
-Plan: 1 of 3
-Status: Executing Phase 07
-Last activity: 2026-06-22 -- Phase 07 execution started
-
-Carry-forward into Phase 7: per-IP rate-limit on /api/ask (AR-06-2); external-access decision (custom domain vs. SSO protection).
-
-Progress: [█████████░] 94%
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-06-22 — Milestone v2.0 started
 
 ## Performance Metrics
 
