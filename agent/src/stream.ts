@@ -42,7 +42,7 @@ import {
   PLANNER_MODEL,
   PLANNER_SYSTEM_PROMPT,
 } from './agent.js';
-import type { Envelope, RetrievalPathFragmentT } from './envelope.js';
+import type { Envelope, PreGroundingEnvelope, RetrievalPathFragmentT } from './envelope.js';
 
 /**
  * Map a finished step's first tool name to one of the six D-01 phase labels.
@@ -131,7 +131,8 @@ export async function assembleGroundedEnvelope(
   const synthesized = toCanonicalEnvelope(
     (await result.output) as Parameters<typeof toCanonicalEnvelope>[0],
   );
-  const merged: Envelope = {
+  // merged is PreGroundingEnvelope (no groundingScore yet) — enforceGrounding injects it.
+  const merged: PreGroundingEnvelope = {
     ...synthesized,
     retrievalPath: mergeRetrievalPaths([...synthesized.retrievalPath, ...fragments]),
   };
@@ -141,7 +142,9 @@ export async function assembleGroundedEnvelope(
 }
 
 /** The structured refusal emitted when the model declines to produce an answer object
- * (NoObjectGeneratedError) — no fabricated sourcing. Mirrors runAgent()'s refusal. */
+ * (NoObjectGeneratedError) — no fabricated sourcing. Mirrors runAgent()'s refusal.
+ * groundingScore: 1.0 — zero-citation refusal = vacuously grounded (no fabricated citations);
+ * required since EnvelopeSchema now mandates groundingScore. */
 const REFUSAL_ENVELOPE: Envelope = {
   answer:
     'I cannot answer this question: it is out of scope for the customer-account ' +
@@ -154,6 +157,7 @@ const REFUSAL_ENVELOPE: Envelope = {
     'The model declined to produce a grounded answer object for this request; ' +
       'no supporting records were retrieved, so the answer is refused (no fabricated sourcing).',
   ],
+  groundingScore: 1.0,
 };
 
 /** Build the same ToolLoopAgent runAgent() builds. */
@@ -164,6 +168,9 @@ function buildAgent(): StreamLikeAgent {
     tools: TOOLS,
     stopWhen: stepCountIs(12),
     output: Output.object({ schema: SynthEnvelopeSchema }),
+    // temperature: 0 — primary planner determinism lever (EVAL-03). Mirrors agent.ts::runAgent().
+    // seed NOT set: Responses API silently ignores it (see agent.ts for full rationale).
+    temperature: 0,
   }) as unknown as StreamLikeAgent;
 }
 

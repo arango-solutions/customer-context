@@ -22,7 +22,7 @@
 import { ToolLoopAgent, stepCountIs, Output, NoObjectGeneratedError, type ToolSet } from 'ai';
 import { openai } from '@ai-sdk/openai';
 import { z } from 'zod';
-import { EnvelopeSchema, GraphEnum, type Envelope } from './envelope.js';
+import { EnvelopeSchema, GraphEnum, type Envelope, type PreGroundingEnvelope } from './envelope.js';
 import { mergeRetrievalPaths } from './retrievalPath.js';
 import type { RetrievalPathFragmentT } from './envelope.js';
 import { entityLookup } from './tools/entityLookup.js';
@@ -71,8 +71,16 @@ export const SynthEnvelopeSchema = z.object({
 });
 type SynthEnvelope = z.infer<typeof SynthEnvelopeSchema>;
 
-/** Normalize the strict-synthesis envelope (nullable traversal) into the canonical Envelope. */
-export function toCanonicalEnvelope(s: SynthEnvelope): Envelope {
+/**
+ * Normalize the strict-synthesis envelope (nullable traversal) into the pre-grounding shape.
+ *
+ * Shape normalization only — no Zod parse, no groundingScore here.
+ * enforceGrounding injects groundingScore + does the final EnvelopeSchema.parse().
+ * Return type is PreGroundingEnvelope (Omit<Envelope, 'groundingScore'>) so tsc stays
+ * clean at the Task-1 boundary: groundingScore is required in EnvelopeSchema but is
+ * absent here by design (computed post-synthesis in enforceGrounding).
+ */
+export function toCanonicalEnvelope(s: SynthEnvelope): PreGroundingEnvelope {
   const fixCite = (c: SynthEnvelope['citations'][number]) => ({
     graph: c.graph,
     collection: c.collection,
@@ -80,14 +88,14 @@ export function toCanonicalEnvelope(s: SynthEnvelope): Envelope {
     aql: c.aql,
     ...(c.traversal != null ? { traversal: c.traversal } : {}),
   });
-  return EnvelopeSchema.parse({
+  return {
     answer: s.answer,
     refused: s.refused,
     claims: s.claims.map((cl) => ({ text: cl.text, citations: cl.citations.map(fixCite) })),
     citations: s.citations.map(fixCite),
     retrievalPath: s.retrievalPath,
     reasoningTrace: s.reasoningTrace,
-  });
+  };
 }
 
 /**
@@ -175,9 +183,11 @@ When you produce the final answer object:
     guess — state that you cannot support that claim. It is correct to answer partially or
     to refuse when the evidence is not there.`;
 
-/** What runAgent returns: the synthesized envelope + the ground-truth tool-returned _id set. */
+/** What runAgent returns: the pre-grounding envelope + the ground-truth tool-returned _id set.
+ * The envelope is typed PreGroundingEnvelope (no groundingScore yet); enforceGrounding
+ * injects groundingScore and returns the final validated Envelope. */
 export interface RunAgentResult {
-  envelope: Envelope;
+  envelope: PreGroundingEnvelope;
   returnedIds: Set<string>;
 }
 
@@ -207,6 +217,12 @@ export async function runAgent(question: string): Promise<RunAgentResult> {
     // Synthesize against the strict-friendly mirror; normalized to the canonical
     // EnvelopeSchema below (OpenAI strict mode rejects bare .optional() fields).
     output: Output.object({ schema: SynthEnvelopeSchema }),
+    // temperature: 0 — primary planner determinism lever (EVAL-03).
+    // seed NOT set: the Responses API (openai(), not openai.chat()) silently ignores seed
+    // per OpenAI community — same root cause as the original judge flakiness.
+    // Judge was fixed via openai.chat(); planner stays on Responses API to preserve
+    // strict-mode structured output (SynthEnvelopeSchema + Output.object).
+    temperature: 0,
   });
 
   let result: Awaited<ReturnType<typeof agent.generate>>;
@@ -220,6 +236,8 @@ export async function runAgent(question: string): Promise<RunAgentResult> {
     // we MUST surface a structured refusal envelope — with NO fabricated _id — rather
     // than let the throw escape. Any other error is a genuine failure and re-thrown.
     if (NoObjectGeneratedError.isInstance(err)) {
+      // zero-citation refusal = vacuously grounded (no fabricated citations);
+      // groundingScore: 1.0 is required since EnvelopeSchema now mandates groundingScore.
       const refusal: Envelope = {
         answer:
           'I cannot answer this question: it is out of scope for the customer-account ' +
@@ -232,6 +250,7 @@ export async function runAgent(question: string): Promise<RunAgentResult> {
           'The model declined to produce a grounded answer object for this request; ' +
             'no supporting records were retrieved, so the answer is refused (no fabricated sourcing).',
         ],
+        groundingScore: 1.0,
       };
       return { envelope: refusal, returnedIds: new Set<string>() };
     }
@@ -257,12 +276,13 @@ export async function runAgent(question: string): Promise<RunAgentResult> {
     }
   }
 
-  // Normalize the strict-synthesis output (nullable traversal) into the canonical Envelope.
+  // Normalize the strict-synthesis output (nullable traversal) into the pre-grounding shape.
+  // PreGroundingEnvelope — no groundingScore yet; enforceGrounding injects it in index.ts.
   const synthesized = toCanonicalEnvelope(result.output as SynthEnvelope);
 
   // Merge the tool retrievalPath fragments into the envelope's retrievalPath (the model
   // may not faithfully reproduce every fragment; the merged tool-side trace is authoritative).
-  const envelope: Envelope = {
+  const envelope: PreGroundingEnvelope = {
     ...synthesized,
     retrievalPath: mergeRetrievalPaths([
       ...synthesized.retrievalPath,

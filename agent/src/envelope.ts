@@ -61,5 +61,17 @@ export const EnvelopeSchema = z.object({
   citations: z.array(CitationSchema), // flattened union of claim citations
   retrievalPath: z.array(RetrievalPathFragment),
   reasoningTrace: z.array(z.string()), // planner steps, exposed separately (D-03)
+  groundingScore: z.number().min(0).max(1),
+  // NOTE: required, not .optional() — enforceGrounding always injects this before returning.
+  // SynthEnvelopeSchema in agent.ts does NOT include this field (computed post-synthesis;
+  // the planner cannot know returnedIds). Phase 11 UI-06 reads this field.
 });
 export type Envelope = z.infer<typeof EnvelopeSchema>;
+
+/**
+ * The shape of an envelope BEFORE enforceGrounding injects groundingScore.
+ * This is the return type of toCanonicalEnvelope (agent.ts) and the parameter
+ * type of enforceGrounding — keeps tsc green at every task boundary since
+ * groundingScore is required in EnvelopeSchema but absent until enforceGrounding runs.
+ */
+export type PreGroundingEnvelope = Omit<Envelope, 'groundingScore'>;

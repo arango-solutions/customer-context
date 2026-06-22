@@ -9,6 +9,7 @@ import {
   EnvelopeSchema,
   CitationSchema,
   type Envelope,
+  type PreGroundingEnvelope,
 } from '../src/envelope.js';
 import { mergeRetrievalPaths } from '../src/retrievalPath.js';
 
@@ -75,6 +76,7 @@ const validEnvelope: Envelope = {
     'Retrieve unstructured sentiment signal for Meridian.',
     'Compare: usage green vs sentiment red -> name the contradiction.',
   ],
+  groundingScore: 1.0,
 };
 
 describe('EnvelopeSchema (the shared contract, D-03a)', () => {

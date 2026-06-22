@@ -8,7 +8,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { enforceGrounding, assertReconciliation } from '../src/grounding.js';
-import type { Envelope, Citation } from '../src/envelope.js';
+import type { Citation, PreGroundingEnvelope } from '../src/envelope.js';
 import { EnvelopeSchema } from '../src/envelope.js';
 
 // --- fixtures -------------------------------------------------------------
@@ -34,8 +34,8 @@ const hallucinatedCite: Citation = {
   aql: 'vector+BM25+RRF over Chunks → PART_OF Document',
 };
 
-/** Build a well-formed dual-graph envelope from the supplied citations. */
-function dualGraphEnvelope(): Envelope {
+/** Build a well-formed dual-graph pre-grounding envelope (no groundingScore yet). */
+function dualGraphEnvelope(): PreGroundingEnvelope {
   return {
     answer: 'Meridian usage is green but sentiment is red.',
     refused: false,
@@ -105,7 +105,7 @@ describe('enforceGrounding (D-02 code gate)', () => {
   });
 
   it('(d) a structured-only envelope (Q7) passes grounding but assertReconciliation === false', () => {
-    const env: Envelope = {
+    const env: PreGroundingEnvelope = {
       answer: 'Northwind has climbed the product ladder and shows clear ROI.',
       refused: false,
       claims: [
