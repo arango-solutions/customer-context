@@ -13,18 +13,35 @@
 //   - facet routed by a Zod enum; unknown facets rejected before any AQL runs.
 //
 // Each branch returns { data, retrievalPath } where retrievalPath is the shared
-// RetrievalPathFragment { graph, collection, _ids, query } carrying the real
-// ArangoDB _ids the query returned (the grounding anchors the planner merges).
+// RetrievalPathFragment { graph, collection, _ids, query, edges[] } carrying the real
+// ArangoDB _ids the query returned (the grounding anchors the planner merges) and
+// the synthesized structural edges (SC-4 / D-02).
 //
 // Field names are live-verified (RESEARCH §Live Data Layer, probed 2026-06-18).
 // NPS exposes BOTH the GREEN numeric (score/nps_score) AND the RED free-text
 // (verbatim_sentiment) — the green-vs-red split critical for Q12/Q2.
+//
+// STRUCTURAL EDGES (Phase 10-03, SC-4 / D-02):
+// structuredQuery walks no graph edges — it does account-scoped attribute lookups.
+// Per D-02, it SYNTHESIZES one account-anchored structural edge per returned row:
+//   _from: `Account/${accountId}` (a real vertex — the account node exists)
+//   _to:   row._id (the returned record)
+//   _id:   `structural:${accountId}:${row._id}` — a clearly-synthetic, deterministic
+//          string. It is NOT an ArangoDB document key (no "/" separator in the leading
+//          segment). The `structural:` prefix is an unambiguous synthetic marker.
+//          Deterministic: same inputs → same id every run (no uuid4/Math.random). (D-02)
+//   kind:  'structural' — NEVER 'traversed'. This is the D-02 honesty boundary:
+//          'structural' means "account-induced, not a traversal that actually ran".
+//          The D-04 guard (traversedEdgesAreGrounded) explicitly exempts structural edges.
+//   label: 'account'
+// The account facet self-edge (Account/x → Account/x, where _from === _to) is filtered
+// out to avoid a degenerate self-loop in the Phase 11 graph viz.
 
 import { tool } from 'ai';
 import { aql } from 'arangojs';
 import { z } from 'zod';
 import { db } from '../db.js';
-import type { RetrievalPathFragmentT } from '../envelope.js';
+import type { RetrievalPathFragmentT, RetrievalPathEdgeT } from '../envelope.js';
 
 /** The curated facets — the only routing surface. No generated AQL. */
 export const StructuredFacet = z.enum([
@@ -42,17 +59,50 @@ interface StructuredResult {
   retrievalPath: RetrievalPathFragmentT;
 }
 
+/**
+ * Build a RetrievalPathFragment for a curated structured-query result.
+ *
+ * Synthesizes one structural edge per data row (SC-4 / D-02). Each edge has:
+ *   - kind: 'structural' — NEVER 'traversed' (D-02 honesty boundary)
+ *   - _id: `structural:${accountId}:${row._id}` — deterministic, clearly-synthetic
+ *   - _from: `Account/${accountId}` (the real account vertex)
+ *   - _to: row._id
+ * The self-edge case (_from === _to — the account facet's Account row) is filtered
+ * out to prevent a degenerate self-loop.
+ */
 function buildPath(
   collection: string,
   data: Array<Record<string, unknown>>,
   query: string,
+  accountId: string,
 ): RetrievalPathFragmentT {
+  const edges: RetrievalPathEdgeT[] = data
+    .map((d) => {
+      const recordId = d._id as string;
+      const from = `Account/${accountId}`;
+      const to = recordId;
+      return {
+        // `structural:` prefix is a deterministic synthetic marker — NOT an ArangoDB
+        // document key. kind:'structural' signals "account-induced, not a traversal
+        // that ran" (D-02). No uuid4/Math.random — same inputs → same id. (SC-4)
+        _id: `structural:${accountId}:${recordId}`,
+        _from: from,
+        _to: to,
+        collection: 'account',
+        kind: 'structural' as const,
+        label: 'account' as const,
+      };
+    })
+    // Skip the degenerate self-edge (_from === _to) produced by the account facet
+    // whose single returned row is the Account vertex itself (Account/${accountId}).
+    .filter((e) => e._to !== e._from);
+
   return {
     graph: 'structured',
     collection,
     _ids: data.map((d) => d._id as string),
     query,
-    edges: [], // Phase 10 (10-02) will synthesize structural edges here
+    edges,
   };
 }
 
@@ -86,6 +136,7 @@ async function runFacet(
           'UsageFact',
           data,
           'FOR u IN UsageFact FILTER u.account_id == @accountId SORT u.period DESC LIMIT 12',
+          accountId,
         ),
       };
     }
@@ -110,6 +161,7 @@ async function runFacet(
           'Contract',
           data,
           'FOR c IN Contract FILTER c.account_id == @accountId SORT c.renewal_date ASC LIMIT 12',
+          accountId,
         ),
       };
     }
@@ -135,6 +187,7 @@ async function runFacet(
           'NPS',
           data,
           'FOR n IN NPS FILTER n.account_id == @accountId SORT n.survey_date DESC LIMIT 30',
+          accountId,
         ),
       };
     }
@@ -156,6 +209,7 @@ async function runFacet(
           'Contact',
           data,
           'FOR p IN Contact FILTER p.account_id == @accountId LIMIT 30',
+          accountId,
         ),
       };
     }
@@ -179,6 +233,7 @@ async function runFacet(
           'Opportunity',
           data,
           'FOR o IN Opportunity FILTER o.account_id == @accountId SORT o.close_date DESC LIMIT 12',
+          accountId,
         ),
       };
     }
@@ -201,6 +256,7 @@ async function runFacet(
           'Account',
           data,
           'FOR a IN Account FILTER a.account_id == @accountId LIMIT 1',
+          accountId,
         ),
       };
     }
