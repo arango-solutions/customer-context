@@ -124,3 +124,60 @@ export function traversedEdgesAreGrounded(
   const traversed = (frag.edges ?? []).filter((e) => e.kind === 'traversed');
   return traversed.every((e) => e._id != null && returnedEdgeIds.has(e._id));
 }
+
+/**
+ * D-04 enforcement: build the ground-truth traversed-edge id set from tool fragments,
+ * then drop any fabricated/ungrounded traversed edges from the merged retrieval path.
+ *
+ * This is the shared merge-chokepoint helper invoked by BOTH agent loops (agent.ts
+ * and stream.ts) so the enforcement can never drift between the two paths.
+ *
+ * Design constraints preserved:
+ *   SC-5 ISOLATION: `returnedEdgeIds` is a SEPARATE set from `returnedIds`.
+ *     Edge _ids are NEVER added to `returnedIds` (the citation grounding set).
+ *     This function does not touch `returnedIds` at all.
+ *   Exempt kinds: `structural` and `hybrid` edges are synthesized constructs that
+ *     never claim to be DB traversals — they pass through unchanged.
+ *   Conservative: honest traversed edges (non-null _id present in the ground-truth
+ *     set) are never modified or dropped.
+ *
+ * @param toolFragments  - The raw tool-returned fragments (before merging), used as
+ *                         the ground-truth source for which traversed edge _ids are real.
+ *                         NEVER pass frag.edges from the merged result — that would be
+ *                         tautological (see guard docstring above).
+ * @param mergedPath     - The already-merged retrievalPath[] to enforce honesty on.
+ *                         Mutated in place (safe: mergeRetrievalPaths always returns
+ *                         freshly-cloned objects, never the caller's originals).
+ * @returns mergedPath   - The same array, with fabricated traversed edges stripped.
+ */
+export function enforceEdgeHonesty(
+  toolFragments: RetrievalPathFragmentT[],
+  mergedPath: RetrievalPathFragmentT[],
+): RetrievalPathFragmentT[] {
+  // Build the ground-truth traversed-edge id set from what the tools actually
+  // returned (traversed edges with non-null _ids are real AQL-returned edges).
+  // SC-5: this set is SEPARATE from returnedIds; edge _ids must NEVER be added
+  // to the citation grounding set.
+  const returnedEdgeIds = new Set<string>();
+  for (const frag of toolFragments) {
+    for (const e of frag.edges ?? []) {
+      if (e.kind === 'traversed' && e._id != null) {
+        returnedEdgeIds.add(e._id);
+      }
+    }
+  }
+
+  // Enforce D-04 on every merged fragment: drop any traversed edge whose _id
+  // is not in the ground-truth set (fabricated / ungrounded traversal).
+  // structural and hybrid edges are exempt — traversedEdgesAreGrounded() already
+  // encodes that exemption; we mirror the same filter predicate here.
+  for (const frag of mergedPath) {
+    if (!traversedEdgesAreGrounded(frag, returnedEdgeIds)) {
+      frag.edges = frag.edges.filter(
+        (e) => e.kind !== 'traversed' || (e._id != null && returnedEdgeIds.has(e._id)),
+      );
+    }
+  }
+
+  return mergedPath;
+}

@@ -30,7 +30,7 @@ import {
   NoObjectGeneratedError,
 } from 'ai';
 import { enforceGrounding } from './grounding.js';
-import { mergeRetrievalPaths } from './retrievalPath.js';
+import { mergeRetrievalPaths, enforceEdgeHonesty } from './retrievalPath.js';
 import {
   toCanonicalEnvelope,
   buildToolLoopAgent,
@@ -129,9 +129,16 @@ export async function assembleGroundedEnvelope(
     (await result.output) as Parameters<typeof toCanonicalEnvelope>[0],
   );
   // merged is PreGroundingEnvelope (no groundingScore yet) — enforceGrounding injects it.
+  // D-04: after merging, enforce edge honesty — drop any fabricated traversed edge whose
+  // _id was not actually returned by the tools' AQL (shared helper, mirrors agent.ts).
+  // SC-5 stays intact: enforceEdgeHonesty builds its own separate edge-id set; it never
+  // adds anything to returnedIds.
   const merged: PreGroundingEnvelope = {
     ...synthesized,
-    retrievalPath: mergeRetrievalPaths([...synthesized.retrievalPath, ...fragments]),
+    retrievalPath: enforceEdgeHonesty(
+      fragments,
+      mergeRetrievalPaths([...synthesized.retrievalPath, ...fragments]),
+    ),
   };
 
   // TERMINAL grounding gate — the SAME function index.ts::askQuestion uses (D-01a).

@@ -23,7 +23,7 @@ import { ToolLoopAgent, stepCountIs, Output, NoObjectGeneratedError, type ToolSe
 import { openai } from '@ai-sdk/openai';
 import { z } from 'zod';
 import { EnvelopeSchema, GraphEnum, type Envelope, type PreGroundingEnvelope } from './envelope.js';
-import { mergeRetrievalPaths } from './retrievalPath.js';
+import { mergeRetrievalPaths, enforceEdgeHonesty } from './retrievalPath.js';
 import type { RetrievalPathFragmentT } from './envelope.js';
 import { entityLookup } from './tools/entityLookup.js';
 import { structuredQuery } from './tools/structuredQuery.js';
@@ -347,12 +347,19 @@ export async function runAgent(question: string): Promise<RunAgentResult> {
 
   // Merge the tool retrievalPath fragments into the envelope's retrievalPath (the model
   // may not faithfully reproduce every fragment; the merged tool-side trace is authoritative).
+  // D-04: after merging, enforce edge honesty — drop any fabricated traversed edge whose
+  // _id was not actually returned by the tools' AQL (shared helper, mirrors stream.ts).
+  // SC-5 stays intact: enforceEdgeHonesty builds its own separate edge-id set; it never
+  // adds anything to returnedIds.
   const envelope: PreGroundingEnvelope = {
     ...synthesized,
-    retrievalPath: mergeRetrievalPaths([
-      ...synthesized.retrievalPath,
-      ...fragments,
-    ]),
+    retrievalPath: enforceEdgeHonesty(
+      fragments,
+      mergeRetrievalPaths([
+        ...synthesized.retrievalPath,
+        ...fragments,
+      ]),
+    ),
   };
 
   return { envelope, returnedIds };
