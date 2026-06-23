@@ -12,7 +12,7 @@ A graph-based Customer 360 demo over 100%-synthetic data: a Next.js/Vercel dashb
 
 - [x] **Phase 8: Deterministic Eval Harness** — Eliminate the ~5% stochastic flake; build a trustworthy green/red gate runnable before any demo (completed 2026-06-22)
 - [x] **Phase 9: Data Depth & 3rd Account** — Add a 3rd synthetic account + deepen existing docs; linter-gated, building the data foundation v2 features depend on (completed 2026-06-23)
-- [ ] **Phase 10: Answer-Provenance Edge Enrichment** — Enrich `hybridRetrieve` + `bridgeResolve` to return traversed edges; add `edges[]` to `RetrievalPathFragment`
+- [x] **Phase 10: Answer-Provenance Edge Enrichment** — Enrich `hybridRetrieve` + `bridgeResolve` to return traversed edges; add `edges[]` to `RetrievalPathFragment` (completed 2026-06-23)
 - [ ] **Phase 11: Graph Viz + UI Refresh + Latency** — React Flow cross-graph subgraph render, ArangoDB-brand UI refresh, confidence score, and latency pass
 - [ ] **Phase 12: Simulated CDC + What-Changed Diff** — File-watch CDC, live update trigger, and before/after diff of changed claims/citations
 - [ ] **Phase 13: Injection-Resistance + Adversarial Mode** — Harden the agent against prompt injection from docs; add audience-facing "try-to-break-it" mode
@@ -84,12 +84,12 @@ Plans:
 **Plans**: 3 plans
 **Wave 1**
 
-- [ ] 10-01-PLAN.md — Edge data-model contract (RetrievalPathEdge + edges[]) + mergeRetrievalPaths edge union + D-04 guard / Wave 0 pure tests
+- [x] 10-01-PLAN.md — Edge data-model contract (RetrievalPathEdge + edges[]) + mergeRetrievalPaths edge union + D-04 guard / Wave 0 pure tests
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 10-02-PLAN.md — Real-traversal edge capture: hybridRetrieve PART_OF + D-05 hybrid edges, bridgeResolve same_as (live-guarded honesty tests)
-- [ ] 10-03-PLAN.md — structuredQuery synthesized structural edges (D-02) + SC-5 returnedIds isolation + eval-gate additivity proof
+- [x] 10-02-PLAN.md — Real-traversal edge capture: hybridRetrieve PART_OF + D-05 hybrid edges, bridgeResolve same_as (live-guarded honesty tests)
+- [x] 10-03-PLAN.md — structuredQuery synthesized structural edges (D-02) + SC-5 returnedIds isolation + eval-gate additivity proof
 
 **Risk**: Low — the v1 ROADMAP backlog note (Phase 999.1 technical spine section) already specifies the exact RETURN-clause change needed in two tools and the `edges[]` addition to `RetrievalPathFragment`. Work is mechanical with a clear honesty constraint (no invented traversals for structured data).
 **UI hint**: yes
@@ -180,7 +180,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 8. Deterministic Eval Harness | 1/1 | Complete   | 2026-06-22 |
 | 9. Data Depth & 3rd Account | 3/3 | Complete   | 2026-06-23 |
-| 10. Answer-Provenance Edge Enrichment | 0/TBD | Not started | - |
+| 10. Answer-Provenance Edge Enrichment | 3/3 | Complete    | 2026-06-23 |
 | 11. Graph Viz + UI Refresh + Latency | 0/TBD | Not started | - |
 | 12. Simulated CDC + What-Changed Diff | 0/TBD | Not started | - |
 | 13. Injection-Resistance + Adversarial Mode | 0/TBD | Not started | - |
@@ -211,3 +211,30 @@ Plans:
 - Cross-graph link rendered = the real `same_as` bridge edge. Render: React Flow (`@xyflow/react`), two clusters joined by the bridge.
 - **Honesty bar** (no-confident-wrong-answer): build strictly from the grounded `retrievalPath` the answer cites — never a decorative re-query. Distinct visual styles for traversed (`PART_OF`/`same_as`) vs. structural (`account_id`) vs. hybrid-retrieval (vector+BM25) edges. Cap node count to cited records; pick KG granularity (Document→Chunk→Entity, hide community internals) for legibility.
 - **Effort:** low-to-moderate; no schema/architecture change (tiny RETURN-clause edge enrichment in 2 tools + the React Flow layout/curation pass).
+
+### Phase 999.2: Inline per-claim citation markers in answer surface (BACKLOG)
+
+**Goal:** Render inline numbered markers (superscripts ¹²³) in the streamed answer prose, each tying a specific claim/sentence to its supporting citation(s) — the literal "per-fact citation linking to `_id`" differentiator from CLAUDE.md. Surfaced during Phase 10 review (2026-06-23): a buyer cannot currently tell which claim each citation refers to.
+**Requirements:** TBD (candidate explicit success criterion for Phase 11 / UI-04)
+**Plans:** 0 plans
+
+**Context (data already exists — this is a rendering gap, not a data gap):**
+- `env.claims[]` (`ClaimSchema = { text, citations[] }`, decision D-03) already decomposes the answer into discrete factual claims, each carrying its supporting ArangoDB `_id`(s). Everything needed to draw markers is in the envelope.
+- The UI (`web/app/page.tsx`) renders answer prose + clickable source cards (`onOpenSource(citations)`) but NO inline markers. Phase 11 wording says only "citation cards," which is ambiguous about inline markers — make it explicit.
+- **Design decision required (not just CSS):** claims are a *decomposition*, so claim text is not guaranteed to be a verbatim substring of the prose answer. Phase 11 must choose between (a) mapping each claim to a span in the prose, or (b) rendering the answer AS the numbered claim list.
+
+Plans:
+- [ ] TBD (promote with /gsd-review-backlog when ready, or fold into Phase 11 UI-04)
+
+### Phase 999.3: Conversation history in demo UI (BACKLOG)
+
+**Goal:** The demo should keep and display past questions/answers — a history list and/or multi-turn conversation — so a buyer can revisit prior questions during a live demo. Surfaced during Phase 10 review (2026-06-23).
+**Requirements:** TBD
+**Plans:** 0 plans
+
+**Context / architectural implication:**
+- The app is currently a single-shot question box: `page.tsx` owns one answer surface and retains no answer-synthesis state across questions.
+- Supporting history means accommodating a *list* of past grounded envelopes while preserving the terminal-gated grounding model (the persistent answer is only the terminal-gated grounded envelope — transient progress is never an answer). Plan the state model so history does not regress the no-confident-wrong-answer bar.
+
+Plans:
+- [ ] TBD (promote with /gsd-review-backlog when ready)
