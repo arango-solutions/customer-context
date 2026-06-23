@@ -54,10 +54,20 @@ const SynthClaim = z.object({
   citations: z.array(SynthCitation),
 });
 
+// _ids is `.nullable()` per element here for the SAME strict-mode reason as
+// SynthCitation.traversal above: the model occasionally emits a `null` element
+// inside the _ids array (observed deterministically on Q9), and a bare
+// z.array(z.string()) would make the AI SDK's strict structured-output parse
+// THROW before runAgent ever sees result.output — crashing the whole request
+// instead of degrading gracefully. We tolerate the null at the synthesis
+// boundary and STRIP it in toCanonicalEnvelope, so the canonical
+// RetrievalPathFragment contract (envelope.ts, _ids: z.array(z.string())) stays
+// a clean string[] — the contract is NOT loosened, only the intermediate
+// model-output shape, exactly like traversal's null→undefined normalization.
 const SynthRetrievalPath = z.object({
   graph: GraphEnum,
   collection: z.string(),
-  _ids: z.array(z.string()),
+  _ids: z.array(z.string().nullable()),
   query: z.string(),
 });
 
@@ -88,12 +98,25 @@ export function toCanonicalEnvelope(s: SynthEnvelope): PreGroundingEnvelope {
     aql: c.aql,
     ...(c.traversal != null ? { traversal: c.traversal } : {}),
   });
+  // Strip any null element the model emitted inside a retrievalPath._ids array
+  // (tolerated at the synthesis boundary by SynthRetrievalPath above). The
+  // canonical RetrievalPathFragment contract requires _ids: string[], so the
+  // filtered array satisfies it without loosening the contract. We KEEP an entry
+  // whose _ids becomes empty after filtering — the model-authored retrievalPath
+  // is non-authoritative (the tool-side fragments merged in runAgent are the
+  // ground truth), and mergeRetrievalPaths already collapses/dedupes entries.
+  const fixPath = (p: SynthEnvelope['retrievalPath'][number]) => ({
+    graph: p.graph,
+    collection: p.collection,
+    _ids: p._ids.filter((id): id is string => id != null),
+    query: p.query,
+  });
   return {
     answer: s.answer,
     refused: s.refused,
     claims: s.claims.map((cl) => ({ text: cl.text, citations: cl.citations.map(fixCite) })),
     citations: s.citations.map(fixCite),
-    retrievalPath: s.retrievalPath,
+    retrievalPath: s.retrievalPath.map(fixPath),
     reasoningTrace: s.reasoningTrace,
   };
 }
