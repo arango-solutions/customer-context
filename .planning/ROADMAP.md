@@ -81,7 +81,10 @@ Plans:
   4. The structured cluster path is represented as an account-anchored induced subgraph (drawn as structural via `account_id`), clearly distinguished in the fragment from traversed edges — never fabricated as a traversal that did not run.
   5. The eval gate (Phase 8) stays green — edge enrichment is additive and does not regress answer quality or grounding.
 
-**Plans**: TBD
+**Plans**: 3 plans
+- [ ] 10-01-PLAN.md — Edge data-model contract (RetrievalPathEdge + edges[]) + mergeRetrievalPaths edge union + D-04 guard / Wave 0 pure tests
+- [ ] 10-02-PLAN.md — Real-traversal edge capture: hybridRetrieve PART_OF + D-05 hybrid edges, bridgeResolve same_as (live-guarded honesty tests)
+- [ ] 10-03-PLAN.md — structuredQuery synthesized structural edges (D-02) + SC-5 returnedIds isolation + eval-gate additivity proof
 **Risk**: Low — the v1 ROADMAP backlog note (Phase 999.1 technical spine section) already specifies the exact RETURN-clause change needed in two tools and the `edges[]` addition to `RetrievalPathFragment`. Work is mechanical with a clear honesty constraint (no invented traversals for structured data).
 **UI hint**: yes
 

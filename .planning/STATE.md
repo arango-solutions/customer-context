@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Live, Visible, Trustworthy
 status: verifying
-last_updated: "2026-06-23T17:36:18.956Z"
-last_activity: 2026-06-23
+last_updated: "2026-06-23T19:11:38.365Z"
+last_activity: 2026-06-23 -- Phase 09 complete (Account C live, eval gate GREEN, grounding integrity fixed)
 progress:
   total_phases: 9
   completed_phases: 2
@@ -24,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-06-22)
 
 ## Current Position
 
-Phase: 09 (data-depth-3rd-account) — EXECUTING
+Phase: 09 (data-depth-3rd-account) — COMPLETE + VERIFIED (PASSED 5/5 SC)
 Plan: 3 of 3
-Status: Phase complete — ready for verification
-Last activity: 2026-06-23
+Status: Phase complete — verification PASSED; code review CR-01 found+fixed; ready to advance
+Last activity: 2026-06-23 -- Phase 09 complete (Account C live, eval gate GREEN, grounding integrity fixed)
 
 ## Performance Metrics
 
@@ -149,7 +149,7 @@ Items acknowledged and deferred at v1.0 milestone close on 2026-06-22:
 
 ## Session Continuity
 
-Last session: 2026-06-23T17:36:11.719Z
-Stopped at: 09-03 Task 3 — authorized vector-index DROP+RECREATE DONE + folded into build_unstructured.py Stage 6.6 (commit d1725c4; staged applier removed). Orphaned segment cleared, hybrid-spike test PASSES, eval gate improved 9→4 failures. STOPPED per on_blocker: the 4 residual failures are TWO NON-INFRA gaps neither covered by the authorization nor fixable by loosening the gate.
-Resume file: None
+Last session: 2026-06-23T19:11:38.356Z
+Stopped at: Phase 10 context gathered
+Resume file: .planning/phases/10-answer-provenance-edge-enrichment/10-CONTEXT.md
 Next action (two NON-infra fixes, no infra auth needed): (1) extend scripts/demo_critical.py with Helio's org+champion+contract canonical ids (lift assert len==9) and re-run `python scripts/build_entity_bridge.py` so `canonical_entities` resolves "Helio Retail" → unblocks Q13/Q14/Q15 (verify with scripts/verify_entity_bridge.py). (2) harden agent/src/agent.ts to strip null `_id` elements from model-authored retrievalPath._ids before envelope parse → unblocks Q9 (D-06 files untouched). Then re-run `npx tsx scripts/eval-gate.ts` x2. Vector-index fix + data + view + gate thresholds are all already correct (D-06 intact).
