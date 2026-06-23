@@ -261,6 +261,7 @@ def build_alias_dict() -> dict[str, str]:
     contact_files = [
         _STRUCTURED_DIR / "northwind" / "crm" / "northwind_crm_contacts.json",
         _STRUCTURED_DIR / "meridian" / "crm" / "meridian_crm_contacts.json",
+        _STRUCTURED_DIR / "helio" / "crm" / "helio_crm_contacts.json",
     ]
     for path in contact_files:
         if not path.exists():
@@ -282,6 +283,7 @@ def build_alias_dict() -> dict[str, str]:
     account_files = [
         _STRUCTURED_DIR / "northwind" / "crm" / "northwind_crm_accounts.json",
         _STRUCTURED_DIR / "meridian" / "crm" / "meridian_crm_accounts.json",
+        _STRUCTURED_DIR / "helio" / "crm" / "helio_crm_accounts.json",
     ]
     for path in account_files:
         if not path.exists():
@@ -415,7 +417,7 @@ def _build_entity_to_account_map() -> dict[str, str]:
     entity_to_account: dict[str, str] = {}
 
     # Contacts: entity_id → account's entity_id (look up parent account)
-    for acct_slug in ("northwind", "meridian"):
+    for acct_slug in ("northwind", "meridian", "helio"):
         contact_path = _STRUCTURED_DIR / acct_slug / "crm" / f"{acct_slug}_crm_contacts.json"
         account_path = _STRUCTURED_DIR / acct_slug / "crm" / f"{acct_slug}_crm_accounts.json"
         if not contact_path.exists() or not account_path.exists():
@@ -435,7 +437,7 @@ def _build_entity_to_account_map() -> dict[str, str]:
                 entity_to_account[eid] = acct_id
 
     # Contracts: entity_id → account_id
-    for acct_slug in ("northwind", "meridian"):
+    for acct_slug in ("northwind", "meridian", "helio"):
         for contract_file in (_STRUCTURED_DIR / acct_slug).rglob("*contracts*.json"):
             contracts = json.loads(contract_file.read_text(encoding="utf-8"))
             for rec in contracts:
@@ -445,7 +447,7 @@ def _build_entity_to_account_map() -> dict[str, str]:
                     entity_to_account[eid] = acct_id
 
     # Accounts: account_id → account_id (self)
-    for acct_slug in ("northwind", "meridian"):
+    for acct_slug in ("northwind", "meridian", "helio"):
         account_path = _STRUCTURED_DIR / acct_slug / "crm" / f"{acct_slug}_crm_accounts.json"
         if not account_path.exists():
             continue
@@ -464,7 +466,7 @@ def _get_display_name_for_entity_id(entity_id: str) -> str:
     Falls back to the entity_id string if not found.
     """
     # Check contacts
-    for acct_slug in ("northwind", "meridian"):
+    for acct_slug in ("northwind", "meridian", "helio"):
         contact_path = _STRUCTURED_DIR / acct_slug / "crm" / f"{acct_slug}_crm_contacts.json"
         if not contact_path.exists():
             continue
@@ -474,7 +476,7 @@ def _get_display_name_for_entity_id(entity_id: str) -> str:
                 return rec.get("full_name", entity_id)
 
     # Check accounts
-    for acct_slug in ("northwind", "meridian"):
+    for acct_slug in ("northwind", "meridian", "helio"):
         account_path = _STRUCTURED_DIR / acct_slug / "crm" / f"{acct_slug}_crm_accounts.json"
         if not account_path.exists():
             continue
@@ -484,7 +486,7 @@ def _get_display_name_for_entity_id(entity_id: str) -> str:
                 return rec.get("account_name", entity_id)
 
     # Check contracts
-    for acct_slug in ("northwind", "meridian"):
+    for acct_slug in ("northwind", "meridian", "helio"):
         for contract_file in (_STRUCTURED_DIR / acct_slug).rglob("*contracts*.json"):
             contracts = json.loads(contract_file.read_text(encoding="utf-8"))
             for rec in contracts:
