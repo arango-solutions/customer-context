@@ -17,6 +17,14 @@ export type { RetrievalPathFragmentT } from './envelope.js';
  * envelope's retrievalPath[] compact — one entry per distinct query against a
  * collection — while never dropping a sourced _id.
  *
+ * Robustness (Q9, 09-03): any null/undefined element that slipped into a
+ * fragment's _ids (the model occasionally copies a null into its authored
+ * retrievalPath; a tool fragment could in principle carry a null _id) is
+ * stripped here at the single merge chokepoint, so the canonical
+ * RetrievalPathFragment contract (_ids: z.array(z.string())) is satisfied and
+ * the downstream EnvelopeSchema.parse in enforceGrounding never throws. The
+ * contract is NOT loosened — the data is cleaned to fit it.
+ *
  * Pure function (no I/O); safe to call in any runtime.
  */
 export function mergeRetrievalPaths(
@@ -24,12 +32,16 @@ export function mergeRetrievalPaths(
 ): RetrievalPathFragmentT[] {
   const groups = new Map<string, RetrievalPathFragmentT>();
 
+  const cleanIds = (ids: readonly (string | null | undefined)[]): string[] =>
+    ids.filter((id): id is string => id != null);
+
   for (const frag of fragments) {
     const key = `${frag.graph}::${frag.collection}::${frag.query}`;
+    const fragIds = cleanIds(frag._ids as readonly (string | null | undefined)[]);
     const existing = groups.get(key);
     if (existing) {
       const seen = new Set(existing._ids);
-      for (const id of frag._ids) {
+      for (const id of fragIds) {
         if (!seen.has(id)) {
           existing._ids.push(id);
           seen.add(id);
@@ -41,7 +53,7 @@ export function mergeRetrievalPaths(
         graph: frag.graph,
         collection: frag.collection,
         query: frag.query,
-        _ids: [...new Set(frag._ids)],
+        _ids: [...new Set(fragIds)],
       });
     }
   }

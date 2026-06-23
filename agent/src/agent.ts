@@ -240,6 +240,23 @@ export async function runAgent(question: string): Promise<RunAgentResult> {
     // Synthesize against the strict-friendly mirror; normalized to the canonical
     // EnvelopeSchema below (OpenAI strict mode rejects bare .optional() fields).
     output: Output.object({ schema: SynthEnvelopeSchema }),
+    // FORCE-RETRIEVE GUARD (09-03, Q9/Q14 answerability): with Output.object the
+    // planner is free to emit a final structured-output object on step 0 WITHOUT
+    // calling any tool — it returns its "To answer this question I will: 1… 2…"
+    // PLAN as the answer with zero claims/citations/retrievalPath (returnedIds
+    // empty). That is a non-refused, zero-grounding answer — the exact
+    // confident-but-unsourced shape the grounding gate exists to stop, and it
+    // fails the locked-question contract (refused:false + reconciliation). This
+    // was previously masked by the model-emitted null _id crash (Gap 2). prepareStep
+    // forces toolChoice:'required' until at least one tool has actually run, so the
+    // model MUST retrieve before it can synthesize. Once any tool has run we hand
+    // control back to the default loop (toolChoice:'auto') so the model decides when
+    // it has enough evidence to emit the final object — the 6 already-passing
+    // questions are unaffected (they call tools on step 0 regardless).
+    prepareStep: ({ steps }) => {
+      const anyToolCalled = steps.some((s) => s.toolCalls && s.toolCalls.length > 0);
+      return anyToolCalled ? {} : { toolChoice: 'required' as const };
+    },
     // temperature: 0 — primary planner determinism lever (EVAL-03).
     // seed NOT set: the Responses API (openai(), not openai.chat()) silently ignores seed
     // per OpenAI community — same root cause as the original judge flakiness.
