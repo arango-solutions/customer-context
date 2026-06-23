@@ -168,6 +168,7 @@ const groundedEnvelope: Envelope = {
         'structuredQuery(account_id=' +
         MERIDIAN_ACCOUNT_ID +
         ', metrics=[query_volume, nps_score])',
+      edges: [],
     },
     {
       graph: 'unstructured',
@@ -181,6 +182,7 @@ const groundedEnvelope: Envelope = {
         'hybridRetrieve(account_id=' +
         MERIDIAN_ACCOUNT_ID +
         ', q="renewal risk sentiment escalation", k=8, fusion=rrf)',
+      edges: [],
     },
   ],
   reasoningTrace: [
@@ -251,6 +253,7 @@ const refusedEnvelope: Envelope = {
       collection: 'Contract',
       _ids: [`Contract/${NORTHWIND_ACCOUNT_ID}-2025-enterprise`],
       query: 'structuredQuery(account_id=' + NORTHWIND_ACCOUNT_ID + ', entity=contract)',
+      edges: [],
     },
   ],
   reasoningTrace: [

@@ -16,8 +16,13 @@
 //         'question/current' anchor node appears when any hybrid edge is present.
 
 import { describe, it, expect } from 'vitest';
+import { z } from 'zod';
+import { RetrievalPathFragment } from 'customer360-agent';
 import { buildGraph } from './buildGraph.js';
-import type { RetrievalPathFragmentT } from 'customer360-agent';
+
+// Derive the fragment type from the barrel-exported Zod schema (same pattern as
+// buildGraph.ts itself — never duplicate envelope.ts).
+type RetrievalPathFragmentT = z.infer<typeof RetrievalPathFragment>;
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
