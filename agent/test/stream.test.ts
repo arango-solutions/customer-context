@@ -131,8 +131,8 @@ describe('assembleGroundedEnvelope (terminal grounding gate over streamed steps)
         ...canonical,
         retrievalPath: mergeRetrievalPaths([
           ...canonical.retrievalPath,
-          { graph: 'structured', collection: 'UsageFact', _ids: [structuredCite._id], query: 'FOR u IN UsageFact ...' },
-          { graph: 'structured', collection: 'UsageFact', _ids: [unstructuredCite._id], query: 'FOR u IN UsageFact ...' },
+          { graph: 'structured', collection: 'UsageFact', _ids: [structuredCite._id], query: 'FOR u IN UsageFact ...', edges: [] },
+          { graph: 'structured', collection: 'UsageFact', _ids: [unstructuredCite._id], query: 'FOR u IN UsageFact ...', edges: [] },
         ]),
       },
       returnedIds,
@@ -156,7 +156,7 @@ describe('assembleGroundedEnvelope (terminal grounding gate over streamed steps)
         ...canonical,
         retrievalPath: mergeRetrievalPaths([
           ...canonical.retrievalPath,
-          { graph: 'structured', collection: 'UsageFact', _ids: [structuredCite._id], query: 'FOR u IN UsageFact ...' },
+          { graph: 'structured', collection: 'UsageFact', _ids: [structuredCite._id], query: 'FOR u IN UsageFact ...', edges: [] },
         ]),
       },
       returnedIds,
@@ -278,8 +278,8 @@ describe('askQuestionStream (end-to-end, mocked agent — no live DB/model)', ()
         ...canonical,
         retrievalPath: mergeRetrievalPaths([
           ...canonical.retrievalPath,
-          { graph: 'structured', collection: 'UsageFact', _ids: [structuredCite._id], query: 'FOR u IN UsageFact ...' },
-          { graph: 'structured', collection: 'UsageFact', _ids: [unstructuredCite._id], query: 'FOR u IN UsageFact ...' },
+          { graph: 'structured', collection: 'UsageFact', _ids: [structuredCite._id], query: 'FOR u IN UsageFact ...', edges: [] },
+          { graph: 'structured', collection: 'UsageFact', _ids: [unstructuredCite._id], query: 'FOR u IN UsageFact ...', edges: [] },
         ]),
       },
       returnedIds,

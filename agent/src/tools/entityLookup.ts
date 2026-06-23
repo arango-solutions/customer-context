@@ -59,6 +59,7 @@ async function lookup(name: string): Promise<EntityLookupResult> {
     collection: 'canonical_entities',
     _ids: data.map((d) => d._id),
     query: 'FOR h IN canonical_entities FILTER LIKE(LOWER(h.display_name), @needle) LIMIT 10',
+    edges: [], // entityLookup walks no edges (confirmed: substring scan only, no traversal)
   };
 
   return { data, retrievalPath };

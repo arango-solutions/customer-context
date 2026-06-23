@@ -54,6 +54,7 @@ export function mergeRetrievalPaths(
         collection: frag.collection,
         query: frag.query,
         _ids: [...new Set(fragIds)],
+        edges: [], // edge union populated in the same loop below (Phase 10)
       });
     }
   }

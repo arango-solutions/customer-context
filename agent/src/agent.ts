@@ -110,6 +110,9 @@ export function toCanonicalEnvelope(s: SynthEnvelope): PreGroundingEnvelope {
     collection: p.collection,
     _ids: p._ids.filter((id): id is string => id != null),
     query: p.query,
+    // edges[] comes from tool fragments (the ground truth), NOT the model-authored
+    // retrievalPath (SynthRetrievalPath). Model does not author edges — tool side only.
+    edges: [] as RetrievalPathFragmentT['edges'],
   });
   return {
     answer: s.answer,

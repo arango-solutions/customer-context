@@ -41,15 +41,58 @@ export const ClaimSchema = z.object({
 export type Claim = z.infer<typeof ClaimSchema>;
 
 /**
+ * Edge kind discriminator (D-01 / VIZ-01).
+ *
+ * - 'traversed'  — an edge actually walked by AQL (PART_OF, same_as).
+ *                  Subject to the D-04 no-fabrication guard: every traversed
+ *                  edge _id must appear in the AQL-returned edge set.
+ * - 'structural' — a synthesized account-anchor edge (Account → record).
+ *                  No real AQL traversal ran; the FK is an account_id column.
+ *                  Never 'traversed'. (D-02)
+ * - 'hybrid'     — a synthesized question-anchor edge (question → chunk)
+ *                  representing the vector+BM25+RRF retrieval match.
+ *                  Never 'traversed'. (D-05)
+ */
+export const EdgeKindEnum = z.enum(['traversed', 'structural', 'hybrid']);
+export type EdgeKind = z.infer<typeof EdgeKindEnum>;
+
+/**
+ * One edge in the retrieval graph (VIZ-01 / D-03).
+ *
+ * For real traversed edges, _id is the ArangoDB edge _id (e.g.
+ * 'customer360_Relations/rel_001'). For synthesized structural/hybrid edges,
+ * _id is a clearly-synthetic deterministic string (e.g.
+ * 'structural:${accountId}:${record._id}') or null.
+ *
+ * NOTE: label is one of 'PART_OF' | 'same_as' | 'account' | 'hybrid' in v1
+ * but is kept z.string() for forward-compatibility (D-03 defers score metadata).
+ */
+export const RetrievalPathEdge = z.object({
+  _id: z.string().nullable(), // real edge _id, clearly-synthetic id, or null
+  _from: z.string(),
+  _to: z.string(),
+  collection: z.string(), // edge collection (real) or synthetic marker
+  kind: EdgeKindEnum,
+  label: z.string(), // 'PART_OF' | 'same_as' | 'account' | 'hybrid' (v1)
+});
+export type RetrievalPathEdgeT = z.infer<typeof RetrievalPathEdge>;
+
+/**
  * Per-tool retrieval-path fragment. Each specialist returns one of these
  * alongside its data; the planner merges them into the envelope's
  * retrievalPath[] (see retrievalPath.ts::mergeRetrievalPaths).
+ *
+ * edges[] carries the graph edges traversed or synthesized by this tool
+ * (VIZ-01). Defaults to [] so existing tools (entityLookup, etc.) that emit
+ * no edges parse cleanly without any schema change. The field is additive —
+ * no current consumer (grounding, eval, answer synthesis) reads edges[].
  */
 export const RetrievalPathFragment = z.object({
   graph: GraphEnum,
   collection: z.string(),
   _ids: z.array(z.string()),
   query: z.string(),
+  edges: z.array(RetrievalPathEdge).default([]),
 });
 export type RetrievalPathFragmentT = z.infer<typeof RetrievalPathFragment>;
 

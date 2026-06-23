@@ -52,6 +52,7 @@ function buildPath(
     collection,
     _ids: data.map((d) => d._id as string),
     query,
+    edges: [], // Phase 10 (10-02) will synthesize structural edges here
   };
 }
 

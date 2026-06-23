@@ -128,6 +128,7 @@ export async function runHybridRetrieve(args: {
     collection: CHUNKS,
     _ids: data.map((d) => d.chunk_id),
     query: 'vector+BM25+RRF over Chunks → PART_OF Document',
+    edges: [], // Phase 10 (10-02) will populate traversed PART_OF + hybrid edges here
   };
 
   return { data, retrievalPath };

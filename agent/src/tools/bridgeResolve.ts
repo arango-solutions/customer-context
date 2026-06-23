@@ -80,6 +80,7 @@ async function resolve(entityId: string): Promise<BridgeResult> {
       [...d.structured_nodes, ...d.kg_nodes].map((n) => n._id),
     ),
     query: 'canonical_entities ←same_as← {structured leaves, KG entities}',
+    edges: [], // Phase 10 (10-02) will populate traversed same_as edges here
   };
 
   return { data, retrievalPath };
