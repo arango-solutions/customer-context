@@ -332,6 +332,10 @@ export async function runAgent(question: string): Promise<RunAgentResult> {
       const frag = output?.retrievalPath;
       if (frag && Array.isArray(frag._ids)) {
         fragments.push(frag);
+        // SC-5 ISOLATION: returnedIds is built ONLY from frag._ids — NEVER from frag.edges.
+        // edges[] carry Phase-11 VIZ-02 provenance data; an edge _id is NOT a citable
+        // grounding anchor. Adding an edge _id here would change grounding verdicts and
+        // break the eval gate (Pitfall 3 / SC-5 — 10-RESEARCH.md §The isolation guarantee).
         for (const id of frag._ids) returnedIds.add(id);
       }
     }
