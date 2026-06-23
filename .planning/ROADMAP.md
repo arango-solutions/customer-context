@@ -11,7 +11,7 @@ A graph-based Customer 360 demo over 100%-synthetic data: a Next.js/Vercel dashb
 ## v2.0 Phases
 
 - [x] **Phase 8: Deterministic Eval Harness** — Eliminate the ~5% stochastic flake; build a trustworthy green/red gate runnable before any demo (completed 2026-06-22)
-- [ ] **Phase 9: Data Depth & 3rd Account** — Add a 3rd synthetic account + deepen existing docs; linter-gated, building the data foundation v2 features depend on
+- [x] **Phase 9: Data Depth & 3rd Account** — Add a 3rd synthetic account + deepen existing docs; linter-gated, building the data foundation v2 features depend on (completed 2026-06-23)
 - [ ] **Phase 10: Answer-Provenance Edge Enrichment** — Enrich `hybridRetrieve` + `bridgeResolve` to return traversed edges; add `edges[]` to `RetrievalPathFragment`
 - [ ] **Phase 11: Graph Viz + UI Refresh + Latency** — React Flow cross-graph subgraph render, ArangoDB-brand UI refresh, confidence score, and latency pass
 - [ ] **Phase 12: Simulated CDC + What-Changed Diff** — File-watch CDC, live update trigger, and before/after diff of changed claims/citations
@@ -64,7 +64,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 09-03-PLAN.md — Full regen + full linter sweep + KG rebuild + eval-gate GREEN (SC-1..SC-5)
+- [x] 09-03-PLAN.md — Full regen + full linter sweep + KG rebuild + eval-gate GREEN (SC-1..SC-5)
 
 **Risk**: Medium — LLM prose coherence across a 3rd account is first-principles work (same risk class as Phase 2). Mitigated by reusing the existing spine + linter + generators as templates. The linter is the hard gate; coherence regressions found late are a full regen.
 
@@ -170,7 +170,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 8. Deterministic Eval Harness | 1/1 | Complete   | 2026-06-22 |
-| 9. Data Depth & 3rd Account | 2/3 | In Progress|  |
+| 9. Data Depth & 3rd Account | 3/3 | Complete   | 2026-06-23 |
 | 10. Answer-Provenance Edge Enrichment | 0/TBD | Not started | - |
 | 11. Graph Viz + UI Refresh + Latency | 0/TBD | Not started | - |
 | 12. Simulated CDC + What-Changed Diff | 0/TBD | Not started | - |

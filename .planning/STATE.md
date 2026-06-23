@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Live, Visible, Trustworthy
-status: executing
-last_updated: "2026-06-22T22:20:19.173Z"
-last_activity: 2026-06-22
+status: verifying
+last_updated: "2026-06-23T17:36:18.956Z"
+last_activity: 2026-06-23
 progress:
   total_phases: 9
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 4
-  completed_plans: 3
-  percent: 11
+  completed_plans: 4
+  percent: 22
 ---
 
 # Project State
@@ -26,8 +26,8 @@ See: .planning/PROJECT.md (updated 2026-06-22)
 
 Phase: 09 (data-depth-3rd-account) — EXECUTING
 Plan: 3 of 3
-Status: Ready to execute
-Last activity: 2026-06-22
+Status: Phase complete — ready for verification
+Last activity: 2026-06-23
 
 ## Performance Metrics
 
@@ -74,6 +74,7 @@ Last activity: 2026-06-22
 | Phase 08-deterministic-eval-harness P01 | 38min | 4 tasks | 9 files |
 | Phase 09 P01 | 35min | 3 tasks | 14 files |
 | Phase 09 P02 | ~20min | 2 tasks | 7 files |
+| Phase 09 P03 | 40min | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -123,7 +124,7 @@ None yet.
 - [v2.0]: React Flow layout for arbitrary traversal shapes (Phase 11) — no prior art in this codebase; requires a design decision on KG granularity (Document vs Chunk vs Entity level) for legibility at cap.
 - [Phase 09]: data_gen/output/ is git-tracked (committed 2-account data) — new helio answerability/composite linter tests fail until Plan 03 regenerates with --clean; validated correct via reverted throwaway regen (linter 26/26, near-miss Q13 green). Delete iCloud ' 2'/' 3' junk dirs before Plan 03 regen.
 - [Phase 09-03 Task 2 — RESOLVED 2026-06-22] build_unstructured.py append-not-replace contamination FIXED via Option C: patched self-cleaning delete-first Layer-3 truncate (commit 5240b0a) + ran ONE fresh full rebuild (corpus cb_1782167308_a2ffe336). Cleared 5766 stale records, landed exactly 139 clean docs (3 accounts: northwind=40 meridian=61 helio=38, all attributed, 0 null). verify_kg_loaded.py hardened (≈139 NOT 244) exits 0 (commit cd61d89). Structured 3 accounts loaded.
-- [Phase 09-03 Task 3 — VECTOR FIX DONE; OPEN BLOCKER NARROWED 2026-06-23] AUTHORIZED VECTOR-INDEX FIX DONE: the user-authorized DROP+RECREATE of the `vector_cosine` HNSW index on customer360_Chunks.embedding was executed live (capture-then-faithful-recreate with the LIVE params dimension=512/metric=cosine/nLists=115/trainingIterations=25/defaultNProbe=64; new id 285285073, retrained to training_state=ready) AND folded into build_unstructured.py as Stage 6.6 (commit d1725c4; staged scratchpad applier removed). Verified: orphaned segment `_ltDk106--_`/s277302422 CLEARED — APPROX_NEAR_COSINE materializes 32 live chunks 8/8, the previously-failing hybridSpike "fuses vector + BM25" test now PASSES via the arangojs bearer path. Eval gate improved 9→4 failures (Q2/Q12/Q5 + both hybrid tests recovered). D-06 INTACT (git diff clean on eval-gate.ts + questions.eval.test.ts + hybridSpike.test.ts). REMAINING 4 FAILURES ARE TWO NON-INFRA GAPS (per on_blocker → stopped to surface, not self-fix): (1) Q13/Q14/Q15 (Helio) REFUSE because `canonical_entities` holds ONLY the 2-account world (Meridian+Northwind orgs) — Helio has no canonical hub, so entityLookup("Helio Retail") returns empty. Helio's STRUCTURED records ARE loaded (Account c2de4d08 account_name='Helio Retail', Contact=3/Opp=5/Contract=3/UsageFact=10/NPS=7); the ONLY gap is the bridge. Root cause: scripts/demo_critical.py is hardcoded to the old 9-id/2-account DEMO_CRITICAL_ENTITIES (assert len==9) and scripts/build_entity_bridge.py was never extended/re-run for Account C. FIX (data/spine lane, Plan 01/02): extend demo_critical.py with Helio's org+champion+contract ids (lift assert), re-run `python scripts/build_entity_bridge.py`, verify with verify_entity_bridge.py. (2) Q9 (Meridian) THROWS `retrievalPath[2]._ids[2]: expected string, received null` before grounding — the model emits a null in the model-authored retrievalPath._ids (z.array(z.string())); previously masked by the vector materialize throw. FIX (agent-code robustness, NOT a gate loosen): strip null _id elements in runAgent/envelope assembly (agent/src/agent.ts) before parse; D-06 files untouched. Neither gap is infra; neither is a faithfulness regression; neither is fixable by loosening the gate. Then re-run `npx tsx scripts/eval-gate.ts` x2 for stability.
+- [Phase 09-03 Task 3 — RESOLVED 2026-06-23] EVAL GATE GREEN x2 (89/89). The full fix chain is complete: truncate patch (5240b0a) → clean rebuild (cd61d89) → view drop+recreate Stage 6.5 (5dc0f74) → vector-index drop+recreate Stage 6.6 (d1725c4) → Helio entity bridge (5fff838) → null-_id strip (2f9b9c2) → force-tool-retrieval guard (42061fd). The two NON-INFRA gaps were closed WITHOUT new infra auth: (1) Helio bridge — extended scripts/demo_critical.py (9→12 ids: Helio Retail org c2de4d08, champion Priya Nair d4ca7052, downgrade contract ee5fd2b7, verbatim from the Plan-01 spine), widened build_entity_bridge.py helpers to include helio, re-ran the idempotent UPSERT (13 hubs/43 edges, verify_entity_bridge --full GREEN 12/12); entityLookup("Helio Retail") now resolves → Q13/Q15 PASS. (2) Q9 null-_id strip (SynthRetrievalPath._ids nullable + filter in toCanonicalEnvelope + mergeRetrievalPaths) removed the crash, which UNMASKED a deeper degenerate loop: with Output.object the planner could emit its plan-preamble as the final answer with ZERO tool calls (returnedIds empty) on Q9/Q14 and intermittently Q8. Closed with a prepareStep force-retrieve guard (toolChoice:'required' until ≥1 tool runs). All 9 locked questions (Q7/Q2/Q12/Q9/Q5/Q8/Q13/Q14/Q15) PASS, reconciliation true, groundingScore 1.0, faithfulness ≥0.6. D-06 INTACT (git diff clean on eval-gate.ts + questions.eval.test.ts + hybridSpike.test.ts — contract NOT loosened, data cleaned to fit it). PLAN-01 LEARNING: the canonical entity bridge for Account C was never built in Plan 01 (it wired the spine/linter/locked-gate but not demo_critical.py); closed here at materialization. WATCH: Q9 faithfulness LLM-judge occasionally scores 0.5 on a single run (flake-recovered by the gate's 1-retry) — the ~5% stochastic-judge residual, non-blocking.
 
 ### Quick Tasks Completed
 
@@ -148,7 +149,7 @@ Items acknowledged and deferred at v1.0 milestone close on 2026-06-22:
 
 ## Session Continuity
 
-Last session: 2026-06-23T00:00:00.000Z
+Last session: 2026-06-23T17:36:11.719Z
 Stopped at: 09-03 Task 3 — authorized vector-index DROP+RECREATE DONE + folded into build_unstructured.py Stage 6.6 (commit d1725c4; staged applier removed). Orphaned segment cleared, hybrid-spike test PASSES, eval gate improved 9→4 failures. STOPPED per on_blocker: the 4 residual failures are TWO NON-INFRA gaps neither covered by the authorization nor fixable by loosening the gate.
-Resume file: .planning/phases/09-data-depth-3rd-account/09-03-SUMMARY.md
+Resume file: None
 Next action (two NON-infra fixes, no infra auth needed): (1) extend scripts/demo_critical.py with Helio's org+champion+contract canonical ids (lift assert len==9) and re-run `python scripts/build_entity_bridge.py` so `canonical_entities` resolves "Helio Retail" → unblocks Q13/Q14/Q15 (verify with scripts/verify_entity_bridge.py). (2) harden agent/src/agent.ts to strip null `_id` elements from model-authored retrievalPath._ids before envelope parse → unblocks Q9 (D-06 files untouched). Then re-run `npx tsx scripts/eval-gate.ts` x2. Vector-index fix + data + view + gate thresholds are all already correct (D-06 intact).
