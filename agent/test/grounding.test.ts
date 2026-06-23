@@ -107,6 +107,54 @@ describe('enforceGrounding (D-02 code gate)', () => {
     expect(EnvelopeSchema.safeParse(out).success).toBe(true);
   });
 
+  it('(c2) CR-01 Layer 2: a NON-refused, zero-claim/zero-citation envelope → refused (degenerate plan-preamble guard)', () => {
+    // The exact degenerate shape the streaming-path force-retrieve gap let through:
+    // the planner emitted its plan as the answer with zero tool calls, so no claims,
+    // no citations, returnedIds empty. groundingScore is vacuously 1.0, but this is the
+    // confident-but-unsourced shape the system exists to stop — it MUST become a refusal.
+    const env: PreGroundingEnvelope = {
+      answer: 'To answer this question I will: 1. resolve the account 2. pull usage ...',
+      refused: false,
+      claims: [],
+      citations: [],
+      retrievalPath: [],
+      reasoningTrace: ['planning'],
+    };
+    const returnedIds = new Set<string>();
+
+    const out = enforceGrounding(env, returnedIds);
+
+    expect(out.refused).toBe(true);
+    expect(out.answer).not.toContain('To answer this question I will');
+    expect(out.claims).toHaveLength(0);
+    expect(out.citations).toHaveLength(0);
+    expect(EnvelopeSchema.safeParse(out).success).toBe(true);
+  });
+
+  it('(c3) CR-01 Layer 2: an EXPLICIT refusal (refused:true, zero citations) is preserved UNCHANGED — not double-refused', () => {
+    // The NoObjectGenerated moderation-decline shape: an explicit refusal with empty
+    // claims/citations. The Layer-2 guard must NOT touch this — it stays a passthrough
+    // refusal with the vacuous groundingScore 1.0 and its original refusal answer text.
+    const refusalAnswer =
+      'I cannot answer this question: it is out of scope for the customer-account data.';
+    const env: PreGroundingEnvelope = {
+      answer: refusalAnswer,
+      refused: true,
+      claims: [],
+      citations: [],
+      retrievalPath: [],
+      reasoningTrace: ['The model declined to produce a grounded answer object.'],
+    };
+    const returnedIds = new Set<string>();
+
+    const out = enforceGrounding(env, returnedIds);
+
+    expect(out.refused).toBe(true);
+    expect(out.answer).toBe(refusalAnswer); // unchanged passthrough
+    expect(out.groundingScore).toBe(1.0);
+    expect(EnvelopeSchema.safeParse(out).success).toBe(true);
+  });
+
   it('(d) a structured-only envelope (Q7) passes grounding but assertReconciliation === false', () => {
     const env: PreGroundingEnvelope = {
       answer: 'Northwind has climbed the product ladder and shows clear ROI.',

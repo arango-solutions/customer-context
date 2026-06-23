@@ -25,22 +25,15 @@
 // the stream.
 
 import {
-  ToolLoopAgent,
-  stepCountIs,
-  Output,
   createUIMessageStream,
   createUIMessageStreamResponse,
   NoObjectGeneratedError,
 } from 'ai';
-import { openai } from '@ai-sdk/openai';
 import { enforceGrounding } from './grounding.js';
 import { mergeRetrievalPaths } from './retrievalPath.js';
 import {
-  SynthEnvelopeSchema,
   toCanonicalEnvelope,
-  TOOLS,
-  PLANNER_MODEL,
-  PLANNER_SYSTEM_PROMPT,
+  buildToolLoopAgent,
 } from './agent.js';
 import type { Envelope, PreGroundingEnvelope, RetrievalPathFragmentT } from './envelope.js';
 
@@ -160,18 +153,15 @@ const REFUSAL_ENVELOPE: Envelope = {
   groundingScore: 1.0,
 };
 
-/** Build the same ToolLoopAgent runAgent() builds. */
+/**
+ * Build the SAME ToolLoopAgent runAgent() builds — via the SINGLE shared factory
+ * (agent.ts::buildToolLoopAgent, CR-01) so the streaming path can never drift from the
+ * request/response path. Critically, this is what carries the FORCE-RETRIEVE GUARD
+ * (prepareStep toolChoice:'required' until ≥1 tool runs) onto the live-demo streaming
+ * path: a zero-tool plan-preamble can no longer be emitted as a non-refused answer here.
+ */
 function buildAgent(): StreamLikeAgent {
-  return new ToolLoopAgent({
-    model: openai(PLANNER_MODEL),
-    instructions: PLANNER_SYSTEM_PROMPT,
-    tools: TOOLS,
-    stopWhen: stepCountIs(12),
-    output: Output.object({ schema: SynthEnvelopeSchema }),
-    // temperature: 0 — primary planner determinism lever (EVAL-03). Mirrors agent.ts::runAgent().
-    // seed NOT set: Responses API silently ignores it (see agent.ts for full rationale).
-    temperature: 0,
-  }) as unknown as StreamLikeAgent;
+  return buildToolLoopAgent() as unknown as StreamLikeAgent;
 }
 
 /**

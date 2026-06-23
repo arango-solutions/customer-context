@@ -175,6 +175,50 @@ describe('assembleGroundedEnvelope (terminal grounding gate over streamed steps)
   });
 });
 
+// --- (2b) CR-01: the streaming path cannot emit a degenerate zero-tool answer ----
+
+describe('CR-01: streaming path rejects the degenerate zero-tool plan-preamble answer', () => {
+  it('a zero-tool, zero-claim/zero-citation non-refused run → refusal (NOT a confident unsourced answer)', async () => {
+    // Simulate the EXACT degenerate run the missing force-retrieve guard let through on
+    // the streaming path: the planner emitted its "To answer this I will: 1… 2…" plan as
+    // the final answer on step 0 with ZERO tool calls — so no toolResults, returnedIds
+    // empty, claims:[], citations:[]. Pre-fix, the streaming path (no prepareStep guard)
+    // could reach this; the terminal grounding gate ALSO vacuously passed it (Layer 2).
+    const planPreamble = {
+      answer: 'To answer this question I will: 1. resolve the account 2. pull usage ...',
+      refused: false,
+      claims: [],
+      citations: [],
+      retrievalPath: [],
+      reasoningTrace: ['planning'],
+    };
+    // No tool calls happened: zero steps with toolResults.
+    const result = {
+      fullStream: (async function* () {})(),
+      steps: Promise.resolve([{ toolResults: [] as Array<{ output?: unknown }> }]),
+      output: Promise.resolve(planPreamble),
+    };
+
+    const out = await assembleGroundedEnvelope(result);
+
+    // The streaming path's terminal gate now converts it to a refusal (Layer 2),
+    // and the shared agent factory (Layer 1) prevents the run from ever happening
+    // (toolChoice:'required' until ≥1 tool runs) on the live model.
+    expect(out.refused).toBe(true);
+    expect(out.answer).not.toContain('To answer this question I will');
+    expect(out.claims).toHaveLength(0);
+    expect(out.citations).toHaveLength(0);
+
+    // Byte-for-byte equal to running enforceGrounding directly — proves the streaming
+    // path uses the SAME hardened terminal gate.
+    const expected = enforceGrounding(
+      { ...toCanonicalEnvelope(planPreamble as never), retrievalPath: mergeRetrievalPaths([]) },
+      new Set<string>(),
+    );
+    expect(out).toEqual(expected);
+  });
+});
+
 // --- (3) end-to-end part ordering with a MOCKED agent ---------------------
 
 /** Read all emitted UI-message parts out of the streamed Response body. */

@@ -224,6 +224,55 @@ export const TOOLS: ToolSet = {
 };
 
 /**
+ * SINGLE SOURCE OF TRUTH for the planner ToolLoopAgent config (CR-01).
+ *
+ * BOTH the request/response path (runAgent → askQuestion) and the streaming path
+ * (stream.ts::buildAgent → askQuestionStream, the path the live demo UI hits) construct
+ * their agent through THIS factory, so they can never drift on model / instructions /
+ * tools / step-cap / output schema / — critically — the FORCE-RETRIEVE GUARD below.
+ *
+ * Phase-09 introduced the guard on runAgent() ONLY; the streaming variant documented
+ * itself as "the SAME ToolLoopAgent" but lacked the guard, leaving the degenerate
+ * zero-tool plan-preamble answer reachable on the buyer-facing path (09-REVIEW CR-01).
+ * Extracting the config here makes the two paths identical by construction.
+ *
+ * FORCE-RETRIEVE GUARD (09-03, Q9/Q14 answerability): with Output.object the planner is
+ * free to emit a final structured-output object on step 0 WITHOUT calling any tool — it
+ * returns its "To answer this question I will: 1… 2…" PLAN as the answer with zero
+ * claims/citations/retrievalPath (returnedIds empty). That is a non-refused, zero-grounding
+ * answer — the exact confident-but-unsourced shape the grounding gate exists to stop, and
+ * it fails the locked-question contract (refused:false + reconciliation). This was
+ * previously masked by the model-emitted null _id crash (Gap 2). prepareStep forces
+ * toolChoice:'required' until at least one tool has actually run, so the model MUST
+ * retrieve before it can synthesize. Once any tool has run we hand control back to the
+ * default loop (toolChoice:'auto') so the model decides when it has enough evidence to
+ * emit the final object — the 6 already-passing questions are unaffected (they call tools
+ * on step 0 regardless).
+ *
+ * temperature: 0 — primary planner determinism lever (EVAL-03). seed NOT set: the
+ * Responses API (openai(), not openai.chat()) silently ignores seed per OpenAI community
+ * — same root cause as the original judge flakiness. Judge was fixed via openai.chat();
+ * planner stays on Responses API to preserve strict-mode structured output
+ * (SynthEnvelopeSchema + Output.object).
+ */
+export function buildToolLoopAgent(): ToolLoopAgent {
+  return new ToolLoopAgent({
+    model: openai(PLANNER_MODEL),
+    instructions: PLANNER_SYSTEM_PROMPT,
+    tools: TOOLS,
+    stopWhen: stepCountIs(12),
+    // Synthesize against the strict-friendly mirror; normalized to the canonical
+    // EnvelopeSchema downstream (OpenAI strict mode rejects bare .optional() fields).
+    output: Output.object({ schema: SynthEnvelopeSchema }),
+    prepareStep: ({ steps }) => {
+      const anyToolCalled = steps.some((s) => s.toolCalls && s.toolCalls.length > 0);
+      return anyToolCalled ? {} : { toolChoice: 'required' as const };
+    },
+    temperature: 0,
+  });
+}
+
+/**
  * Assemble + run the ToolLoopAgent for one question.
  *
  * Returns { envelope, returnedIds }. The caller (index.ts::askQuestion) runs the
@@ -232,38 +281,7 @@ export const TOOLS: ToolSet = {
  * pure post-synthesis code gate).
  */
 export async function runAgent(question: string): Promise<RunAgentResult> {
-  const agent = new ToolLoopAgent({
-    model: openai(PLANNER_MODEL),
-    instructions: PLANNER_SYSTEM_PROMPT,
-    tools: TOOLS,
-    stopWhen: stepCountIs(12),
-    // Synthesize against the strict-friendly mirror; normalized to the canonical
-    // EnvelopeSchema below (OpenAI strict mode rejects bare .optional() fields).
-    output: Output.object({ schema: SynthEnvelopeSchema }),
-    // FORCE-RETRIEVE GUARD (09-03, Q9/Q14 answerability): with Output.object the
-    // planner is free to emit a final structured-output object on step 0 WITHOUT
-    // calling any tool — it returns its "To answer this question I will: 1… 2…"
-    // PLAN as the answer with zero claims/citations/retrievalPath (returnedIds
-    // empty). That is a non-refused, zero-grounding answer — the exact
-    // confident-but-unsourced shape the grounding gate exists to stop, and it
-    // fails the locked-question contract (refused:false + reconciliation). This
-    // was previously masked by the model-emitted null _id crash (Gap 2). prepareStep
-    // forces toolChoice:'required' until at least one tool has actually run, so the
-    // model MUST retrieve before it can synthesize. Once any tool has run we hand
-    // control back to the default loop (toolChoice:'auto') so the model decides when
-    // it has enough evidence to emit the final object — the 6 already-passing
-    // questions are unaffected (they call tools on step 0 regardless).
-    prepareStep: ({ steps }) => {
-      const anyToolCalled = steps.some((s) => s.toolCalls && s.toolCalls.length > 0);
-      return anyToolCalled ? {} : { toolChoice: 'required' as const };
-    },
-    // temperature: 0 — primary planner determinism lever (EVAL-03).
-    // seed NOT set: the Responses API (openai(), not openai.chat()) silently ignores seed
-    // per OpenAI community — same root cause as the original judge flakiness.
-    // Judge was fixed via openai.chat(); planner stays on Responses API to preserve
-    // strict-mode structured output (SynthEnvelopeSchema + Output.object).
-    temperature: 0,
-  });
+  const agent = buildToolLoopAgent();
 
   let result: Awaited<ReturnType<typeof agent.generate>>;
   try {
