@@ -173,6 +173,40 @@ None - no new external service configuration. Existing OPENAI_API_KEY / ARANGO_*
 - Bridge verified live: verify_entity_bridge --full GREEN (12/12 fully linked, 13 hubs/43 edges); entityLookup("Helio Retail") resolves account_id c2de4d08.
 - Eval gate GREEN x2 verified live: run A 89/89 exit 0; run B 88/89->89/89 (flake recovered) exit 0; all 9 locked questions PASS.
 
+## Post-Review Fix — CR-01 (2026-06-23, commit f58e9cc)
+
+Code review (`09-REVIEW.md`) flagged one CRITICAL: the 09-03 force-retrieve guard
+(`prepareStep` `toolChoice:'required'` until ≥1 tool runs) was added ONLY to
+`runAgent()`/`askQuestion()` (agent.ts), NOT to the streaming variant
+`buildAgent()`/`askQuestionStream()` (stream.ts) — which is the path the live demo UI
+hits (`web/app/api/ask/route.ts` → `askQuestionStream`). The eval gate exercises the
+guarded `askQuestion` path only, so it stayed GREEN while the unguarded streaming path
+could still emit the degenerate zero-tool plan-preamble answer (zero claims/citations,
+`refused:false`) — the confident-but-unsourced shape this system exists to prevent.
+
+**Fix (commit `f58e9cc`):**
+- **Layer 1** — extracted `buildToolLoopAgent()` in `agent.ts` as the SINGLE source of
+  truth for the planner ToolLoopAgent config (incl. the force-retrieve guard). Both
+  `runAgent()` and `stream.ts::buildAgent()` now construct through it, so the streaming
+  path carries the identical guard and the two paths cannot drift again.
+- **Layer 2** — hardened `enforceGrounding()` so a NON-refused envelope that grounds
+  nothing (zero grounded claims AND zero grounded citations) becomes a refusal BEFORE
+  the fully-grounded passthrough. This closes the vacuous-pass (empty citations →
+  groundingScore 1.0, empty claims → empty unsupportedClaims) at the shared terminal
+  gate for all paths present and future. Legit grounded answers and existing explicit
+  refusals (`refused:true`, e.g. the NoObjectGenerated decline) are unchanged.
+- Tests: `grounding.test.ts` (c2) non-refused zero-grounding → refused; (c3) explicit
+  refusal preserved unchanged. `stream.test.ts`: streaming terminal gate refuses a
+  zero-tool plan-preamble run byte-for-byte equal to `enforceGrounding` direct.
+- WR-04 intentionally skipped (existing convention keeps empty-`_ids` retrievalPath
+  entries; changing it risks the byte-for-byte stream-test expectations for no benefit).
+
+**Verification:** agent typecheck + build clean; `eval-gate.ts` GREEN + STABLE on two
+consecutive runs (run A 92/92; run B 90/92 run-1 → 92/92 run-2, flake-recovered), all 9
+locked questions PASS incl. Q14. D-06 locked files (`eval-gate.ts`,
+`questions.eval.test.ts`, `hybridSpike.test.ts`, `FAITHFULNESS_FLOOR`) git-diff-clean.
+`09-REVIEW.md` CR-01 marked RESOLVED.
+
 ---
 *Phase: 09-data-depth-3rd-account*
 *Completed: 2026-06-23*
