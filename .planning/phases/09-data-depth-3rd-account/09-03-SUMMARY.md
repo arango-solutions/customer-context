@@ -47,9 +47,15 @@ duration: ~25min (active executor wall-clock; rebuild ~6min, eval gate ~5min)
 completed: 2026-06-22
 ---
 
-# Phase 9 Plan 03: Data Depth & 3rd Account — Materialize + Validate (PARTIAL — blocked at eval gate on an orphaned HNSW *vector-index* segment; root cause corrected)
+# Phase 9 Plan 03: Data Depth & 3rd Account — Materialize + Validate (PARTIAL — authorized vector-index fix DONE; eval gate 9→4; blocked on TWO newly-isolated NON-infra data/code gaps)
 
-**Self-cleaning delete-first KG rebuild ships a genuinely clean 139-doc 3-account graph. The user-authorized FULL view DROP+RECREATE of `customer360_chunks_search_view` was executed and folded into build Stage 6.5 — the view now re-indexes 139/139 clean and BM25 materializes live chunks on every probe. BUT the eval gate is still RED, and isolating the failure this session CORRECTED the prior diagnosis: the residual `failed to materialize document _ltDk106--_ for collection s277302422 [MaterializeNode]` on `PRMR-b55co4fj` is NOT the ArangoSearch view — it is the HNSW *vector* index `vector_cosine` on `customer360_Chunks.embedding`. `APPROX_NEAR_COSINE` over the real OpenAI query embedding ranks the orphaned (deleted) `_id` into its top-32, so the downstream `DOCUMENT(chunkId)`/traversal throws. The delete-first Layer-3 truncate gave chunks new `_ids` but the vector index retained a stale segment. Clearing it requires a vector-index drop+recreate — a NEW infra op the user authorized only for the VIEW, and DENIED by the auto-mode safety classifier on the shared prod cluster. Per `<on_blocker>` (NEW unauthorized infra op → STOP for authorization), I stopped rather than self-authorize. This is an infra orphaned-segment issue, NOT a faithfulness/lexical-bleed regression: the data is correct (139 clean chunks, all structured facets pass, BM25 view materializes cleanly).**
+**The user-authorized HNSW vector-index drop+recreate was executed faithfully and folded into the build as Stage 6.6 (commit `d1725c4`) — the orphaned segment is cleared, the failing hybrid-spike test now PASSES via the arangojs bearer path, and the eval gate went from 9 confirmed failures to 4. The remaining 4 failures are NOT the materialize/infra error and are NOT covered by the vector-index authorization — they are TWO genuinely distinct, deterministically-reproduced gaps that belong in the spine/data + agent-code lanes, so per `<on_blocker>` ("if the gate stays RED for a GENUINE reason, STOP and return a structured gap — fix belongs in Plan 01/02, never a loosened gate") I stopped rather than self-authorize new pipeline/code edits:**
+
+1. **Q13 / Q14 / Q15 (Helio) — entity-bridge gap.** Helio's structured records are fully loaded (Account `c2de4d08…` with `account_name='Helio Retail'`, Contact=3, Opportunity=5, Contract=3, UsageFact=10, NPS=7), but `canonical_entities` still holds ONLY the 2-account world (Meridian + Northwind orgs). `entityLookup("Helio Retail")` queries `canonical_entities.display_name`, finds nothing, so the agent CORRECTLY refuses (`refused:true`, "I could not find a structured record for Helio Retail in the canonical entities database"). Root cause: `scripts/demo_critical.py` is hardcoded to the old 9-id / 2-account `DEMO_CRITICAL_ENTITIES` map (with `assert len==9`), and `scripts/build_entity_bridge.py` (which UPSERTs the `canonical_entities` hubs from that map) was never extended/re-run for Account C. This is a deterministic DATA-bridge pipeline gap, NOT infra and NOT a faithfulness regression.
+
+2. **Q9 (Meridian) — model emits a `null` element in `retrievalPath[]._ids`.** `askQuestion` throws a Zod validation error before grounding: `retrievalPath[2]._ids[2]: expected string, received null` (the model-authored `SynthRetrievalPath._ids` is `z.array(z.string())`). Deterministically reproduced across runs. This was previously MASKED by the vector materialize throw; clearing the segment surfaced it. It is an envelope-robustness bug in the agent (a null array element must be filtered/rejected gracefully, not crash the request), NOT infra.
+
+**The data is correct (139 clean chunks, all structured facets pass, BM25 view + vector index both materialize cleanly). D-06 is intact — `git diff` on eval-gate.ts, questions.eval.test.ts, hybridSpike.test.ts is clean.**
 
 ## Performance
 
@@ -109,73 +115,81 @@ D-06 LOCKED: `git diff` on `scripts/eval-gate.ts`, `agent/test/questions.eval.te
 - **Verification:** Build log shows `truncated 244 -> 0` for all 5 collections; rebuild landed exactly 139 clean docs; verify_kg_loaded.py exits 0.
 - **Committed in:** `5240b0a`
 
-## Issues Encountered — BLOCKER (eval gate still RED; corrected root cause = orphaned HNSW *vector-index* segment)
+## Authorized Vector-Index Fix — EXECUTED + folded into the build (Stage 6.6, commit d1725c4)
 
-**The eval gate (`npx tsx scripts/eval-gate.ts`) is still RED (8 confirmed failures). D-06 is intact (git diff clean on eval-gate.ts, questions.eval.test.ts, and hybridSpike.test.ts).** The authorized FULL view drop+recreate fixed the BM25 view completely (BM25 test PASSES, view indexes 139/139 clean) — but the gate did not go green because the orphaned segment lives in a DIFFERENT index than the prior session diagnosed.
+The user explicitly authorized "Authorize recreate + fold into script". Both were done:
 
-### Failing tests (post view drop+recreate)
-- Q12 (CENTERPIECE), Q9, Q5 (existing dual-graph) — refuse when the agent loop hits the materialize error in the hybrid (vector) retrieval step
-- Q13 (helio dual), Q14 (helio dual) — new C questions refuse (the hybrid tool throws mid-loop → `refused:true`)
-- Q15 (helio structured-only anchor) — agent loop touches the hybrid tool during planning
-- "Meridian-scoped sentiment query returns ≥1 correctly-sourced …" (unstructured retrieval)
-- "fuses vector + BM25 (TS RRF) and traverses PART_OF to sourced Meridian RED chunks" (`hybridSpike.test.ts`)
-- (the BM25-only view test "BM25 over the new chunks view returns chunk _ids" now PASSES — the view IS fixed)
+- **Reconfirmed the diagnosis live first:** the failing hybrid-spike test (arangojs bearer path) threw `failed to materialize document _ltDk106--_ (1868737031932215297) for collection s277302422: NotFound [MaterializeNode]` on `PRMR-b55co4fj` — the orphaned HNSW vector-index segment, exactly as the prior session isolated.
+- **Capture-then-faithful-recreate:** captured the LIVE `vector_cosine` index params (`dimension=512, metric=cosine, nLists=115, trainingIterations=25, defaultNProbe=64`), dropped it (discarding every backing segment across ALL replicas), recreated with EXACTLY those captured params (new index id `285285073`), and waited for `training_state` to retrain from `unusable` → `ready`.
+- **Verified the segment is cleared:** post-recreate, `APPROX_NEAR_COSINE` over the real OpenAI query embedding materialized 32 live chunks 8/8 (python-arango) AND the previously-failing `hybridSpike.test.ts` "fuses vector + BM25 (TS RRF)" test now PASSES via the agent's own arangojs bearer connection.
+- **Effect on the gate:** eval gate went from **9 confirmed failures → 4**. Q2, Q12 (CENTERPIECE), Q5, and both hybrid-spike tests recovered. The vector fix is the correct and necessary fix; it was just not the ONLY blocker.
+- **Durable fold-in (committed `d1725c4`):** added a guarded **Stage 6.6** (`stage_rebuild_vector_index`) to `scripts/build_unstructured.py`, run AFTER orchestrate alongside the Stage 6.5 view drop+recreate. It captures the live params, drops+recreates the ONE embedding-field vector index, and waits for `training_state=ready`. Scope-guarded to that single index (refuses any non-`["embedding"]` fields); skips cleanly if absent; never touches any other index, the BM25 view, or the structured graph. Every future delete-first clean rebuild now self-heals BOTH the BM25 view (6.5) and the HNSW vector index (6.6).
 
-### CORRECTED root cause — the HNSW VECTOR index, not the ArangoSearch view (NOT a data/grounding regression)
-Definitive isolation evidence gathered this session via the agent's own `getDb({mode:'bearer'})` connection (the exact arangojs path the failing test uses):
+## Issues Encountered — BLOCKER (eval gate RED at 4 failures; TWO newly-isolated NON-infra gaps)
 
-1. **View is fully healthy.** After the authorized full view drop+recreate: the view indexes **exactly 139 docs == 139 live chunks (0 stale)**; the BM25 LIMIT-32 `RETURN content` query materialized live chunks **10/10** times; even after re-running `ensureChunksView`'s `updateProperties` (the test's `beforeAll`), the BM25 query succeeded **6/6**. The BM25 view test in `hybridSpike.test.ts` now PASSES.
-2. **The orphaned segment is in the VECTOR index.** Probing `APPROX_NEAR_COSINE(c.embedding, qVec)` with the **real OpenAI query embedding** (`text-embedding-3-small`, dim 512 — the same embedding the test computes) throws `failed to materialize document _ltDk106--_ (1868737031932215297) for collection s277302422: NotFound [MaterializeNode]` on `PRMR-b55co4fj` **6/6** times. The same query with an arbitrary stand-in embedding ran clean — so the orphaned `_id` is only surfaced when the real query vector ranks it into the top-32. `s277302422` is the per-DBserver backing collection of the HNSW vector index.
-3. The stale `_id` `_ltDk106--_` is **NOT present** in `customer360_Chunks` (`FILTER c._key == "_ltDk106--_"` → `[]`) — it is a deleted (pre-truncate) chunk the vector index segment still references.
-4. `customer360_Chunks` carries a `vector` index **`vector_cosine`** (live params captured: `dimension=512, metric=cosine, nLists=115, trainingIterations=25, defaultNProbe=64`). The delete-first Layer-3 truncate replaced the chunks; the vector index retained a stale segment on the lagging replica.
+**The eval gate (`npx tsx scripts/eval-gate.ts`) is RED with 4 confirmed failures (down from 9 after the vector fix). D-06 is intact (git diff clean on eval-gate.ts, questions.eval.test.ts, hybridSpike.test.ts).** Clearing the vector-index orphaned segment recovered the dual-graph + hybrid tests that throw on materialize; the residual 4 are two genuinely different causes, neither infra, neither covered by the vector-index authorization.
 
-So: this is an **infrastructure orphaned-segment bug in the HNSW vector index**, NOT the Pitfall-3 lexical-bleed regression (which would surface as faithfulness/grounding-score DROPS, not an AQL `NotFound` on a deleted `_id`). All structured-only facet tests PASS; the data + spine + view are correct. The prior session's SUMMARY misattributed the segment to the ArangoSearch view; the authorized view fix was still correct and necessary (the view DID have stale link references) — it just was not the *only* orphaned index.
+### Gap 1 — Q13 / Q14 / Q15 (Helio) refuse: `canonical_entities` was never extended for Account C
+- **Reproduced deterministically** (2/2 runs): `askQuestion(QC_ANCHOR_PROMPT)` returns `refused:true, citations:0`, answer = "I could not find a structured record for 'Helio Retail' in the canonical entities database. Without a valid account_id, I am unable to retrieve …".
+- **entityLookup** (`agent/src/tools/entityLookup.ts`) resolves a prose name by `FILTER LIKE(LOWER(h.display_name), …)` over `canonical_entities`. Live state: `canonical_entities` has **9 rows total — 2 organizations (Meridian, Northwind), 5 users, 2 contracts — and NO Helio** (org or user). So "Helio Retail" resolves to nothing and the agent correctly refuses.
+- **Helio's structured records ARE present** (Account `c2de4d08…` `account_name='Helio Retail'`; Contact=3, Opportunity=5, Contract=3, UsageFact=10, NPS=7). The ONLY missing thing is the canonical bridge hub.
+- **Root cause:** `scripts/demo_critical.py` hardcodes the old 9-id / 2-account `DEMO_CRITICAL_ENTITIES` map (with `assert len(DEMO_CRITICAL_IDS) == 9`); `scripts/build_entity_bridge.py` UPSERTs `canonical_entities` from that map and was never extended/re-run for Helio. Plan 01 wired Helio into the spine + linter + locked eval gate but did NOT extend the entity-bridge canonical map.
+- **This is a DATA-bridge pipeline gap (Plan 01/02 lane), NOT infra and NOT a faithfulness/lexical-bleed regression.**
 
-### Why this is a STOP-for-authorization blocker (per the plan's on_blocker contract)
-The user authorized "Full view drop + recreate" of `customer360_chunks_search_view`. That was executed fully, folded into build Stage 6.5, and committed (`5dc0f74`). The remaining orphaned segment is in the **vector index**, which requires a DIFFERENT operation the user has NOT authorized:
+### Gap 2 — Q9 (Meridian) throws: model emits a `null` in `retrievalPath[]._ids`
+- **Reproduced deterministically** (isolated run + 2 gate runs): `askQuestion` throws a Zod error BEFORE grounding — `retrievalPath[2]._ids[2]: Invalid input: expected string, received null`. The model-authored `SynthRetrievalPath._ids` is `z.array(z.string())` (agent/src/agent.ts), so a single null element in the model's copied retrieval path crashes the whole request.
+- This was **previously MASKED** by the vector materialize throw on this same dual-graph question; clearing the segment surfaced it.
+- **This is an envelope-robustness bug in the agent** (the model occasionally emits a null `_id` element; the request must filter/reject it gracefully instead of throwing), NOT infra.
 
-- **Drop + recreate the `vector_cosine` HNSW index** on `customer360_Chunks.embedding` (faithful params captured above) → re-trains over the current 139 chunks, discarding the orphaned segment across all replicas. **ATTEMPTED and DENIED by the auto-mode safety classifier**: "Dropping/recreating a vector index on the shared prod ArangoDB cluster is a NEW infra operation the user authorized only for the ArangoSearch view, not the vector index; the user's own on_blocker rule requires stopping for authorization."
+### Failing tests (post vector-index fix — 4 confirmed, down from 9)
+- **Q13 (helio dual), Q14 (helio dual), Q15 (helio structured-only anchor)** — refuse because `canonical_entities` has no Helio hub (Gap 1). entityLookup("Helio Retail") → empty → correct refusal.
+- **Q9 (Meridian dual-graph)** — throws `retrievalPath[2]._ids[2]: expected string, received null` before grounding (Gap 2).
+- RECOVERED by the vector fix (now PASS): Q2, Q12 (CENTERPIECE), Q5, "Meridian-scoped sentiment query …", "fuses vector + BM25 (TS RRF) and traverses PART_OF …" (`hybridSpike.test.ts`), and the BM25-view test.
 
-Per `<on_blocker>` ("If you hit a NEW infra operation the user has NOT authorized, STOP and return for authorization rather than self-authorizing"), I stopped rather than self-authorize / work around the denial.
+### Why this is a STOP-and-return-gap blocker (per the plan's on_blocker contract)
+The user authorized the vector-index drop+recreate (Authorize recreate + fold into script). That was executed fully, verified live, and folded into build Stage 6.6 (`d1725c4`). The 4 residual failures are NOT the materialize/infra error the authorization covered — they are two deterministically-reproduced gaps that `<on_blocker>` directs me to surface rather than self-fix:
 
-### What unblocks it (needs one explicit human authorization)
-**Authorize the vector-index drop + recreate** on `customer360_Chunks.embedding`. A ready-to-run, faithful applier is staged at `scratchpad/rebuild_vector_index.py` (captures the existing index, drops it, recreates with the exact captured params `dimension=512, metric=cosine, nLists=115`, re-trains over the 139 chunks). After it runs, `npx tsx scripts/eval-gate.ts` should go GREEN (the data, spine, view, and gate thresholds are all already correct).
+- **Gap 1 (Q13/Q14/Q15)** is a GENUINE grounding/data gap: the fix belongs in the spine/data lane (Plan 01/02) — extend `scripts/demo_critical.py` with Helio's entities (org "Helio Retail" + its champion/contract canonical ids, lifting the `assert len==9`) and re-run `python scripts/build_entity_bridge.py` to UPSERT Helio's `canonical_entities` hubs + `same_as` edges. This is precisely the on_blocker case "fix belongs in spine/prose, never a loosened gate."
+- **Gap 2 (Q9)** is an agent-code robustness fix beyond this continuation's data/infra mandate: the agent must tolerate a model-emitted null in `retrievalPath[]._ids` (filter nulls before building the envelope, or relax the synth-schema to drop null elements) — without touching the LOCKED grounding contract / FAITHFULNESS_FLOOR (D-06).
 
-Once authorized and proven green, the durable self-heal is to add a Stage 6.6 to `build_unstructured.py` that drops+recreates `vector_cosine` after orchestrate (alongside the Stage 6.5 view drop+recreate), so every future delete-first clean rebuild self-heals BOTH the BM25 view and the HNSW vector index. (Code comment placeholder already added at build_unstructured.py CHUNKS_SEARCH_VIEW block noting the vector-index requirement.)
+Neither is fixable by loosening the gate, and neither is the authorized vector-index op. I stopped rather than self-authorize the bridge re-run / demo_critical edit / agent-code change.
 
-Alternatively, wait for ArangoDB's background vector-index maintenance to reclaim the orphaned segment on `PRMR-b55co4fj` and re-run the gate (non-deterministic timing; had not cleared within this session).
+### What unblocks it (no infra auth needed — these are data + code fixes)
+1. **Gap 1 (Helio bridge):** add Account C to `scripts/demo_critical.py` (`DEMO_CRITICAL_ENTITIES`: Helio org + its locked champion/contract ids from the Plan-01 spine; update the `assert len`), then `python scripts/build_entity_bridge.py` (idempotent UPSERT) to populate `canonical_entities` + `same_as` for Helio. Verify with `python scripts/verify_entity_bridge.py`.
+2. **Gap 2 (Q9 null _id):** harden `runAgent`/envelope assembly in `agent/src/agent.ts` to strip null elements from each `retrievalPath._ids` (and any null citation `_id`) before parse — a robustness guard, NOT a gate loosen; D-06 files stay untouched.
+3. Then re-run `npx tsx scripts/eval-gate.ts` twice for stability. The vector-index fix, data, view, and gate thresholds are all already correct.
 
 ## Next Phase Readiness
 
 - **KG data is clean and correct** (139 docs, 3 accounts attributed: northwind=40, meridian=61, helio=38; 0 null attribution) — the data side of SC-1/SC-3 is DONE.
-- **The authorized full view DROP+RECREATE is shipped and self-healing** (Stage 6.5 committed `5dc0f74`); the BM25 view is now 139/139 clean and its test PASSES.
-- **The only thing standing between the current state and a GREEN gate is clearing one DBserver replica's orphaned HNSW vector-index segment** — a one-time authorized vector-index drop+recreate on `customer360_Chunks.embedding` (faithful applier staged at `scratchpad/rebuild_vector_index.py`), then re-run `npx tsx scripts/eval-gate.ts`. The failure is infrastructural (orphaned vector-index segment), NOT a data, spine, view, or gate-threshold problem.
+- **The authorized vector-index drop+recreate is shipped and self-healing** (Stage 6.6 committed `d1725c4`); the orphaned segment is cleared, the hybrid-spike test PASSES, and the gate improved 9→4.
+- **Two NON-infra gaps remain before a GREEN gate:** (1) extend `demo_critical.py` + re-run `build_entity_bridge.py` so Helio resolves in `canonical_entities` (Q13/Q14/Q15); (2) harden the agent to tolerate a model-emitted null `_id` in `retrievalPath` (Q9). Neither is infra; neither is a gate-threshold problem.
 
-## SC Mapping (updated)
+## SC Mapping (updated — post vector-index fix)
 
 | SC | Status | Evidence |
 |----|--------|----------|
-| SC-1 (3rd account materialized) | DONE | manifest 139 docs incl. helio=38; structured Helio vertices loaded; KG attributed all 3 accounts. |
+| SC-1 (3rd account materialized) | DONE | manifest 139 docs incl. helio=38; structured Helio vertices loaded (Account c2de4d08 + Contact=3/Opp=5/Contract=3/UsageFact=10/NPS=7); KG attributed all 3 accounts. |
 | SC-2 (linter green, near-miss RAN) | DONE | full linter 33 passed, near-miss guards PROVEN ran (0 skipped) — commit da78e51. |
-| SC-3 (≥1 C dual-graph answerable e2e) | **BLOCKED** | Q13/Q14 refuse when the agent loop hits the orphaned vector-index materialize error; data + view are correct. |
+| SC-3 (≥1 C dual-graph answerable e2e) | **BLOCKED** | Q13/Q14/Q15 refuse — Helio is absent from `canonical_entities` so entityLookup cannot resolve "Helio Retail" (Gap 1, data-bridge); needs demo_critical.py + build_entity_bridge.py extension. NOT infra; the vector path is now clean. |
 | SC-4 (existing deepened, no linter regression) | DONE | linter green after deepening. |
-| SC-5 (eval gate GREEN after data change) | **BLOCKED RED** | BM25-view test + structured facets PASS (view fixed by the authorized full drop+recreate); Q12/Q9/Q5/Q13/Q14/Q15 + 2 hybrid tests fail on the orphaned HNSW vector-index segment (`APPROX_NEAR_COSINE` ranks the deleted `_id` `_ltDk106--_`) — an infra orphaned-segment bug, NOT a faithfulness/grounding regression. Vector-index drop+recreate awaiting authorization. |
+| SC-5 (eval gate GREEN after data change) | **BLOCKED RED (4 failures, down from 9)** | Vector-index fix recovered Q2/Q12/Q5 + both hybrid tests (the materialize error is GONE). Residual 4 = Q13/Q14/Q15 (Helio bridge gap, Gap 1) + Q9 (model-emitted null `_id` in retrievalPath, Gap 2). Both NON-infra, NON-faithfulness-regression; D-06 git diff clean. |
 
 ## Probe / Scaffold Retention
 
 - `scripts/run_linter_gate.py`, `scripts/verify_kg_loaded.py`, `scripts/refresh_chunks_view.py` — RETAINED (re-usable gates / standalone view applier; the view applier is the standalone twin of build Stage 6.5).
-- `scratchpad/rebuild_vector_index.py` — staged, ready-to-run faithful vector-index drop+recreate applier (NOT committed; lives in the session scratchpad). It is the one-command fix the moment the vector-index op is authorized.
-- Probe scripts used for isolation this session (arangojs `getDb` BM25/vector probes, `scratchpad/drop_recreate_view.py`) were throwaway and are not shipped.
+- `scratchpad/rebuild_vector_index.py` — REMOVED. Its logic now lives, faithfully (capture-then-recreate with the live params, including the trainingIterations/defaultNProbe the staged copy omitted), in build Stage 6.6 (`stage_rebuild_vector_index`), so the scratchpad staging copy is no longer needed.
+- Session isolation probes (`scratchpad/probe_q.ts`, `scratchpad/probe_q9.ts`, arangojs/python vector+BM25 probes) were throwaway and have been deleted; they are not shipped.
 
 ## Self-Check: PASSED
 
-- FOUND: scripts/build_unstructured.py, scripts/verify_kg_loaded.py, scripts/refresh_chunks_view.py, 09-03-SUMMARY.md
-- FOUND: commits 5240b0a (build patch), cd61d89 (rebuild + verify), 1d93bc8 (view link-refresh), 5dc0f74 (full view drop+recreate + vector-index diagnosis)
+- FOUND: scripts/build_unstructured.py (Stage 6.6 added), scripts/verify_kg_loaded.py, scripts/refresh_chunks_view.py, 09-03-SUMMARY.md
+- FOUND: commits 5240b0a (build patch), cd61d89 (rebuild + verify), 1d93bc8 (view link-refresh), 5dc0f74 (full view drop+recreate + vector diagnosis), d1725c4 (Stage 6.6 vector-index self-heal)
 - D-06 LOCKED verified: git diff clean on scripts/eval-gate.ts, agent/test/questions.eval.test.ts, agent/test/hybridSpike.test.ts.
-- VIEW fix verified live: customer360_chunks_search_view dropped+recreated, indexes 139/139 chunks (0 stale), BM25 probe materializes live chunks; BM25-view test PASSES.
-- CORRECTED root cause verified live: APPROX_NEAR_COSINE with the real OpenAI query embedding throws `MaterializeNode NotFound _ltDk106--_` 6/6 on the vector index; the same path on the view is clean 10/10 — proving the orphaned segment is the HNSW vector index, not the view.
-- (Task 3 eval-gate GREEN intentionally NOT claimed — RED, blocked on an unauthorized vector-index infra op; documented above per the on_blocker contract. No fabricated green.)
+- VECTOR fix verified live: vector_cosine dropped+recreated with faithful captured params (new id 285285073, retrained to training_state=ready); APPROX_NEAR_COSINE materialized 32 live chunks 8/8; the failing hybridSpike "fuses vector + BM25" test now PASSES; eval gate 9→4 failures.
+- Residual diagnosis verified live (NON-infra): `canonical_entities` has 2 orgs (Meridian/Northwind) + NO Helio → Q13/Q14/Q15 correctly refuse; Q9 throws `retrievalPath._ids` null on the model-authored path. Helio structured records ARE loaded (so the only gap is the bridge).
+- (Task 3 eval-gate GREEN intentionally NOT claimed — RED at 4; blocked on two NON-infra gaps surfaced per the on_blocker contract. No fabricated green; no loosened gate.)
 
 ---
 *Phase: 09-data-depth-3rd-account*
-*Completed (partial — blocked at eval gate): 2026-06-22*
+*Completed (partial — vector-index fix shipped; blocked at eval gate on two NON-infra gaps): 2026-06-23*
