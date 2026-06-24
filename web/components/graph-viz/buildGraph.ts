@@ -131,7 +131,10 @@ export function buildGraph(retrievalPath: RetrievalPathFragmentT[]): VizGraph {
       if (seenEdgeKeys.has(key)) continue;
       seenEdgeKeys.add(key);
 
-      const { dash, linecap } = DASH_BY_KIND[e.kind];
+      // CR-03 honesty fallback: an unknown kind (schema skew / future enum) must
+      // NEVER render solid — default to dashed so it can't be mistaken for a real
+      // traversal. (Only a known 'traversed' kind is ever solid.)
+      const { dash, linecap } = DASH_BY_KIND[e.kind] ?? { dash: '6 4', linecap: 'butt' as const };
       edges.push({
         id: key,
         source: e._from,

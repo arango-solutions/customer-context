@@ -92,9 +92,22 @@ export function GraphViz({
   className,
   height = HEIGHT,
 }: GraphVizProps) {
-  const prefersReducedMotion = React.useMemo(() => {
-    if (typeof window === 'undefined') return false;
-    return window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ?? false;
+  // WR-05: read matchMedia in an effect (NOT useMemo) so server + first client render
+  // agree (both false) — avoids a hydration mismatch for reduced-motion users.
+  const [prefersReducedMotion, setPrefersReducedMotion] = React.useState(false);
+  React.useEffect(() => {
+    setPrefersReducedMotion(
+      window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ?? false,
+    );
+  }, []);
+
+  // CR-01: guard async d3 tick callbacks from setState-after-unmount.
+  const mountedRef = React.useRef(true);
+  React.useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
   }, []);
 
   const graph = React.useMemo(() => buildGraph(retrievalPath), [retrievalPath]);
@@ -111,8 +124,6 @@ export function GraphViz({
     for (const n of settled.nodes) init[n.id] = { x: n.x, y: n.y };
     return init;
   });
-  const posRef = React.useRef(positions);
-  posRef.current = positions;
 
   React.useEffect(() => {
     const next: Record<string, Pos> = {};
@@ -189,6 +200,7 @@ export function GraphViz({
       .force('y', forceY<SimNode>(cy).strength(0.05))
       .force('collide', forceCollide<SimNode>(50))
       .on('tick', () => {
+        if (!mountedRef.current) return; // CR-01: no setState after unmount
         const next: Record<string, Pos> = {};
         for (const n of simNodes) next[n.id] = { x: n.x ?? cx, y: n.y ?? cy };
         setPositions(next);
@@ -231,9 +243,16 @@ export function GraphViz({
 
   // ── Node drag ──────────────────────────────────────────────────────────────
   const dragId = React.useRef<string | null>(null);
+  // CR-02: distinguish a drag from a click. A pointerdown→up that moved past the
+  // threshold is a DRAG and must NOT trigger the node's onClick (open-drawer).
+  const downPt = React.useRef<{ x: number; y: number } | null>(null);
+  const movedRef = React.useRef(false);
+  const DRAG_THRESHOLD = 4; // px
   const onNodePointerDown = (id: string) => (e: React.PointerEvent) => {
     e.stopPropagation();
     dragId.current = id;
+    downPt.current = { x: e.clientX, y: e.clientY };
+    movedRef.current = false;
     (e.target as Element).setPointerCapture?.(e.pointerId);
     const sim = simRef.current;
     const p = toWorld(e.clientX, e.clientY);
@@ -247,15 +266,22 @@ export function GraphViz({
 
   // ── Background pan ───────────────────────────────────────────────────────────
   const panning = React.useRef<{ x: number; y: number; vx: number; vy: number } | null>(null);
+  const [isPanning, setIsPanning] = React.useState(false); // WR-03: drives the cursor
   const onBgPointerDown = (e: React.PointerEvent) => {
     panning.current = { x: e.clientX, y: e.clientY, vx: viewRef.current.x, vy: viewRef.current.y };
     userMoved.current = true;
+    setIsPanning(true);
     (e.currentTarget as Element).setPointerCapture?.(e.pointerId);
   };
 
   const onSvgPointerMove = (e: React.PointerEvent) => {
     if (dragId.current) {
       const id = dragId.current;
+      if (downPt.current) {
+        const dx = e.clientX - downPt.current.x;
+        const dy = e.clientY - downPt.current.y;
+        if (Math.hypot(dx, dy) > DRAG_THRESHOLD) movedRef.current = true;
+      }
       const p = toWorld(e.clientX, e.clientY);
       const sim = simRef.current;
       if (sim) {
@@ -278,8 +304,12 @@ export function GraphViz({
       if (n) { n.fx = null; n.fy = null; }
       sim?.alphaTarget(0);
       dragId.current = null;
+      downPt.current = null;
     }
-    panning.current = null;
+    if (panning.current) {
+      panning.current = null;
+      setIsPanning(false);
+    }
   };
 
   // ── Wheel zoom (zoom toward cursor) — native non-passive listener ──────────
@@ -386,7 +416,7 @@ export function GraphViz({
             preserveAspectRatio="xMidYMid meet"
             role="img"
             aria-label="Cross-graph retrieval subgraph"
-            style={{ cursor: panning.current ? 'grabbing' : 'grab', touchAction: 'none' }}
+            style={{ cursor: isPanning ? 'grabbing' : 'grab', touchAction: 'none' }}
             onPointerDown={onBgPointerDown}
             onPointerMove={onSvgPointerMove}
             onPointerUp={onSvgPointerUp}
@@ -492,7 +522,15 @@ export function GraphViz({
                       : n.graph === 'structured'
                         ? 'var(--graph-structured-foreground)'
                         : 'var(--graph-unstructured-foreground)';
-                  const onActivate = () => onOpenSource?.(citationsForNode(n));
+                  // CR-02: a drag ends in a synthetic click — suppress it so dragging
+                  // a node never opens the drawer. Only a genuine click (no move) opens it.
+                  const onActivate = () => {
+                    if (movedRef.current) {
+                      movedRef.current = false;
+                      return;
+                    }
+                    onOpenSource?.(citationsForNode(n));
+                  };
                   return (
                     <g
                       key={n.id}

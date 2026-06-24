@@ -93,6 +93,18 @@ describe('buildGraph SC-1: honesty invariant — kind → dash', () => {
     expect(traversed?.dash).not.toBe(structural?.dash);
   });
 
+  it('CR-03: an UNKNOWN edge kind falls back to dashed (never solid) — honesty under schema skew', () => {
+    // Simulate schema skew: a kind the dash map does not know about. It must NOT
+    // render solid (which would read as a real traversal).
+    const frag = makeFragment('structured', 'Mystery', ['Mystery/m1'], [
+      // cast through unknown — this models a runtime value outside the compiled enum
+      makeEdge('quantum' as unknown as EdgeKind, 'Mystery/m1', 'Mystery/m2', 'weird'),
+    ]);
+    const { edges } = buildGraph([frag]);
+    expect(edges).toHaveLength(1);
+    expect(isSolid(edges[0].dash)).toBe(false); // dashed, never solid
+  });
+
   it('CRITICAL: NO edge with kind !== traversed is ever solid (the honesty invariant)', () => {
     const frag = makeFragment('structured', 'UsageMetric', ['UsageMetric/u1', 'Chunk/c1'], [
       makeEdge('traversed', 'Chunk/c1', 'Document/d1', 'PART_OF', 'rel/e1'),
