@@ -161,9 +161,13 @@ describe('GraphViz – explicit container height', () => {
         onOpenSource={vi.fn()}
       />,
     );
-    // The outermost div should have style="height: 420px" or similar
-    const wrapper = container.firstChild as HTMLElement | null;
-    const style = wrapper?.getAttribute('style') ?? '';
-    expect(style).toMatch(/height.*420/);
+    // Find any element with explicit height:420 in inline style (Pitfall 1 guard).
+    // React Flow fills its parent, so the parent div MUST have the explicit height.
+    const allElements = Array.from(container.querySelectorAll('[style]'));
+    const hasExplicitHeight = allElements.some((el) => {
+      const style = (el as HTMLElement).getAttribute('style') ?? '';
+      return style.includes('420') || style.includes('height: 420') || style.includes('height:420');
+    });
+    expect(hasExplicitHeight).toBe(true);
   });
 });
