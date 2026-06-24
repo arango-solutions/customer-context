@@ -33,6 +33,7 @@ import { ReasoningTimeline } from '@/components/ReasoningTimeline';
 import { AnswerBody } from '@/components/AnswerBody';
 import { RefusalPanel } from '@/components/RefusalPanel';
 import { TrustChip } from '@/components/TrustChip';
+import { GraphViz } from '@/components/GraphViz';
 import { SourcingRail, type SourcingRailHandle } from '@/components/SourcingRail';
 import { ErrorState, TimeoutState } from '@/components/ResponseStates';
 
@@ -156,12 +157,29 @@ export default function Home() {
                 {envelope.refused ? (
                   <RefusalPanel envelope={envelope} />
                 ) : (
-                  <AnswerBody
-                    envelope={envelope}
-                    onOpenSource={(citations) =>
-                      railRef.current?.openSource(citations)
-                    }
-                  />
+                  <>
+                    <AnswerBody
+                      envelope={envelope}
+                      onOpenSource={(citations) =>
+                        railRef.current?.openSource(citations)
+                      }
+                    />
+                    {/* Phase 11 D3 pivot: the cross-graph VISUAL renders full-width
+                        directly under the answer (always visible, not behind a rail
+                        toggle). Node click → the SAME rail-owned SourceDrawer. */}
+                    <section aria-label="Cross-graph visualization" className="mt-2">
+                      <h2 className="mb-2 text-lg font-semibold text-foreground">
+                        Cross-graph traversal
+                      </h2>
+                      <GraphViz
+                        retrievalPath={envelope.retrievalPath}
+                        citations={envelope.citations}
+                        onOpenSource={(citations) =>
+                          railRef.current?.openSource(citations)
+                        }
+                      />
+                    </section>
+                  </>
                 )}
               </>
             ) : (

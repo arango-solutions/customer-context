@@ -1,79 +1,101 @@
 // web/components/graph-viz/layout.ts
 //
-// PURE dagre LR layout pass over a {nodes, edges} graph.
+// PURE, deterministic d3-force layout pass over an engine-neutral VizGraph.
 //
-// Source pattern: reactflow.dev/examples/layout/dagre (RESEARCH Pattern 3).
+// Replaces the former dagre LR pass (Phase 11 D3 pivot). d3-force gives the
+// organic "drift and settle" look; this module runs the simulation to completion
+// SYNCHRONOUSLY and returns final {x,y} for each node. GraphViz.tsx uses this for
+// the initial frame (so SSR / unit tests have real geometry) and, when motion is
+// allowed, re-runs an animated simulation on top for the settle effect.
 //
-// Design:
-//  - Pure function: no I/O, no React, no React Flow hooks. Type-only imports from
-//    @xyflow/react (Node/Edge types tree-shake to zero at runtime).
-//  - Deterministic: dagre's layout algorithm is deterministic for the same input
-//    shape (no randomness), so `position` values are stable across calls — correct
-//    for D-07 (render once from the terminal grounded envelope).
-//  - Returns a new nodes array with computed position.{x,y}; edges are returned
-//    unchanged (dagre only positions nodes, not edge paths).
-//  - The executor MAY post-process node x by graph origin (structured→left band,
-//    unstructured→right band) if cluster separation is muddy — at executor discretion,
-//    must stay deterministic. For now, dagre LR provides sufficient cluster separation.
+// Determinism: d3-force seeds initial node positions with a deterministic
+// phyllotaxis spiral and uses NO RNG, so identical input → identical output. We
+// also pin the iteration count instead of relying on alpha decay wall-clock.
 //
-// Import guard: MUST NOT contain 'use client', useReactFlow, <ReactFlow>.
+// Pure: no React, no DOM. Safe to call in a unit test or on the server.
 
-import type { Node, Edge } from '@xyflow/react';
-import dagre from '@dagrejs/dagre';
+import {
+  forceSimulation,
+  forceLink,
+  forceManyBody,
+  forceCenter,
+  forceCollide,
+  type SimulationNodeDatum,
+  type SimulationLinkDatum,
+} from 'd3-force';
 
-/** Default node dimensions for dagre layout sizing. */
-const NODE_WIDTH = 180;
-const NODE_HEIGHT = 56;
+import type { VizGraph, VizNode, VizEdge } from './buildGraph';
+
+export interface PositionedNode extends VizNode {
+  x: number;
+  y: number;
+}
+
+export interface LayoutResult {
+  nodes: PositionedNode[];
+  edges: VizEdge[];
+  width: number;
+  height: number;
+}
+
+// Simulation node/link datums (d3 mutates x/y/vx/vy onto these).
+type SimNode = SimulationNodeDatum & VizNode;
+type SimLink = SimulationLinkDatum<SimNode> & { kind: VizEdge['kind'] };
+
+const DEFAULT_WIDTH = 760;
+const DEFAULT_HEIGHT = 560;
+const TICKS = 300; // enough for the layout to settle deterministically
 
 /**
- * Run a dagre LR layout pass over the input graph and return a new nodes array
- * with computed `position.{x,y}`. Edges are returned unchanged.
+ * Run a d3-force simulation to completion and return positioned nodes.
  *
- * @param g   - The graph to lay out: { nodes, edges }
- * @param dir - Rank direction: 'LR' (left-to-right, default) or 'TB' (top-to-bottom)
+ * @param g    - engine-neutral graph from buildGraph()
+ * @param opts - canvas sizing (width/height the force center targets)
  */
 export function layout(
-  g: { nodes: Node[]; edges: Edge[] },
-  dir: 'LR' | 'TB' = 'LR',
-): { nodes: Node[]; edges: Edge[] } {
+  g: VizGraph,
+  opts: { width?: number; height?: number } = {},
+): LayoutResult {
+  const width = opts.width ?? DEFAULT_WIDTH;
+  const height = opts.height ?? DEFAULT_HEIGHT;
+
   if (g.nodes.length === 0) {
-    return { nodes: [], edges: g.edges };
+    return { nodes: [], edges: g.edges, width, height };
   }
 
-  const dg = new dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
-  dg.setGraph({ rankdir: dir, nodesep: 40, ranksep: 90 });
+  // Clone into mutable sim datums (never mutate the caller's nodes).
+  const simNodes: SimNode[] = g.nodes.map((n) => ({ ...n }));
+  const simLinks: SimLink[] = g.edges.map((e) => ({
+    source: e.source,
+    target: e.target,
+    kind: e.kind,
+  }));
 
-  g.nodes.forEach((n) => {
-    dg.setNode(n.id, {
-      width: (n as Node & { width?: number }).width ?? NODE_WIDTH,
-      height: (n as Node & { height?: number }).height ?? NODE_HEIGHT,
-    });
-  });
+  const sim = forceSimulation<SimNode>(simNodes)
+    .force(
+      'link',
+      forceLink<SimNode, SimLink>(simLinks)
+        .id((d) => d.id)
+        .distance(140)
+        .strength(0.6),
+    )
+    .force('charge', forceManyBody<SimNode>().strength(-520))
+    .force('center', forceCenter(width / 2, height / 2))
+    .force('collide', forceCollide<SimNode>(58))
+    .stop();
 
-  g.edges.forEach((e) => {
-    dg.setEdge(e.source as string, e.target as string);
-  });
+  // Run synchronously to a settled state (deterministic — no RNG, no wall clock).
+  sim.tick(TICKS);
 
-  dagre.layout(dg);
+  const nodes: PositionedNode[] = simNodes.map((n) => ({
+    id: n.id,
+    type: n.type,
+    graph: n.graph,
+    collection: n.collection,
+    label: n.label,
+    x: n.x ?? width / 2,
+    y: n.y ?? height / 2,
+  }));
 
-  const nodes = g.nodes.map((n) => {
-    const nodeWithDims = n as Node & { width?: number; height?: number };
-    const { x, y } = dg.node(n.id);
-    const width = nodeWithDims.width ?? NODE_WIDTH;
-    const height = nodeWithDims.height ?? NODE_HEIGHT;
-    return {
-      ...n,
-      position: {
-        x: x - width / 2,
-        y: y - height / 2,
-      },
-      // sourcePosition/targetPosition for React Flow handles (consumed by Plan 02).
-      // String literals match the Position enum values ('left'|'right'|'top'|'bottom')
-      // without requiring a runtime import from @xyflow/react (type-only module discipline).
-      sourcePosition: (dir === 'LR' ? 'right' : 'bottom') as 'right' | 'bottom',
-      targetPosition: (dir === 'LR' ? 'left' : 'top') as 'left' | 'top',
-    } as Node;
-  });
-
-  return { nodes, edges: g.edges };
+  return { nodes, edges: g.edges, width, height };
 }

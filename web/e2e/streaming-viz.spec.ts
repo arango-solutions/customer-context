@@ -122,9 +122,12 @@ test.describe('Streaming viz smoke (Phase 11 — mocked stream)', () => {
     await expect(page.getByText('Grounded ✓')).toBeVisible();
   });
 
-  // ── Test 2: Graph toggle → React Flow canvas with same_as bridge edge ──
+  // ── Test 2: Under-answer d3-force graph renders with all 3 edge kinds ──
+  //
+  // Phase 11 D3 pivot: the cross-graph VISUAL renders full-width directly under the
+  // answer (always visible, no toggle). The rail keeps the textual Path — both coexist.
 
-  test('Graph toggle renders React Flow canvas with EdgeLegend (same_as traversed)', async ({
+  test('under-answer GraphViz renders with EdgeLegend + all 3 edge kinds (same_as traversed)', async ({
     page,
   }) => {
     // Use EDGES_ENVELOPE — it has all 3 edge kinds including a traversed same_as bridge
@@ -142,23 +145,23 @@ test.describe('Streaming viz smoke (Phase 11 — mocked stream)', () => {
       page.getByText('Query volume up 38%', { exact: false }),
     ).toBeVisible({ timeout: 15_000 });
 
-    // Default view is Path — the RetrievalPathByGraph group headers should be present
-    await expect(page.getByText('Structured graph')).toBeVisible();
-
-    // Switch the rail toggle to Graph
-    await page.getByRole('tab', { name: /^Show Graph view$/i }).click();
-
-    // The React Flow EdgeLegend is always-visible (D-04) — confirms GraphViz is mounted
+    // The cross-graph visual is mounted under the answer (no toggle).
     await expect(
-      page.getByText('Traversed (PART_OF / same_as)'),
+      page.getByRole('heading', { name: /Cross-graph traversal/i }),
     ).toBeVisible({ timeout: 5_000 });
 
-    // The 3 legend entries are present (always-visible legend, D-04)
+    // The always-visible 3-kind legend confirms GraphViz rendered (D-04).
+    await expect(page.getByText('Traversed (PART_OF / same_as)')).toBeVisible();
     await expect(page.getByText('Structural (account-induced)')).toBeVisible();
     await expect(page.getByText('Hybrid match (vector + BM25)')).toBeVisible();
 
-    // The RetrievalPathByGraph groups are gone (Path half unmounted on Graph toggle)
-    await expect(page.getByText('Structured graph')).not.toBeVisible();
+    // The d3 SVG drew edges of all three kinds (data-driven from the envelope).
+    await expect(page.locator('[data-viz-edge][data-kind="traversed"]').first()).toBeAttached();
+    await expect(page.locator('[data-viz-edge][data-kind="structural"]').first()).toBeAttached();
+    await expect(page.locator('[data-viz-edge][data-kind="hybrid"]').first()).toBeAttached();
+
+    // The rail's textual Path coexists (no longer toggle-gated).
+    await expect(page.getByText('Structured graph')).toBeVisible();
   });
 
   // ── Test 3: Refused envelope → RefusalPanel + TrustChip "Partially grounded" ──

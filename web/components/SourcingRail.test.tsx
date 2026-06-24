@@ -1,13 +1,14 @@
 // web/components/SourcingRail.test.tsx
 //
 // SourcingRail composes the timeline + a CitationCard per envelope citation + the
-// Graph/Path toggle + either GraphViz or RetrievalPathByGraph, and shares its drawer
-// with claim superscripts via the imperative `openSource` handle. Asserted against
+// textual RetrievalPathByGraph, and shares its drawer with claim superscripts AND
+// the under-answer GraphViz via the imperative `openSource` handle. Asserted against
 // GROUNDED_ENVELOPE.
 //
-// Phase 11 / Plan 03 additions: toggle present, defaults to Path (RetrievalPathByGraph
-// visible, GraphViz not), switching to Graph renders GraphViz, node-click uses the
-// shared rail openSource handle.
+// Phase 11 D3 pivot: the cross-graph VISUAL (GraphViz) moved OUT of the rail to the
+// main column under the answer — the rail no longer hosts a Graph/Path toggle. The
+// shared-drawer contract (a viz node click calls the rail's openSource) is still
+// covered via the imperative handle test below.
 
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent, act } from '@testing-library/react';
@@ -61,60 +62,25 @@ describe('SourcingRail', () => {
     }
   });
 
-  // ── Phase 11 Plan 03 — Graph/Path toggle (D-05) ──────────────────────────────
+  // ── Phase 11 D3 pivot — graph moved out of the rail ──────────────────────────
 
-  it('renders the Graph/Path toggle in the Retrieval path section', () => {
+  it('does NOT render a Graph/Path toggle (the visual moved under the answer)', () => {
     render(<SourcingRail envelope={GROUNDED_ENVELOPE} />);
-    // The toggle is a tablist with both segment labels
-    expect(screen.getByRole('tablist', { name: /Retrieval view/i })).toBeInTheDocument();
-    expect(screen.getByRole('tab', { name: /Path/i })).toBeInTheDocument();
-    expect(screen.getByRole('tab', { name: /Graph/i })).toBeInTheDocument();
-  });
-
-  it('defaults to Path — RetrievalPathByGraph groups visible, GraphViz canvas not present', () => {
-    render(<SourcingRail envelope={GROUNDED_ENVELOPE} />);
-    // Default Path: the "Structured graph" and "Unstructured graph" section headers are visible
+    expect(screen.queryByRole('tablist', { name: /Retrieval view/i })).not.toBeInTheDocument();
+    // The textual Path is shown directly (no toggle gating it).
     expect(screen.getByText('Structured graph')).toBeInTheDocument();
     expect(screen.getByText('Unstructured graph')).toBeInTheDocument();
-    // The React Flow canvas (GraphViz) renders the edge legend when visible — not present in Path mode
-    // (EDGES_ENVELOPE has no edges in GROUNDED_ENVELOPE, so canvas empty-state copy would show;
-    //  we confirm the GraphViz root is absent by checking the legend label is absent)
-    // NOTE: the toggle starts at Path so GraphViz is not rendered at all
-    expect(screen.queryByText('Traversed (PART_OF / same_as)')).not.toBeInTheDocument();
   });
 
-  it('switching to Graph renders GraphViz (edge legend appears)', () => {
-    render(<SourcingRail envelope={GROUNDED_ENVELOPE} />);
-    // Switch to Graph
-    fireEvent.click(screen.getByRole('tab', { name: /^Show Graph view$/i }));
-    // GraphViz EdgeLegend is always-visible (D-04) — confirms GraphViz is mounted
-    expect(screen.getByText('Traversed (PART_OF / same_as)')).toBeInTheDocument();
-    // RetrievalPathByGraph group headers are gone
-    expect(screen.queryByText('Structured graph')).not.toBeInTheDocument();
-  });
-
-  it('switching back to Path hides GraphViz and shows RetrievalPathByGraph', () => {
-    render(<SourcingRail envelope={GROUNDED_ENVELOPE} />);
-    // Go to Graph
-    fireEvent.click(screen.getByRole('tab', { name: /^Show Graph view$/i }));
-    // Back to Path
-    fireEvent.click(screen.getByRole('tab', { name: /^Show Path view$/i }));
-    expect(screen.getByText('Structured graph')).toBeInTheDocument();
-    expect(screen.queryByText('Traversed (PART_OF / same_as)')).not.toBeInTheDocument();
-  });
-
-  it('GraphViz node-click invokes the rail openSource handle (shared drawer)', () => {
+  it('GraphViz node-click would invoke the rail openSource handle (shared drawer)', () => {
     const ref = createRef<SourcingRailHandle>();
-    // Spy on openSource by calling it directly via ref — this mirrors the node-click
-    // delegation path: GraphViz.onOpenSource === rail.openSource
+    // The under-answer GraphViz delegates node-clicks to this same handle.
     render(<SourcingRail ref={ref} envelope={GROUNDED_ENVELOPE} />);
     expect(ref.current).not.toBeNull();
     const citations = GROUNDED_ENVELOPE.claims[0].citations;
     act(() => {
-      // Simulate a viz node click calling the same openSource handle
       ref.current!.openSource(citations);
     });
-    // Drawer opens showing the first citation's header
     const first = citations[0];
     expect(
       screen.getByText(`Source — ${first.graph} · ${first.collection}`),
