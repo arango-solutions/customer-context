@@ -20,6 +20,8 @@ import {
   forceManyBody,
   forceCenter,
   forceCollide,
+  forceX,
+  forceY,
   type SimulationNodeDatum,
   type SimulationLinkDatum,
 } from 'd3-force';
@@ -76,12 +78,15 @@ export function layout(
       'link',
       forceLink<SimNode, SimLink>(simLinks)
         .id((d) => d.id)
-        .distance(140)
-        .strength(0.6),
+        .distance(96)
+        .strength(0.8),
     )
-    .force('charge', forceManyBody<SimNode>().strength(-520))
+    .force('charge', forceManyBody<SimNode>().strength(-280))
     .force('center', forceCenter(width / 2, height / 2))
-    .force('collide', forceCollide<SimNode>(58))
+    // Gentle pull toward center keeps the two clusters compact (not flung apart).
+    .force('x', forceX<SimNode>(width / 2).strength(0.08))
+    .force('y', forceY<SimNode>(height / 2).strength(0.08))
+    .force('collide', forceCollide<SimNode>(44))
     .stop();
 
   // Run synchronously to a settled state (deterministic — no RNG, no wall clock).

@@ -28,6 +28,8 @@ import {
   forceManyBody,
   forceCenter,
   forceCollide,
+  forceX,
+  forceY,
   type Simulation,
   type SimulationNodeDatum,
   type SimulationLinkDatum,
@@ -178,10 +180,12 @@ export function GraphViz({
     }));
     const simLinks: SimLink[] = graph.edges.map((e) => ({ source: e.source, target: e.target }));
     const sim = forceSimulation<SimNode>(simNodes)
-      .force('link', forceLink<SimNode, SimLink>(simLinks).id((d) => d.id).distance(150).strength(0.6))
-      .force('charge', forceManyBody<SimNode>().strength(-540))
+      .force('link', forceLink<SimNode, SimLink>(simLinks).id((d) => d.id).distance(96).strength(0.8))
+      .force('charge', forceManyBody<SimNode>().strength(-280))
       .force('center', forceCenter(cx, cy))
-      .force('collide', forceCollide<SimNode>(60))
+      .force('x', forceX<SimNode>(cx).strength(0.08))
+      .force('y', forceY<SimNode>(cy).strength(0.08))
+      .force('collide', forceCollide<SimNode>(44))
       .on('tick', () => {
         const next: Record<string, Pos> = {};
         for (const n of simNodes) next[n.id] = { x: n.x ?? cx, y: n.y ?? cy };
