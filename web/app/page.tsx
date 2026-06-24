@@ -32,6 +32,7 @@ import { ExampleChips } from '@/components/ExampleChips';
 import { ReasoningTimeline } from '@/components/ReasoningTimeline';
 import { AnswerBody } from '@/components/AnswerBody';
 import { RefusalPanel } from '@/components/RefusalPanel';
+import { TrustChip } from '@/components/TrustChip';
 import { SourcingRail, type SourcingRailHandle } from '@/components/SourcingRail';
 import { ErrorState, TimeoutState } from '@/components/ResponseStates';
 
@@ -141,16 +142,28 @@ export default function Home() {
             ) : showTimeout ? (
               <TimeoutState onKeepWaiting={keepWaiting} onRetry={retry} />
             ) : envelope ? (
-              envelope.refused ? (
-                <RefusalPanel envelope={envelope} />
-              ) : (
-                <AnswerBody
-                  envelope={envelope}
-                  onOpenSource={(citations) =>
-                    railRef.current?.openSource(citations)
-                  }
-                />
-              )
+              <>
+                {/* UI-06 / D-11: per-answer TrustChip adjacent to the answer headline.
+                    Reads the TERMINAL grounded envelope only — never mid-stream state.
+                    Shows "Grounded ✓" for grounded answers and "Partially grounded"
+                    for refused/partial envelopes (CARDINAL RULE: terminal envelope only). */}
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-semibold text-muted-foreground">
+                    {lastQuestion}
+                  </span>
+                  <TrustChip envelope={envelope} />
+                </div>
+                {envelope.refused ? (
+                  <RefusalPanel envelope={envelope} />
+                ) : (
+                  <AnswerBody
+                    envelope={envelope}
+                    onOpenSource={(citations) =>
+                      railRef.current?.openSource(citations)
+                    }
+                  />
+                )}
+              </>
             ) : (
               // STREAMING with no envelope yet: the live timeline IS the main column —
               // visible immediately on submit (no dead air), above the fold.

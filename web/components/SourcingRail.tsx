@@ -3,12 +3,17 @@
 // The persistent right-hand rail (D-02, UI-SPEC). Composes, top to bottom:
 //   1. ReasoningTimeline  (live six-phase stepper + reasoningTrace)  — SRC-04
 //   2. CitationCard per envelope citation                            — SRC-01/02
-//   3. RetrievalPathByGraph (grouped structured/unstructured)        — SRC-02
+//   3. Graph/Path toggle + either GraphViz or RetrievalPathByGraph   — SRC-02 / D-05
 //
-// The rail OWNS the shared SourceDrawer open-state: a CitationCard body click and a
-// claim superscript click (via the `openSource` ref the parent forwards to AnswerBody)
-// open the SAME drawer. The parent wires AnswerBody's `onOpenSource` to this rail's
-// imperative `openSource` handle.
+// D-05: the Retrieval-path section hosts a GraphPathToggle; default = Path.
+// The GraphViz `onOpenSource` is the SAME rail-owned `openSource` callback that
+// CitationCard + claim superscripts use — shared-drawer-via-onOpenSource-lift pattern
+// (PATTERNS.md). No new drawer is created; GraphViz delegates to this rail.
+//
+// The rail OWNS the shared SourceDrawer open-state: a CitationCard body click, a
+// claim superscript click (via the `openSource` ref the parent forwards to AnswerBody),
+// AND a GraphViz node click all open the SAME drawer. The parent wires AnswerBody's
+// `onOpenSource` to this rail's imperative `openSource` handle.
 //
 // Sticky on scroll per the layout spec.
 
@@ -21,6 +26,8 @@ import type { StreamPhase } from '@/lib/ui-message';
 import { ReasoningTimeline } from '@/components/ReasoningTimeline';
 import { CitationCard } from '@/components/CitationCard';
 import { RetrievalPathByGraph } from '@/components/RetrievalPathByGraph';
+import { GraphViz } from '@/components/GraphViz';
+import { GraphPathToggle, type GraphPathValue } from '@/components/GraphPathToggle';
 import { SourceDrawer } from '@/components/SourceDrawer';
 import { cn } from '@/lib/utils';
 
@@ -43,6 +50,10 @@ export const SourcingRail = React.forwardRef<
   const [drawerCitations, setDrawerCitations] = React.useState<
     Citation[] | null
   >(null);
+
+  // D-05: toggle state for the Retrieval-path section. Default = Path (lowest-
+  // regression default — v1 text-path flow is the eval-tested experience).
+  const [retrievalView, setRetrievalView] = React.useState<GraphPathValue>('path');
 
   const openSource = React.useCallback((citations: Citation[]) => {
     setDrawerCitations(citations);
@@ -83,10 +94,26 @@ export const SourcingRail = React.forwardRef<
         <h2 className="mb-2 text-lg font-semibold text-foreground">
           Retrieval path
         </h2>
-        <RetrievalPathByGraph retrievalPath={envelope.retrievalPath} />
+        {/* D-05: Graph/Path toggle — default Path; active segment accent green */}
+        <GraphPathToggle
+          value={retrievalView}
+          onChange={setRetrievalView}
+          className="mb-3"
+        />
+        {retrievalView === 'path' ? (
+          /* Path half — UNCHANGED; becomes the "Path" half of the toggle (D-05) */
+          <RetrievalPathByGraph retrievalPath={envelope.retrievalPath} />
+        ) : (
+          /* Graph half — React Flow canvas; node-click delegates to rail openSource
+             (shared-drawer-via-onOpenSource-lift; PATTERNS.md; D-06) */
+          <GraphViz
+            retrievalPath={envelope.retrievalPath}
+            onOpenSource={openSource}
+          />
+        )}
       </section>
 
-      {/* Rail-owned drawer, shared by cards and claim superscripts. */}
+      {/* Rail-owned drawer, shared by cards, claim superscripts, AND viz node clicks. */}
       <SourceDrawer
         open={drawerCitations !== null}
         citations={drawerCitations ?? []}
