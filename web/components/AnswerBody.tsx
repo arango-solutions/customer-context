@@ -1,18 +1,27 @@
 // web/components/AnswerBody.tsx
 //
-// Center-stage clean prose with numbered superscript citation markers (UI-02, D-03).
-// The synthesized `answer` is rendered as prose, then one `ClaimSuperscript` `[n]`
-// marker per `claims[]` entry (in order) is appended — each opens the SourceDrawer
-// scoped to `claims[n].citations`.
+// Numbered claim-list rendering (D-12, folds 999.2). Replaces the prose-with-
+// trailing-superscripts layout with a semantic <ol>; each <li> is one claim's
+// `text` + a `ClaimSuperscript` opening the shared drawer (RESEARCH Pattern 5).
 //
-// CARDINAL RULE (T-06-09): this renders ONLY the grounded envelope's `answer` +
-// `claims`. The reasoning timeline (progress text) is NEVER rendered here as a claim.
+// D-12 DESIGN RATIONALE: render `envelope.claims[]` as a numbered list rather
+// than raw prose because claim text is NOT a guaranteed verbatim substring of
+// `answer`. The old layout (prose + trailing markers) had a fuzzy claim→prose-span
+// mapping. Every fact is now unambiguously sourced — the strongest expression of
+// "every fact traceable" (UI-SPEC Answer Rendering).
+//
+// CARDINAL RULE (T-06-09): this renders ONLY the grounded envelope's `claims`.
+// envelope.answer and envelope.claims DATA are read-only — rendering change only.
 // A refused envelope is handled by RefusalPanel, not here.
+// Faithfulness/grounding eval reads this data; they stay green (UI concern only).
 //
-// Drawer open-state can be OWNED here (standalone use) OR LIFTED to a parent
-// (SourcingRail) so a card click and a claim superscript open the SAME drawer. When
-// `onOpenSource` is provided, this component delegates; otherwise it owns a local
-// drawer.
+// KEPT VERBATIM:
+//  - ClaimSuperscript (44px hit area + aria-label "View sources for claim {n}")
+//  - The onOpenSource-delegate-vs-local-drawer prop contract
+//  - 'use client' boundary
+//
+// REPLACED: the old `<p>{envelope.answer}</p>` + trailing markers block
+// with RESEARCH Pattern 5 `<ol>` mapping claims[] to <li>s.
 
 'use client';
 
@@ -74,19 +83,23 @@ export function AnswerBody({ envelope, onOpenSource, className }: AnswerBodyProp
 
   return (
     <div className={cn('flex flex-col gap-4', className)}>
-      <div className="max-w-[720px] text-base leading-relaxed text-foreground">
-        {/* The grounded prose, verbatim. */}
-        <p className="whitespace-pre-wrap">{envelope.answer}</p>
-
-        {/* Numbered claim markers — one per claim, in order. Provenance is one click
-            away; the prose itself stays uncluttered (D-03). */}
-        <p className="mt-2 flex flex-wrap items-center gap-0 text-sm text-muted-foreground">
-          <span className="mr-1">Claims:</span>
-          {envelope.claims.map((_, i) => (
-            <ClaimSuperscript key={i} index={i} onActivate={() => activate(i)} />
-          ))}
-        </p>
-      </div>
+      {/*
+       * D-12: Numbered claim list — each claim is one <li> with its text + a
+       * ClaimSuperscript linking to that claim's citations. This replaces the old
+       * `<p>{envelope.answer}</p>` + trailing markers block. The envelope.answer
+       * and envelope.claims DATA are untouched (eval reads them; rendering only).
+       */}
+      <ol className="flex flex-col gap-4 list-decimal pl-6">
+        {envelope.claims.map((claim, i) => (
+          <li
+            key={i}
+            className="text-base leading-relaxed text-foreground"
+          >
+            {claim.text}
+            <ClaimSuperscript index={i} onActivate={() => activate(i)} />
+          </li>
+        ))}
+      </ol>
 
       {/* Locally-owned drawer (only when no parent owns it). */}
       {onOpenSource ? null : (
