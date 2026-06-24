@@ -18,7 +18,6 @@ import {
   forceSimulation,
   forceLink,
   forceManyBody,
-  forceCenter,
   forceCollide,
   forceX,
   forceY,
@@ -73,20 +72,25 @@ export function layout(
     kind: e.kind,
   }));
 
+  // Origin-banded layout: structured nodes settle in the LEFT band, unstructured
+  // (and the synthetic question anchor, which feeds the chunks) in the RIGHT band.
+  // This reads as "two graphs side by side" even when no same_as edge joins them;
+  // when a cross-graph edge DOES exist it visibly crosses the gap. No fabricated edges.
+  const bandX = (n: SimNode) => (n.graph === 'structured' ? width * 0.27 : width * 0.73);
+
   const sim = forceSimulation<SimNode>(simNodes)
     .force(
       'link',
       forceLink<SimNode, SimLink>(simLinks)
         .id((d) => d.id)
-        .distance(96)
-        .strength(0.8),
+        .distance(90)
+        .strength(0.6),
     )
-    .force('charge', forceManyBody<SimNode>().strength(-280))
-    .force('center', forceCenter(width / 2, height / 2))
-    // Gentle pull toward center keeps the two clusters compact (not flung apart).
-    .force('x', forceX<SimNode>(width / 2).strength(0.08))
-    .force('y', forceY<SimNode>(height / 2).strength(0.08))
-    .force('collide', forceCollide<SimNode>(44))
+    // charge + collide = intra-band breathing room; banded forceX = the two columns.
+    .force('charge', forceManyBody<SimNode>().strength(-340))
+    .force('x', forceX<SimNode>(bandX).strength(0.22))
+    .force('y', forceY<SimNode>(height / 2).strength(0.05))
+    .force('collide', forceCollide<SimNode>(50))
     .stop();
 
   // Run synchronously to a settled state (deterministic — no RNG, no wall clock).

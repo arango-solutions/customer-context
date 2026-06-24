@@ -26,7 +26,6 @@ import {
   forceSimulation,
   forceLink,
   forceManyBody,
-  forceCenter,
   forceCollide,
   forceX,
   forceY,
@@ -179,13 +178,15 @@ export function GraphViz({
       y: cy + Math.sin(i * golden) * (40 + 26 * Math.sqrt(i)),
     }));
     const simLinks: SimLink[] = graph.edges.map((e) => ({ source: e.source, target: e.target }));
+    // Origin-banded: structured LEFT, unstructured (+ question anchor) RIGHT — reads
+    // as two graphs side by side even absent a same_as edge. No fabricated links.
+    const bandX = (n: SimNode) => (n.graph === 'structured' ? WORLD_W * 0.27 : WORLD_W * 0.73);
     const sim = forceSimulation<SimNode>(simNodes)
-      .force('link', forceLink<SimNode, SimLink>(simLinks).id((d) => d.id).distance(96).strength(0.8))
-      .force('charge', forceManyBody<SimNode>().strength(-280))
-      .force('center', forceCenter(cx, cy))
-      .force('x', forceX<SimNode>(cx).strength(0.08))
-      .force('y', forceY<SimNode>(cy).strength(0.08))
-      .force('collide', forceCollide<SimNode>(44))
+      .force('link', forceLink<SimNode, SimLink>(simLinks).id((d) => d.id).distance(90).strength(0.6))
+      .force('charge', forceManyBody<SimNode>().strength(-340))
+      .force('x', forceX<SimNode>(bandX).strength(0.22))
+      .force('y', forceY<SimNode>(cy).strength(0.05))
+      .force('collide', forceCollide<SimNode>(50))
       .on('tick', () => {
         const next: Record<string, Pos> = {};
         for (const n of simNodes) next[n.id] = { x: n.x ?? cx, y: n.y ?? cy };
