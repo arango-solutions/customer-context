@@ -4,12 +4,12 @@
 //
 // Phase 11 D3 pivot: replaces the React Flow canvas with a d3-force simulation
 // rendered as SVG. Nodes drift and settle (force-directed), are draggable, and
-// links curve. The honesty contract is inherited UNCHANGED from buildGraph.ts:
-// each edge's `dash` (solid/dashed/dotted) is computed there and rendered as-is —
-// a structural/hybrid edge can NEVER be drawn as a solid (real-traversal) line.
+// links curve. The canvas pans (drag background), zooms (scroll / buttons), and
+// fits-to-content on load. The honesty contract is inherited UNCHANGED from
+// buildGraph.ts: each edge's `dash` (solid/dashed/dotted) is computed there and
+// rendered as-is — a structural/hybrid edge can NEVER be drawn as a solid line.
 //
 // CARDINAL RULE: renders ONLY from the terminal grounded envelope's retrievalPath[].
-// Never re-queries the DB or invents edges.
 //
 // Token-driven: node fill is var(--graph-structured)/var(--graph-unstructured),
 // edge stroke is var(--muted-foreground), question anchor is var(--secondary).
@@ -36,7 +36,7 @@ import { z } from 'zod';
 import { RetrievalPathFragment } from 'customer360-agent';
 import type { Citation } from 'customer360-agent';
 
-import { buildGraph, type VizNode, type VizEdge } from './graph-viz/buildGraph';
+import { buildGraph, type VizNode } from './graph-viz/buildGraph';
 import { layout } from './graph-viz/layout';
 import { EdgeLegend } from './graph-viz/EdgeLegend';
 import {
@@ -49,42 +49,40 @@ import { cn } from '@/lib/utils';
 
 type RetrievalPathFragmentT = z.infer<typeof RetrievalPathFragment>;
 
-// ── Locked empty-state copy from UI-SPEC Copywriting ─────────────────────────
 const EMPTY_EDGE_COPY =
   'No traversed edges to draw for this answer — see the Path view for the records and queries.';
 
-const WIDTH = 760;
+const WORLD_W = 760;
 const HEIGHT = 600;
 const RECORD_R = 30;
 const QUESTION_W = 96;
 const QUESTION_H = 44;
+const MIN_K = 0.25;
+const MAX_K = 4;
 
 type Pos = { x: number; y: number };
+type View = { x: number; y: number; k: number };
 type SimNode = SimulationNodeDatum & VizNode;
 type SimLink = SimulationLinkDatum<SimNode>;
 
 export interface GraphVizProps {
   retrievalPath: RetrievalPathFragmentT[];
-  /** Envelope citations — used to resolve a node's _id → its source for the drawer. */
   citations?: Citation[];
   onOpenSource?: (citations: Citation[]) => void;
   className?: string;
-  /** Canvas height in px (default 600). */
   height?: number;
 }
 
-/** Curved quadratic path between two points (organic link look). */
-function curvedPath(s: Pos, t: Pos): { d: string; mid: Pos } {
+function curvedPath(s: Pos, t: Pos): string {
   const dx = t.x - s.x;
   const dy = t.y - s.y;
   const mx = (s.x + t.x) / 2;
   const my = (s.y + t.y) / 2;
-  // Perpendicular offset for a gentle curve (deterministic).
   const curve = 0.14;
-  const cx = mx - dy * curve;
-  const cy = my + dx * curve;
-  return { d: `M ${s.x} ${s.y} Q ${cx} ${cy} ${t.x} ${t.y}`, mid: { x: cx, y: cy } };
+  return `M ${s.x} ${s.y} Q ${mx - dy * curve} ${my + dx * curve} ${t.x} ${t.y}`;
 }
+
+const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 
 export function GraphViz({
   retrievalPath,
@@ -98,36 +96,79 @@ export function GraphViz({
     return window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ?? false;
   }, []);
 
-  // ── Build the engine-neutral graph (SC-2 data-driven) ─────────────────────
   const graph = React.useMemo(() => buildGraph(retrievalPath), [retrievalPath]);
   const hasEdges = graph.edges.length > 0;
 
-  // ── Deterministic settled layout — first paint, SSR, tests, reduced-motion ─
   const settled = React.useMemo(
-    () => layout(graph, { width: WIDTH, height }),
+    () => layout(graph, { width: WORLD_W, height }),
     [graph, height],
   );
 
+  // World-space node positions (mutated by the live sim + drag).
   const [positions, setPositions] = React.useState<Record<string, Pos>>(() => {
     const init: Record<string, Pos> = {};
     for (const n of settled.nodes) init[n.id] = { x: n.x, y: n.y };
     return init;
   });
+  const posRef = React.useRef(positions);
+  posRef.current = positions;
 
-  // Reset positions whenever the graph changes.
   React.useEffect(() => {
     const next: Record<string, Pos> = {};
     for (const n of settled.nodes) next[n.id] = { x: n.x, y: n.y };
     setPositions(next);
   }, [settled]);
 
-  // ── Animated drift-and-settle simulation (skipped under reduced-motion) ────
+  // ── Measured viewport size (1 viewBox unit == 1px → trivial pointer math) ──
+  const wrapRef = React.useRef<HTMLDivElement | null>(null);
+  const [size, setSize] = React.useState({ w: WORLD_W, h: height });
+  React.useEffect(() => {
+    const el = wrapRef.current;
+    if (!el || typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver((entries) => {
+      const r = entries[0]?.contentRect;
+      if (r && r.width > 0) setSize({ w: r.width, h: r.height || height });
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [height]);
+
+  // ── View transform (pan/zoom) ──────────────────────────────────────────────
+  const [view, setView] = React.useState<View>({ x: 0, y: 0, k: 1 });
+  const viewRef = React.useRef(view);
+  viewRef.current = view;
+  const userMoved = React.useRef(false);
+
+  // Fit-to-content: map the settled node bounds into the viewport.
+  const fitToContent = React.useCallback(() => {
+    if (settled.nodes.length === 0) return;
+    const xs = settled.nodes.map((n) => n.x);
+    const ys = settled.nodes.map((n) => n.y);
+    const pad = RECORD_R + 28;
+    const minX = Math.min(...xs) - pad;
+    const maxX = Math.max(...xs) + pad;
+    const minY = Math.min(...ys) - pad;
+    const maxY = Math.max(...ys) + pad;
+    const cw = Math.max(1, maxX - minX);
+    const ch = Math.max(1, maxY - minY);
+    const k = clamp(Math.min(size.w / cw, size.h / ch), MIN_K, MAX_K);
+    const x = (size.w - (minX + maxX) * k) / 2;
+    const y = (size.h - (minY + maxY) * k) / 2;
+    setView({ x, y, k });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [settled, size.w, size.h]);
+
+  // Auto-fit on new graph / first measure — unless the user has taken control.
+  React.useEffect(() => {
+    userMoved.current = false;
+    fitToContent();
+  }, [settled, fitToContent]);
+
+  // ── Animated drift-and-settle (skipped under reduced-motion) ───────────────
   const simRef = React.useRef<Simulation<SimNode, SimLink> | null>(null);
   React.useEffect(() => {
     if (prefersReducedMotion || !hasEdges || typeof window === 'undefined') return;
-
-    // Seed from a deterministic spread so the settle is visible.
-    const cx = WIDTH / 2;
+    const cx = WORLD_W / 2;
     const cy = height / 2;
     const golden = Math.PI * (3 - Math.sqrt(5));
     const simNodes: SimNode[] = graph.nodes.map((n, i) => ({
@@ -135,16 +176,9 @@ export function GraphViz({
       x: cx + Math.cos(i * golden) * (40 + 26 * Math.sqrt(i)),
       y: cy + Math.sin(i * golden) * (40 + 26 * Math.sqrt(i)),
     }));
-    const simLinks: SimLink[] = graph.edges.map((e) => ({
-      source: e.source,
-      target: e.target,
-    }));
-
+    const simLinks: SimLink[] = graph.edges.map((e) => ({ source: e.source, target: e.target }));
     const sim = forceSimulation<SimNode>(simNodes)
-      .force(
-        'link',
-        forceLink<SimNode, SimLink>(simLinks).id((d) => d.id).distance(150).strength(0.6),
-      )
+      .force('link', forceLink<SimNode, SimLink>(simLinks).id((d) => d.id).distance(150).strength(0.6))
       .force('charge', forceManyBody<SimNode>().strength(-540))
       .force('center', forceCenter(cx, cy))
       .force('collide', forceCollide<SimNode>(60))
@@ -153,7 +187,6 @@ export function GraphViz({
         for (const n of simNodes) next[n.id] = { x: n.x ?? cx, y: n.y ?? cy };
         setPositions(next);
       });
-
     simRef.current = sim;
     return () => {
       sim.stop();
@@ -166,11 +199,9 @@ export function GraphViz({
     (node: VizNode): Citation[] => {
       const matches = citations.filter((c) => c._id === node.id);
       if (matches.length > 0) return matches;
-      // Fallback: synthesize a minimal citation so the drawer still shows the _id.
-      const graphOrigin = node.graph === 'structured' ? 'structured' : 'unstructured';
       return [
         {
-          graph: graphOrigin,
+          graph: node.graph === 'structured' ? 'structured' : 'unstructured',
           collection: node.collection,
           _id: node.id,
           aql: '',
@@ -180,25 +211,26 @@ export function GraphViz({
     [citations],
   );
 
-  // ── Drag handling (pointer events; pins during drag, releases after) ───────
-  const dragId = React.useRef<string | null>(null);
+  // ── Pointer → world-space conversion (accounts for pan/zoom) ───────────────
   const svgRef = React.useRef<SVGSVGElement | null>(null);
-
-  const toSvgPoint = React.useCallback((clientX: number, clientY: number): Pos => {
+  const toWorld = React.useCallback((clientX: number, clientY: number): Pos => {
     const svg = svgRef.current;
+    const v = viewRef.current;
     if (!svg) return { x: 0, y: 0 };
     const rect = svg.getBoundingClientRect();
-    const scaleX = WIDTH / (rect.width || WIDTH);
-    const scaleY = height / (rect.height || height);
-    return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
-  }, [height]);
+    const px = clientX - rect.left;
+    const py = clientY - rect.top;
+    return { x: (px - v.x) / v.k, y: (py - v.y) / v.k };
+  }, []);
 
+  // ── Node drag ──────────────────────────────────────────────────────────────
+  const dragId = React.useRef<string | null>(null);
   const onNodePointerDown = (id: string) => (e: React.PointerEvent) => {
     e.stopPropagation();
     dragId.current = id;
     (e.target as Element).setPointerCapture?.(e.pointerId);
     const sim = simRef.current;
-    const p = toSvgPoint(e.clientX, e.clientY);
+    const p = toWorld(e.clientX, e.clientY);
     if (sim) {
       const n = sim.nodes().find((nn) => nn.id === id);
       if (n) { n.fx = p.x; n.fy = p.y; }
@@ -207,27 +239,72 @@ export function GraphViz({
     setPositions((prev) => ({ ...prev, [id]: p }));
   };
 
-  const onNodePointerMove = (e: React.PointerEvent) => {
-    if (!dragId.current) return;
-    const id = dragId.current;
-    const p = toSvgPoint(e.clientX, e.clientY);
-    const sim = simRef.current;
-    if (sim) {
-      const n = sim.nodes().find((nn) => nn.id === id);
-      if (n) { n.fx = p.x; n.fy = p.y; }
-    }
-    setPositions((prev) => ({ ...prev, [id]: p }));
+  // ── Background pan ───────────────────────────────────────────────────────────
+  const panning = React.useRef<{ x: number; y: number; vx: number; vy: number } | null>(null);
+  const onBgPointerDown = (e: React.PointerEvent) => {
+    panning.current = { x: e.clientX, y: e.clientY, vx: viewRef.current.x, vy: viewRef.current.y };
+    userMoved.current = true;
+    (e.currentTarget as Element).setPointerCapture?.(e.pointerId);
   };
 
-  const onNodePointerUp = (e: React.PointerEvent) => {
-    const id = dragId.current;
-    dragId.current = null;
-    const sim = simRef.current;
-    if (sim && id) {
-      const n = sim.nodes().find((nn) => nn.id === id);
-      if (n) { n.fx = null; n.fy = null; }
-      sim.alphaTarget(0);
+  const onSvgPointerMove = (e: React.PointerEvent) => {
+    if (dragId.current) {
+      const id = dragId.current;
+      const p = toWorld(e.clientX, e.clientY);
+      const sim = simRef.current;
+      if (sim) {
+        const n = sim.nodes().find((nn) => nn.id === id);
+        if (n) { n.fx = p.x; n.fy = p.y; }
+      }
+      setPositions((prev) => ({ ...prev, [id]: p }));
+      return;
     }
+    if (panning.current) {
+      const p = panning.current;
+      setView((v) => ({ ...v, x: p.vx + (e.clientX - p.x), y: p.vy + (e.clientY - p.y) }));
+    }
+  };
+
+  const onSvgPointerUp = () => {
+    if (dragId.current) {
+      const sim = simRef.current;
+      const n = sim?.nodes().find((nn) => nn.id === dragId.current);
+      if (n) { n.fx = null; n.fy = null; }
+      sim?.alphaTarget(0);
+      dragId.current = null;
+    }
+    panning.current = null;
+  };
+
+  // ── Wheel zoom (zoom toward cursor) — native non-passive listener ──────────
+  React.useEffect(() => {
+    const svg = svgRef.current;
+    if (!svg) return;
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const rect = svg.getBoundingClientRect();
+      const cx = e.clientX - rect.left;
+      const cy = e.clientY - rect.top;
+      const v = viewRef.current;
+      const factor = e.deltaY < 0 ? 1.15 : 1 / 1.15;
+      const k = clamp(v.k * factor, MIN_K, MAX_K);
+      const ratio = k / v.k;
+      userMoved.current = true;
+      setView({ x: cx - (cx - v.x) * ratio, y: cy - (cy - v.y) * ratio, k });
+    };
+    svg.addEventListener('wheel', onWheel, { passive: false });
+    return () => svg.removeEventListener('wheel', onWheel);
+  }, [hasEdges]);
+
+  // Zoom buttons (zoom around viewport center).
+  const zoomBy = (factor: number) => {
+    const v = viewRef.current;
+    const cx = size.w / 2;
+    const cy = size.h / 2;
+    const k = clamp(v.k * factor, MIN_K, MAX_K);
+    const ratio = k / v.k;
+    userMoved.current = true;
+    setView({ x: cx - (cx - v.x) * ratio, y: cy - (cy - v.y) * ratio, k });
   };
 
   // ── Empty state ────────────────────────────────────────────────────────────
@@ -245,7 +322,7 @@ export function GraphViz({
     );
   }
 
-  const pos = (id: string): Pos => positions[id] ?? { x: WIDTH / 2, y: height / 2 };
+  const pos = (id: string): Pos => positions[id] ?? { x: WORLD_W / 2, y: height / 2 };
 
   return (
     <div
@@ -255,23 +332,59 @@ export function GraphViz({
     >
       <TooltipProvider delayDuration={150}>
         <div
+          ref={wrapRef}
           style={{ width: '100%', height, minHeight: 320 }}
           className={cn(
-            'rounded-lg border border-border bg-background overflow-hidden',
+            'relative rounded-lg border border-border bg-background overflow-hidden',
             !prefersReducedMotion ? 'graph-viz-animate' : '',
           )}
         >
+          {/* Zoom controls */}
+          <div className="absolute right-3 top-3 z-10 flex flex-col gap-1">
+            <button
+              type="button"
+              aria-label="Zoom in"
+              onClick={() => zoomBy(1.25)}
+              className="flex h-8 w-8 items-center justify-center rounded-md border border-border bg-background text-foreground shadow-sm hover:bg-secondary focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              +
+            </button>
+            <button
+              type="button"
+              aria-label="Zoom out"
+              onClick={() => zoomBy(1 / 1.25)}
+              className="flex h-8 w-8 items-center justify-center rounded-md border border-border bg-background text-foreground shadow-sm hover:bg-secondary focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              −
+            </button>
+            <button
+              type="button"
+              aria-label="Fit graph to view"
+              onClick={fitToContent}
+              className="flex h-8 w-8 items-center justify-center rounded-md border border-border bg-background text-xs text-foreground shadow-sm hover:bg-secondary focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              ⤢
+            </button>
+          </div>
+
+          {/* Hint */}
+          <span className="pointer-events-none absolute bottom-2 left-3 z-10 text-xs text-muted-foreground">
+            Drag to pan · scroll to zoom · drag a node to move it
+          </span>
+
           <svg
             ref={svgRef}
-            viewBox={`0 0 ${WIDTH} ${height}`}
+            viewBox={`0 0 ${size.w} ${size.h}`}
             width="100%"
             height="100%"
             preserveAspectRatio="xMidYMid meet"
             role="img"
             aria-label="Cross-graph retrieval subgraph"
-            onPointerMove={onNodePointerMove}
-            onPointerUp={onNodePointerUp}
-            onPointerLeave={onNodePointerUp}
+            style={{ cursor: panning.current ? 'grabbing' : 'grab', touchAction: 'none' }}
+            onPointerDown={onBgPointerDown}
+            onPointerMove={onSvgPointerMove}
+            onPointerUp={onSvgPointerUp}
+            onPointerLeave={onSvgPointerUp}
           >
             <defs>
               <marker
@@ -287,136 +400,136 @@ export function GraphViz({
               </marker>
             </defs>
 
-            {/* ── Edges (honesty: dash comes straight from buildGraph) ── */}
-            <g data-testid="viz-edges">
-              {graph.edges.map((e) => {
-                const s = pos(e.source);
-                const t = pos(e.target);
-                const { d } = curvedPath(s, t);
-                return (
-                  <Tooltip key={e.id}>
-                    <TooltipTrigger asChild>
-                      <g data-viz-edge={e.id} data-kind={e.kind}>
-                        {/* Visible stroke — style is the honest discriminator. */}
-                        <path
-                          d={d}
-                          fill="none"
-                          stroke="var(--muted-foreground)"
-                          strokeWidth={2}
-                          strokeDasharray={e.dash}
-                          strokeLinecap={e.linecap ?? 'butt'}
-                          markerEnd="url(#viz-arrow)"
-                        />
-                        {/* Invisible fat hit-target for hover/tooltip. */}
-                        <path
-                          d={d}
-                          fill="none"
-                          stroke="transparent"
-                          strokeWidth={14}
-                          aria-label={`${e.label} · ${e.collection}`}
-                        />
-                      </g>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <span className="font-mono text-sm">
-                        {e.label} · {e.collection}
-                      </span>
-                    </TooltipContent>
-                  </Tooltip>
-                );
-              })}
-            </g>
+            {/* Transparent pan surface (full viewport). */}
+            <rect x={0} y={0} width={size.w} height={size.h} fill="transparent" />
 
-            {/* ── Nodes ── */}
-            <g data-testid="viz-nodes">
-              {settled.nodes.map((n) => {
-                const p = pos(n.id);
-                if (n.type === 'question') {
+            {/* Pan/zoom transform group — all world-space content lives here. */}
+            <g transform={`translate(${view.x} ${view.y}) scale(${view.k})`}>
+              {/* ── Edges (honesty: dash comes straight from buildGraph) ── */}
+              <g data-testid="viz-edges">
+                {graph.edges.map((e) => {
+                  const d = curvedPath(pos(e.source), pos(e.target));
+                  return (
+                    <Tooltip key={e.id}>
+                      <TooltipTrigger asChild>
+                        <g data-viz-edge={e.id} data-kind={e.kind}>
+                          <path
+                            d={d}
+                            fill="none"
+                            stroke="var(--muted-foreground)"
+                            strokeWidth={2}
+                            strokeDasharray={e.dash}
+                            strokeLinecap={e.linecap ?? 'butt'}
+                            markerEnd="url(#viz-arrow)"
+                          />
+                          <path
+                            d={d}
+                            fill="none"
+                            stroke="transparent"
+                            strokeWidth={14}
+                            aria-label={`${e.label} · ${e.collection}`}
+                          />
+                        </g>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <span className="font-mono text-sm">
+                          {e.label} · {e.collection}
+                        </span>
+                      </TooltipContent>
+                    </Tooltip>
+                  );
+                })}
+              </g>
+
+              {/* ── Nodes ── */}
+              <g data-testid="viz-nodes">
+                {settled.nodes.map((n) => {
+                  const p = pos(n.id);
+                  if (n.type === 'question') {
+                    return (
+                      <g
+                        key={n.id}
+                        data-viz-node={n.id}
+                        transform={`translate(${p.x}, ${p.y})`}
+                        role="img"
+                        aria-label="Question — where retrieval started"
+                      >
+                        <rect
+                          x={-QUESTION_W / 2}
+                          y={-QUESTION_H / 2}
+                          width={QUESTION_W}
+                          height={QUESTION_H}
+                          rx={QUESTION_H / 2}
+                          fill="var(--secondary)"
+                          stroke="var(--border)"
+                        />
+                        <text
+                          textAnchor="middle"
+                          dominantBaseline="central"
+                          className="text-xs font-semibold"
+                          fill="var(--secondary-foreground)"
+                        >
+                          Question
+                        </text>
+                      </g>
+                    );
+                  }
+                  const fill =
+                    n.graph === 'structured'
+                      ? 'var(--graph-structured)'
+                      : 'var(--graph-unstructured)';
+                  const textFill =
+                    n.graph === 'structured'
+                      ? 'var(--graph-structured-foreground)'
+                      : 'var(--graph-unstructured-foreground)';
+                  const onActivate = () => onOpenSource?.(citationsForNode(n));
                   return (
                     <g
                       key={n.id}
                       data-viz-node={n.id}
+                      data-graph={n.graph ?? 'unstructured'}
                       transform={`translate(${p.x}, ${p.y})`}
-                      role="img"
-                      aria-label="Question — where retrieval started"
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`Open source — ${n.graph ?? 'unstructured'} · ${n.collection} · ${n.id}`}
+                      style={{ cursor: 'grab' }}
+                      onPointerDown={onNodePointerDown(n.id)}
+                      onClick={onActivate}
+                      onKeyDown={(ev) => {
+                        if (ev.key === 'Enter' || ev.key === ' ') {
+                          ev.preventDefault();
+                          onActivate();
+                        }
+                      }}
                     >
-                      <rect
-                        x={-QUESTION_W / 2}
-                        y={-QUESTION_H / 2}
-                        width={QUESTION_W}
-                        height={QUESTION_H}
-                        rx={QUESTION_H / 2}
-                        fill="var(--secondary)"
-                        stroke="var(--border)"
-                      />
+                      <circle r={RECORD_R} fill={fill} stroke="var(--background)" strokeWidth={2} />
                       <text
                         textAnchor="middle"
                         dominantBaseline="central"
-                        className="text-xs font-semibold"
-                        fill="var(--secondary-foreground)"
+                        className="text-[11px] font-semibold"
+                        fill={textFill}
+                        pointerEvents="none"
                       >
-                        Question
+                        {n.collection.length > 9 ? `${n.collection.slice(0, 8)}…` : n.collection}
+                      </text>
+                      <text
+                        y={RECORD_R + 14}
+                        textAnchor="middle"
+                        className="text-xs"
+                        fill="var(--foreground)"
+                        pointerEvents="none"
+                      >
+                        {n.collection}
                       </text>
                     </g>
                   );
-                }
-                const fill =
-                  n.graph === 'structured'
-                    ? 'var(--graph-structured)'
-                    : 'var(--graph-unstructured)';
-                const textFill =
-                  n.graph === 'structured'
-                    ? 'var(--graph-structured-foreground)'
-                    : 'var(--graph-unstructured-foreground)';
-                const onActivate = () => onOpenSource?.(citationsForNode(n));
-                return (
-                  <g
-                    key={n.id}
-                    data-viz-node={n.id}
-                    data-graph={n.graph ?? 'unstructured'}
-                    transform={`translate(${p.x}, ${p.y})`}
-                    role="button"
-                    tabIndex={0}
-                    aria-label={`Open source — ${n.graph ?? 'unstructured'} · ${n.collection} · ${n.id}`}
-                    style={{ cursor: 'grab' }}
-                    onPointerDown={onNodePointerDown(n.id)}
-                    onClick={onActivate}
-                    onKeyDown={(ev) => {
-                      if (ev.key === 'Enter' || ev.key === ' ') {
-                        ev.preventDefault();
-                        onActivate();
-                      }
-                    }}
-                  >
-                    <circle r={RECORD_R} fill={fill} stroke="var(--background)" strokeWidth={2} />
-                    <text
-                      textAnchor="middle"
-                      dominantBaseline="central"
-                      className="text-[11px] font-semibold"
-                      fill={textFill}
-                      pointerEvents="none"
-                    >
-                      {n.collection.length > 9 ? `${n.collection.slice(0, 8)}…` : n.collection}
-                    </text>
-                    {/* Full collection label below the node for legibility. */}
-                    <text
-                      y={RECORD_R + 14}
-                      textAnchor="middle"
-                      className="text-xs"
-                      fill="var(--foreground)"
-                      pointerEvents="none"
-                    >
-                      {n.collection}
-                    </text>
-                  </g>
-                );
-              })}
+                })}
+              </g>
             </g>
           </svg>
         </div>
       </TooltipProvider>
 
-      {/* EdgeLegend — always-visible (D-04, not hover-gated) */}
       <EdgeLegend />
     </div>
   );
