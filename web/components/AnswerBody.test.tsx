@@ -1,22 +1,37 @@
 // web/components/AnswerBody.test.tsx
 //
-// AnswerBody renders the grounded answer prose + one numbered superscript per claim;
-// clicking superscript [1] opens the drawer scoped to claims[0].citations (the first
-// citation's _id appears) — SRC-03, UI-02, D-03. Asserted against GROUNDED_ENVELOPE.
+// AnswerBody renders envelope.claims[] as a numbered <ol>; each <li> carries
+// the claim text + one ClaimSuperscript — clicking superscript [1] opens the
+// drawer scoped to claims[0].citations (SRC-03, UI-02, D-12).
+//
+// D-12 rewrite: this test replaced the old prose assertion (/is not actually happy/i)
+// with assertions that the answer renders as a semantic <ol> of claims[].length <li>s,
+// each with a "View sources for claim {n}" superscript.
+//
+// Asserted against GROUNDED_ENVELOPE fixture.
 
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent, within } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 
 import { AnswerBody } from './AnswerBody';
 import { GROUNDED_ENVELOPE } from '../test/fixtures';
 
 describe('AnswerBody', () => {
-  it('renders the grounded answer prose verbatim', () => {
-    render(<AnswerBody envelope={GROUNDED_ENVELOPE} />);
-    // A distinctive fragment of the Q12 answer.
-    expect(
-      screen.getByText(/is not actually happy/i),
-    ).toBeInTheDocument();
+  it('renders a semantic <ol> with one <li> per claim', () => {
+    const { container } = render(<AnswerBody envelope={GROUNDED_ENVELOPE} />);
+    const ol = container.querySelector('ol');
+    expect(ol).toBeInTheDocument();
+    const liItems = ol?.querySelectorAll('li');
+    expect(liItems?.length).toBe(GROUNDED_ENVELOPE.claims.length);
+  });
+
+  it('each <li> contains the claim text', () => {
+    const { container } = render(<AnswerBody envelope={GROUNDED_ENVELOPE} />);
+    const liItems = Array.from(container.querySelectorAll('ol li'));
+    GROUNDED_ENVELOPE.claims.forEach((claim, i) => {
+      // The claim text should be inside the corresponding <li>
+      expect(liItems[i]?.textContent).toContain(claim.text.slice(0, 20));
+    });
   });
 
   it('renders one numbered superscript per claim, in order', () => {
