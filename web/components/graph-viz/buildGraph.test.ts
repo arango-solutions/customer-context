@@ -205,6 +205,19 @@ describe('buildGraph: node coverage', () => {
     expect(nodes.find((n) => n.id === 'question/current')).toBeUndefined();
   });
 
+  it('node label = the resolved display name from fragment.labels (falls back to collection)', () => {
+    const frag = {
+      ...makeFragment('structured', 'Account', ['Account/a1', 'Account/a2'], [
+        makeEdge('structural', 'Account/a1', 'UsageFact/u1', 'account'),
+      ]),
+      labels: { 'Account/a1': 'Meridian Logistics' },
+    };
+    const { nodes } = buildGraph([frag]);
+    expect(nodes.find((n) => n.id === 'Account/a1')?.label).toBe('Meridian Logistics');
+    // a2 has no label entry → falls back to the collection
+    expect(nodes.find((n) => n.id === 'Account/a2')?.label).toBe('Account');
+  });
+
   it('nodes carry graph origin (structured/unstructured) for CSS token consumption', () => {
     const frag = makeFragment('structured', 'UsageMetric', ['UsageMetric/u1'], [
       makeEdge('structural', 'Account/a1', 'UsageMetric/u1', 'account'),

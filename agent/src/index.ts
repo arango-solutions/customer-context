@@ -13,6 +13,7 @@
 import { loadEnv } from './db.js';
 import { runAgent } from './agent.js';
 import { enforceGrounding } from './grounding.js';
+import { attachNodeLabels } from './nodeLabels.js';
 import type { Envelope } from './envelope.js';
 
 export type { Envelope, Citation, Claim, GraphKind } from './envelope.js';
@@ -67,5 +68,7 @@ export const QC_ANCHOR_PROMPT =
 export async function askQuestion(question: string): Promise<Envelope> {
   loadEnv(); // dotenv override — .env wins over any stale shell value (D-06)
   const { envelope, returnedIds } = await runAgent(question);
-  return enforceGrounding(envelope, returnedIds);
+  // enforceGrounding is the terminal gate; attachNodeLabels is display-only enrichment
+  // applied AFTER it (never changes grounding). Mirrored in stream.ts for the SSE path.
+  return attachNodeLabels(enforceGrounding(envelope, returnedIds));
 }

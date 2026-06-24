@@ -219,6 +219,21 @@ export function GraphViz({
     unstructured: 'Unstructured graph (Slack · docs · email)',
     bridge: 'Shared-entity hub (joins both graphs)',
   };
+  // Readable type label per collection (shown under the node + as the tooltip subtitle).
+  const HUMAN_COLLECTION: Record<string, string> = {
+    canonical_entities: 'Shared entity',
+    customer360_Entities: 'Entity',
+    customer360_Documents: 'Document',
+    customer360_Chunks: 'Text passage',
+    Account: 'Account',
+    Contact: 'Contact',
+    UsageFact: 'Usage metric',
+    NPS: 'NPS survey',
+    Contract: 'Contract',
+    Opportunity: 'Opportunity',
+  };
+  const humanCollection = (c: string) => HUMAN_COLLECTION[c] ?? c;
+  const truncate = (s: string, n = 22) => (s.length > n ? `${s.slice(0, n - 1)}…` : s);
 
   // Connections incident to a node, as readable "{label} →/← {collection}" strings.
   const describeConnections = React.useCallback(
@@ -585,31 +600,32 @@ export function GraphViz({
                           }}
                         >
                           <circle r={RECORD_R} fill={fill} stroke="var(--background)" strokeWidth={2} />
+                          {/* Name (resolved label) below the node; readable type beneath it. */}
                           <text
+                            y={RECORD_R + 15}
                             textAnchor="middle"
-                            dominantBaseline="central"
-                            className="text-[11px] font-semibold"
-                            fill={textFill}
-                            pointerEvents="none"
-                          >
-                            {n.collection.length > 9 ? `${n.collection.slice(0, 8)}…` : n.collection}
-                          </text>
-                          <text
-                            y={RECORD_R + 14}
-                            textAnchor="middle"
-                            className="text-xs"
+                            className="text-[13px] font-semibold"
                             fill="var(--foreground)"
                             pointerEvents="none"
                           >
-                            {n.collection}
+                            {truncate(n.label)}
+                          </text>
+                          <text
+                            y={RECORD_R + 30}
+                            textAnchor="middle"
+                            className="text-[11px]"
+                            fill="var(--muted-foreground)"
+                            pointerEvents="none"
+                          >
+                            {humanCollection(n.collection)}
                           </text>
                         </g>
                       </TooltipTrigger>
-                      <TooltipContent className="max-w-[280px]">
+                      <TooltipContent className="max-w-[300px]">
                         <div className="flex flex-col gap-1">
-                          <span className="text-sm font-semibold">{n.collection}</span>
+                          <span className="text-sm font-semibold">{n.label}</span>
                           <span className="text-xs opacity-80">
-                            {ORIGIN_LABEL[n.graph ?? 'unstructured']}
+                            {humanCollection(n.collection)} · {ORIGIN_LABEL[n.graph ?? 'unstructured']}
                           </span>
                           <code className="block break-all font-mono text-xs opacity-90">{n.id}</code>
                           {conns.length > 0 && (

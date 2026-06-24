@@ -93,6 +93,11 @@ export const RetrievalPathFragment = z.object({
   _ids: z.array(z.string()),
   query: z.string(),
   edges: z.array(RetrievalPathEdge).default([]),
+  // labels: _id → human-readable display name (e.g. canonical_entities/… → "Helio
+  // Retail", Account/… → "Meridian Logistics"). Display-only; populated post-grounding
+  // by nodeLabels.ts so the viz can name nodes instead of showing opaque _ids. Optional
+  // + additive — tools never set it; no grounding/eval/synthesis consumer reads it.
+  labels: z.record(z.string(), z.string()).optional(),
 });
 export type RetrievalPathFragmentT = z.infer<typeof RetrievalPathFragment>;
 

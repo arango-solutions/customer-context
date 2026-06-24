@@ -117,6 +117,13 @@ export function buildGraph(retrievalPath: RetrievalPathFragmentT[]): VizGraph {
   const seenEdgeKeys = new Set<string>();
   const edges: VizEdge[] = [];
 
+  // Merge every fragment's _id → display-name map (agent nodeLabels.ts). Each fragment
+  // carries the full map; last-wins is fine since they're identical.
+  const labelLookup: Record<string, string> = {};
+  for (const frag of retrievalPath) {
+    Object.assign(labelLookup, (frag as { labels?: Record<string, string> }).labels ?? {});
+  }
+
   // Map of node id → graph origin from fragment metadata.
   const nodeOrigin = new Map<string, 'structured' | 'unstructured'>();
 
@@ -167,7 +174,8 @@ export function buildGraph(retrievalPath: RetrievalPathFragmentT[]): VizGraph {
     const coll = collectionOf(id);
     // Collection is authoritative; fragment graph is the fallback for unknown collections.
     const origin = originByCollection(coll) ?? graph;
-    nodes.push({ id, type, graph: origin, collection: coll, label: coll });
+    // Prefer the resolved human-readable name; fall back to the collection.
+    nodes.push({ id, type, graph: origin, collection: coll, label: labelLookup[id] ?? coll });
   };
 
   for (const e of edges) {

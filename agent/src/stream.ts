@@ -30,6 +30,7 @@ import {
   NoObjectGeneratedError,
 } from 'ai';
 import { enforceGrounding } from './grounding.js';
+import { attachNodeLabels } from './nodeLabels.js';
 import { mergeRetrievalPaths, enforceEdgeHonesty } from './retrievalPath.js';
 import {
   toCanonicalEnvelope,
@@ -142,7 +143,8 @@ export async function assembleGroundedEnvelope(
   };
 
   // TERMINAL grounding gate — the SAME function index.ts::askQuestion uses (D-01a).
-  return enforceGrounding(merged, returnedIds);
+  // attachNodeLabels mirrors index.ts: display-only node naming, applied post-grounding.
+  return attachNodeLabels(enforceGrounding(merged, returnedIds));
 }
 
 /** The structured refusal emitted when the model declines to produce an answer object
