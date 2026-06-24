@@ -5,8 +5,15 @@
  * 60/30/10 split: white/dark page surface (60), slate rail surface (30),
  * ArangoDB green accent (10). Refusal accent = warm clay (NOT alarm-red).
  *
- * Graph-badge convention (demo-load-bearing): structured = green #5C9E31,
+ * Graph-badge convention (demo-load-bearing): structured = green #007339,
  * unstructured = slate-blue #3A6EA5. Apply everywhere a graph origin appears.
+ *
+ * Phase 11 brand token VALUE swap (D-08/D-09, UI-04):
+ *   #5c9e31 → #007339  (current arango.ai primary green — verified live arango.ai 2026-06-23)
+ *   #0f1b24 → #151d25  (current arango.ai dark foreground — verified live arango.ai 2026-06-23)
+ * Token NAMES and @theme inline block are unchanged. #3a6ea5 (dual-graph) retained.
+ * Note: ArangoGraph console parity (RESEARCH A2) is deferred to the human visual checkpoint
+ * (11-03 Task 3) — marketing-site greens are HIGH-confidence; console may differ slightly.
  */
 
 @custom-variant dark (&:is(.dark *));
@@ -14,20 +21,20 @@
 :root {
   /* 60% dominant — page background / main answer column */
   --background: #ffffff;
-  --foreground: #0f1b24;
+  --foreground: #151d25;
 
   /* 30% secondary — sourcing rail, citation cards, drawer, chips */
   --secondary: #f4f6f8;
-  --secondary-foreground: #0f1b24;
+  --secondary-foreground: #151d25;
   --card: #f4f6f8;
-  --card-foreground: #0f1b24;
+  --card-foreground: #151d25;
   --popover: #ffffff;
-  --popover-foreground: #0f1b24;
+  --popover-foreground: #151d25;
   --muted: #f4f6f8;
   --muted-foreground: #51606b;
 
   /* 10% accent — ArangoDB green (Ask button, focus ring, structured badge, claim superscript) */
-  --primary: #5c9e31;
+  --primary: #007339;
   --primary-foreground: #ffffff;
 
   /* destructive / refusal — warm clay, used only on the refusal header rule */
@@ -35,13 +42,13 @@
   --destructive-foreground: #ffffff;
 
   --accent: #f4f6f8;
-  --accent-foreground: #0f1b24;
+  --accent-foreground: #151d25;
   --border: #e2e8ee;
   --input: #e2e8ee;
-  --ring: #5c9e31;
+  --ring: #007339;
 
   /* dual-graph badge tokens — the load-bearing demo signal */
-  --graph-structured: #5c9e31;
+  --graph-structured: #007339;
   --graph-structured-foreground: #ffffff;
   --graph-unstructured: #3a6ea5;
   --graph-unstructured-foreground: #ffffff;
@@ -51,7 +58,7 @@
 
 .dark {
   /* 60% dominant — dark page surface */
-  --background: #0f1b24;
+  --background: #151d25;
   --foreground: #e6edf3;
 
   /* 30% secondary — dark slate rail */
@@ -64,7 +71,7 @@
   --muted: #1a2733;
   --muted-foreground: #93a1ad;
 
-  --primary: #5c9e31;
+  --primary: #007339;
   --primary-foreground: #ffffff;
 
   --destructive: #b4451f;
@@ -74,9 +81,9 @@
   --accent-foreground: #e6edf3;
   --border: #2a3a47;
   --input: #2a3a47;
-  --ring: #5c9e31;
+  --ring: #007339;
 
-  --graph-structured: #5c9e31;
+  --graph-structured: #007339;
   --graph-structured-foreground: #ffffff;
   --graph-unstructured: #3a6ea5;
   --graph-unstructured-foreground: #ffffff;
