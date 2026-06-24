@@ -13,7 +13,7 @@ A graph-based Customer 360 demo over 100%-synthetic data: a Next.js/Vercel dashb
 - [x] **Phase 8: Deterministic Eval Harness** — Eliminate the ~5% stochastic flake; build a trustworthy green/red gate runnable before any demo (completed 2026-06-22)
 - [x] **Phase 9: Data Depth & 3rd Account** — Add a 3rd synthetic account + deepen existing docs; linter-gated, building the data foundation v2 features depend on (completed 2026-06-23)
 - [x] **Phase 10: Answer-Provenance Edge Enrichment** — Enrich `hybridRetrieve` + `bridgeResolve` to return traversed edges; add `edges[]` to `RetrievalPathFragment` (completed 2026-06-23)
-- [ ] **Phase 11: Graph Viz + UI Refresh + Latency** — React Flow cross-graph subgraph render, ArangoDB-brand UI refresh, confidence score, and latency pass
+- [x] **Phase 11: Graph Viz + UI Refresh + Latency** — React Flow cross-graph subgraph render, ArangoDB-brand UI refresh, confidence score, and latency pass (completed 2026-06-24)
 - [ ] **Phase 12: Simulated CDC + What-Changed Diff** — File-watch CDC, live update trigger, and before/after diff of changed claims/citations
 - [ ] **Phase 13: Injection-Resistance + Adversarial Mode** — Harden the agent against prompt injection from docs; add audience-facing "try-to-break-it" mode
 - [ ] **Phase 14: Temporal Queries** — Time-scoped question support over multi-year synthetic data with period-correct sourcing
@@ -108,8 +108,20 @@ Plans:
   5. Answer latency is noticeably improved vs. v1 (~20–40s): first-token arrives faster (parallel tool calls and/or pre-warm) with no loss of grounding.
   6. The eval gate (Phase 8) stays green — no regressions on streamed answers or claim citations.
 
-**Plans**: TBD
-**Risk**: Medium — React Flow layout for arbitrary graph shapes requires design work (pick KG granularity, handle large traversals gracefully). Honesty bar is strict: viz must never fabricate edges. UI refresh + PERF-01 are well-understood work. UI-06 confidence score depends on EVAL metrics being surfaced from the answer envelope.
+**Plans**: 4 plans
+Plans:
+
+**Wave 1** *(parallel — no shared files)*
+- [x] 11-01-PLAN.md — Install React Flow/dagre in web/ + repair broken fixtures + pure buildGraph.ts/layout.ts honesty+data-driven core (VIZ-02 SC-1/SC-2)
+- [x] 11-04-PLAN.md — PERF-01 latency: baseline + ArangoDB pre-warm; eval gate GREEN; streaming smoke (PERF-01 SC-5)
+
+**Wave 2** *(blocked on 11-01)*
+- [x] 11-02-PLAN.md — GraphViz React Flow components + TrustChip (qualitative-only; faithfulnessScore absent) + AnswerBody claim-list rewrite (VIZ-02/UI-06/UI-04 D-12)
+
+**Wave 3** *(blocked on 11-01 + 11-02)*
+- [x] 11-03-PLAN.md — arango.ai brand-token swap + Graph/Path toggle in rail + page wiring + streaming smoke checkpoint (UI-04/VIZ-02/UI-06 SC-3/SC-6)
+
+**Risk**: Medium — React Flow layout for arbitrary graph shapes requires design work (pick KG granularity, handle large traversals gracefully). Honesty bar is strict: viz must never fabricate edges. UI refresh + PERF-01 are well-understood work. PLANNING FINDINGS: (1) `faithfulnessScore` is NOT on the runtime envelope — UI-06 leads qualitative (groundingScore + refusal) and DEFERS the numeric reveal (a data change, out of this presentation-only phase). (2) The web test suite is currently RED (Phase-8 `groundingScore` never backfilled into web fixtures) — Plan 11-01 repairs it as a prerequisite. (3) ArangoDB rebranded to arango.ai (#007339) — the brand token swap is a real value change. (4) The eval gate is non-streaming only — D-12 claim-list + PERF-01 loop changes carry a mandatory streaming smoke-test.
 **UI hint**: yes
 
 ### Phase 12: Simulated CDC + What-Changed Diff
@@ -181,7 +193,7 @@ Plans:
 | 8. Deterministic Eval Harness | 1/1 | Complete   | 2026-06-22 |
 | 9. Data Depth & 3rd Account | 3/3 | Complete   | 2026-06-23 |
 | 10. Answer-Provenance Edge Enrichment | 3/3 | Complete    | 2026-06-23 |
-| 11. Graph Viz + UI Refresh + Latency | 0/TBD | Not started | - |
+| 11. Graph Viz + UI Refresh + Latency | 4/4 | Complete    | 2026-06-24 |
 | 12. Simulated CDC + What-Changed Diff | 0/TBD | Not started | - |
 | 13. Injection-Resistance + Adversarial Mode | 0/TBD | Not started | - |
 | 14. Temporal Queries | 0/TBD | Not started | - |
@@ -215,8 +227,8 @@ Plans:
 ### Phase 999.2: Inline per-claim citation markers in answer surface (BACKLOG)
 
 **Goal:** Render inline numbered markers (superscripts ¹²³) in the streamed answer prose, each tying a specific claim/sentence to its supporting citation(s) — the literal "per-fact citation linking to `_id`" differentiator from CLAUDE.md. Surfaced during Phase 10 review (2026-06-23): a buyer cannot currently tell which claim each citation refers to.
-**Requirements:** TBD (candidate explicit success criterion for Phase 11 / UI-04)
-**Plans:** 0 plans
+**Requirements:** UI-04 (Phase 11) — FOLDED IN via CONTEXT D-12.
+**Plans:** Folded into Phase 11 (Plan 11-02 rewrites `AnswerBody` as a numbered claim list per D-12 — sidesteps fuzzy claim→prose-span mapping by rendering the answer AS the claim list).
 
 **Context (data already exists — this is a rendering gap, not a data gap):**
 - `env.claims[]` (`ClaimSchema = { text, citations[] }`, decision D-03) already decomposes the answer into discrete factual claims, each carrying its supporting ArangoDB `_id`(s). Everything needed to draw markers is in the envelope.
@@ -224,7 +236,7 @@ Plans:
 - **Design decision required (not just CSS):** claims are a *decomposition*, so claim text is not guaranteed to be a verbatim substring of the prose answer. Phase 11 must choose between (a) mapping each claim to a span in the prose, or (b) rendering the answer AS the numbered claim list.
 
 Plans:
-- [ ] TBD (promote with /gsd-review-backlog when ready, or fold into Phase 11 UI-04)
+- [x] TBD (promote with /gsd-review-backlog when ready, or fold into Phase 11 UI-04) (completed 2026-06-24)
 
 ### Phase 999.3: Conversation history in demo UI (BACKLOG)
 

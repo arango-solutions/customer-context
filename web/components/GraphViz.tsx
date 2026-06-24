@@ -212,21 +212,53 @@ export function GraphViz({
     };
   }, [graph, hasEdges, prefersReducedMotion, height]);
 
-  // ── Node → citations resolver (fixes the empty-drawer bug) ─────────────────
+  // ── Per-node detail derived from the envelope (no DB fetch, no fabrication) ──
+  const collOf = (id: string) => (id.includes('/') ? id.split('/')[0] : id);
+  const ORIGIN_LABEL: Record<string, string> = {
+    structured: 'Structured graph (CRM · Snowflake · DocuSign)',
+    unstructured: 'Unstructured graph (Slack · docs · email)',
+    bridge: 'Shared-entity hub (joins both graphs)',
+  };
+
+  // Connections incident to a node, as readable "{label} →/← {collection}" strings.
+  const describeConnections = React.useCallback(
+    (id: string): string[] =>
+      graph.edges
+        .filter((e) => e.source === id || e.target === id)
+        .map((e) => {
+          const out = e.source === id;
+          return `${e.label} ${out ? '→' : '←'} ${collOf(out ? e.target : e.source)}`;
+        }),
+    [graph],
+  );
+
+  // The retrieval query of the fragment that surfaced this node (if any).
+  const queryForNode = React.useCallback(
+    (id: string): string | undefined =>
+      retrievalPath.find((f) => (f._ids ?? []).includes(id))?.query,
+    [retrievalPath],
+  );
+
+  // ── Node → citations for the drawer. Real citation if present; otherwise a
+  // synthesized entry enriched with the originating query (aql) + connections
+  // (traversal) so EVERY node opens an informative drawer, not an empty one.
   const citationsForNode = React.useCallback(
     (node: VizNode): Citation[] => {
       const matches = citations.filter((c) => c._id === node.id);
       if (matches.length > 0) return matches;
+      const conns = describeConnections(node.id);
+      const query = queryForNode(node.id);
       return [
         {
-          graph: node.graph === 'structured' ? 'structured' : 'unstructured',
+          graph: node.graph === 'unstructured' ? 'unstructured' : 'structured',
           collection: node.collection,
           _id: node.id,
-          aql: '',
+          aql: query ?? '— this node is a traversal endpoint; no standalone retrieval query —',
+          traversal: conns.length ? `Connections: ${conns.join('; ')}` : undefined,
         },
       ];
     },
-    [citations],
+    [citations, describeConnections, queryForNode],
   );
 
   // ── Pointer → world-space conversion (accounts for pan/zoom) ───────────────
@@ -531,45 +563,68 @@ export function GraphViz({
                     }
                     onOpenSource?.(citationsForNode(n));
                   };
+                  const conns = describeConnections(n.id);
                   return (
-                    <g
-                      key={n.id}
-                      data-viz-node={n.id}
-                      data-graph={n.graph ?? 'unstructured'}
-                      transform={`translate(${p.x}, ${p.y})`}
-                      role="button"
-                      tabIndex={0}
-                      aria-label={`Open source — ${n.graph ?? 'unstructured'} · ${n.collection} · ${n.id}`}
-                      style={{ cursor: 'grab' }}
-                      onPointerDown={onNodePointerDown(n.id)}
-                      onClick={onActivate}
-                      onKeyDown={(ev) => {
-                        if (ev.key === 'Enter' || ev.key === ' ') {
-                          ev.preventDefault();
-                          onActivate();
-                        }
-                      }}
-                    >
-                      <circle r={RECORD_R} fill={fill} stroke="var(--background)" strokeWidth={2} />
-                      <text
-                        textAnchor="middle"
-                        dominantBaseline="central"
-                        className="text-[11px] font-semibold"
-                        fill={textFill}
-                        pointerEvents="none"
-                      >
-                        {n.collection.length > 9 ? `${n.collection.slice(0, 8)}…` : n.collection}
-                      </text>
-                      <text
-                        y={RECORD_R + 14}
-                        textAnchor="middle"
-                        className="text-xs"
-                        fill="var(--foreground)"
-                        pointerEvents="none"
-                      >
-                        {n.collection}
-                      </text>
-                    </g>
+                    <Tooltip key={n.id}>
+                      <TooltipTrigger asChild>
+                        <g
+                          data-viz-node={n.id}
+                          data-graph={n.graph ?? 'unstructured'}
+                          transform={`translate(${p.x}, ${p.y})`}
+                          role="button"
+                          tabIndex={0}
+                          aria-label={`Open source — ${n.graph ?? 'unstructured'} · ${n.collection} · ${n.id}`}
+                          style={{ cursor: 'grab' }}
+                          onPointerDown={onNodePointerDown(n.id)}
+                          onClick={onActivate}
+                          onKeyDown={(ev) => {
+                            if (ev.key === 'Enter' || ev.key === ' ') {
+                              ev.preventDefault();
+                              onActivate();
+                            }
+                          }}
+                        >
+                          <circle r={RECORD_R} fill={fill} stroke="var(--background)" strokeWidth={2} />
+                          <text
+                            textAnchor="middle"
+                            dominantBaseline="central"
+                            className="text-[11px] font-semibold"
+                            fill={textFill}
+                            pointerEvents="none"
+                          >
+                            {n.collection.length > 9 ? `${n.collection.slice(0, 8)}…` : n.collection}
+                          </text>
+                          <text
+                            y={RECORD_R + 14}
+                            textAnchor="middle"
+                            className="text-xs"
+                            fill="var(--foreground)"
+                            pointerEvents="none"
+                          >
+                            {n.collection}
+                          </text>
+                        </g>
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-[280px]">
+                        <div className="flex flex-col gap-1">
+                          <span className="text-sm font-semibold">{n.collection}</span>
+                          <span className="text-xs opacity-80">
+                            {ORIGIN_LABEL[n.graph ?? 'unstructured']}
+                          </span>
+                          <code className="block break-all font-mono text-xs opacity-90">{n.id}</code>
+                          {conns.length > 0 && (
+                            <span className="mt-0.5 text-xs">
+                              {conns.length} connection{conns.length > 1 ? 's' : ''}:{' '}
+                              {conns.slice(0, 4).join(', ')}
+                              {conns.length > 4 ? '…' : ''}
+                            </span>
+                          )}
+                          <span className="mt-0.5 text-xs italic opacity-70">
+                            Click for the retrieval query &amp; full source
+                          </span>
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
                   );
                 })}
               </g>
@@ -577,6 +632,29 @@ export function GraphViz({
           </svg>
         </div>
       </TooltipProvider>
+
+      {/* Orientation: tell the buyer what they're looking at. */}
+      <p className="text-xs text-muted-foreground">
+        Each node is a record the answer drew on; each edge is how the agent connected
+        them across the two graphs. Hover a node for its identity, click it for the exact
+        retrieval query and source.
+      </p>
+
+      {/* Node-origin legend (what the colors mean) + the edge-kind legend. */}
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-foreground">
+        <span className="flex items-center gap-1.5">
+          <span className="inline-block h-3 w-3 rounded-full" style={{ background: 'var(--graph-structured)' }} aria-hidden />
+          Structured record (CRM · Snowflake · DocuSign)
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="inline-block h-3 w-3 rounded-full" style={{ background: 'var(--graph-unstructured)' }} aria-hidden />
+          Unstructured record (Slack · docs · email)
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="inline-block h-3 w-3 rounded-full" style={{ background: 'var(--muted-foreground)' }} aria-hidden />
+          Shared-entity hub (the cross-graph join)
+        </span>
+      </div>
 
       <EdgeLegend />
     </div>
