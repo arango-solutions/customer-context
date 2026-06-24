@@ -204,6 +204,26 @@ describe('buildGraph: node coverage', () => {
     expect(withOrigin).toBeDefined();
   });
 
+  it('bridge fix: KG entities (customer360_*) are unstructured and the hub is "bridge", even in a structured-labeled bridge fragment', () => {
+    // bridgeResolve emits its fragment as graph:'structured' even though the
+    // customer360_Entities endpoints are unstructured. Collection must win so the
+    // same_as bridge visibly spans (structured ↔ hub ↔ unstructured).
+    const bridgeFrag = makeFragment(
+      'structured',
+      'same_as',
+      ['Contact/c1', 'customer360_Entities/e1', 'canonical_entities/h1'],
+      [
+        makeEdge('traversed', 'Contact/c1', 'canonical_entities/h1', 'same_as', 'same_as/1'),
+        makeEdge('traversed', 'customer360_Entities/e1', 'canonical_entities/h1', 'same_as', 'same_as/2'),
+      ],
+    );
+    const { nodes } = buildGraph([bridgeFrag]);
+    const byId = (id: string) => nodes.find((n) => n.id === id);
+    expect(byId('Contact/c1')?.graph).toBe('structured'); // CRM record (fragment fallback)
+    expect(byId('customer360_Entities/e1')?.graph).toBe('unstructured'); // KG entity — NOT structured
+    expect(byId('canonical_entities/h1')?.graph).toBe('bridge'); // shared-entity hub
+  });
+
   it('the question node carries type "question" and record nodes carry type "record"', () => {
     const frag = makeFragment('unstructured', 'Chunk', ['Chunk/c1'], [
       makeEdge('hybrid', 'question/current', 'Chunk/c1', 'hybrid'),

@@ -178,9 +178,10 @@ export function GraphViz({
       y: cy + Math.sin(i * golden) * (40 + 26 * Math.sqrt(i)),
     }));
     const simLinks: SimLink[] = graph.edges.map((e) => ({ source: e.source, target: e.target }));
-    // Origin-banded: structured LEFT, unstructured (+ question anchor) RIGHT — reads
-    // as two graphs side by side even absent a same_as edge. No fabricated links.
-    const bandX = (n: SimNode) => (n.graph === 'structured' ? WORLD_W * 0.27 : WORLD_W * 0.73);
+    // Origin-banded: structured LEFT, canonical_entities hub CENTER, unstructured
+    // (+ question anchor) RIGHT — same_as edges fan into the hub from both sides.
+    const bandX = (n: SimNode) =>
+      n.graph === 'structured' ? WORLD_W * 0.2 : n.graph === 'bridge' ? WORLD_W * 0.5 : WORLD_W * 0.8;
     const sim = forceSimulation<SimNode>(simNodes)
       .force('link', forceLink<SimNode, SimLink>(simLinks).id((d) => d.id).distance(90).strength(0.6))
       .force('charge', forceManyBody<SimNode>().strength(-340))
@@ -482,11 +483,15 @@ export function GraphViz({
                   const fill =
                     n.graph === 'structured'
                       ? 'var(--graph-structured)'
-                      : 'var(--graph-unstructured)';
+                      : n.graph === 'bridge'
+                        ? 'var(--muted-foreground)'
+                        : 'var(--graph-unstructured)';
                   const textFill =
-                    n.graph === 'structured'
-                      ? 'var(--graph-structured-foreground)'
-                      : 'var(--graph-unstructured-foreground)';
+                    n.graph === 'bridge'
+                      ? 'var(--background)'
+                      : n.graph === 'structured'
+                        ? 'var(--graph-structured-foreground)'
+                        : 'var(--graph-unstructured-foreground)';
                   const onActivate = () => onOpenSource?.(citationsForNode(n));
                   return (
                     <g

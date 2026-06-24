@@ -72,11 +72,12 @@ export function layout(
     kind: e.kind,
   }));
 
-  // Origin-banded layout: structured nodes settle in the LEFT band, unstructured
-  // (and the synthetic question anchor, which feeds the chunks) in the RIGHT band.
-  // This reads as "two graphs side by side" even when no same_as edge joins them;
-  // when a cross-graph edge DOES exist it visibly crosses the gap. No fabricated edges.
-  const bandX = (n: SimNode) => (n.graph === 'structured' ? width * 0.27 : width * 0.73);
+  // Origin-banded layout: structured LEFT, the canonical_entities hub CENTER,
+  // unstructured (and the synthetic question anchor, which feeds the chunks) RIGHT.
+  // Reads as two graphs joined through the shared-entity hub; same_as edges fan in
+  // from both sides and visibly cross the gap. No fabricated edges.
+  const bandX = (n: SimNode) =>
+    n.graph === 'structured' ? width * 0.2 : n.graph === 'bridge' ? width * 0.5 : width * 0.8;
 
   const sim = forceSimulation<SimNode>(simNodes)
     .force(

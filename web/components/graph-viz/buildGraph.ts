@@ -34,10 +34,14 @@ export type EdgeKind = RetrievalPathEdgeT['kind'];
 // ── Engine-neutral graph shape (consumed by layout.ts + GraphViz.tsx) ────────
 export type VizNodeType = 'record' | 'question';
 
+// 'bridge' = the canonical_entities hub that joins the two graphs (rendered neutral,
+// in the CENTER band, so same_as edges visibly fan in from both sides).
+export type NodeOrigin = 'structured' | 'unstructured' | 'bridge';
+
 export interface VizNode {
   id: string;
   type: VizNodeType;
-  graph?: 'structured' | 'unstructured';
+  graph?: NodeOrigin;
   collection: string;
   label: string;
 }
@@ -79,6 +83,19 @@ export const QUESTION_NODE_ID = 'question/current';
 
 const collectionOf = (id: string): string =>
   id.includes('/') ? id.split('/')[0] : id;
+
+// Authoritative per-node origin from the COLLECTION name — overrides the fragment's
+// declared `graph`, which is unreliable for the bridge fragment (bridgeResolve emits
+// graph:'structured' even though its customer360_Entities endpoints are unstructured).
+//  - canonical_entities  → 'bridge' (the shared-entity hub, neutral/center)
+//  - customer360_*        → 'unstructured' (AutoGraph KG: Chunks, Documents, Entities)
+//  - anything else        → undefined → defer to the fragment's declared graph
+//    (Account, Contact, UsageFact, NPS, Contract, Opportunity, … are all structured)
+function originByCollection(coll: string): NodeOrigin | undefined {
+  if (coll === 'canonical_entities') return 'bridge';
+  if (coll.startsWith('customer360_')) return 'unstructured';
+  return undefined;
+}
 
 // ── buildGraph ────────────────────────────────────────────────────────────────
 //
@@ -141,16 +158,13 @@ export function buildGraph(retrievalPath: RetrievalPathFragmentT[]): VizGraph {
   const seenNodeIds = new Set<string>();
   const nodes: VizNode[] = [];
 
-  const emitNode = (id: string, type: VizNodeType, graph?: 'structured' | 'unstructured') => {
+  const emitNode = (id: string, type: VizNodeType, graph?: NodeOrigin) => {
     if (seenNodeIds.has(id)) return;
     seenNodeIds.add(id);
-    nodes.push({
-      id,
-      type,
-      graph,
-      collection: collectionOf(id),
-      label: collectionOf(id),
-    });
+    const coll = collectionOf(id);
+    // Collection is authoritative; fragment graph is the fallback for unknown collections.
+    const origin = originByCollection(coll) ?? graph;
+    nodes.push({ id, type, graph: origin, collection: coll, label: coll });
   };
 
   for (const e of edges) {
