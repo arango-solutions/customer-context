@@ -33,7 +33,15 @@ import { askQuestion, Q7_ANCHOR_PROMPT } from '../agent/src/index.js';
 // ── Config ────────────────────────────────────────────────────────────────────
 
 const N_RUNS = parseInt(process.env.BASELINE_RUNS ?? '3', 10);
+// Set LATENCY_LABEL=AFTER_PREWARM when re-running after PERF-01 changes.
+const LABEL = (process.env.LATENCY_LABEL ?? 'BEFORE_PREWARM') as 'BEFORE_PREWARM' | 'AFTER_PREWARM';
 const OUTPUT_DIR = path.join(__dirname, 'output');
+// Write to latency-before.json or latency-after.json based on label; also write the
+// generic latency-baseline.json as the canonical "latest" for backwards compatibility.
+const LABEL_FILE = path.join(
+  OUTPUT_DIR,
+  LABEL === 'AFTER_PREWARM' ? 'latency-after.json' : 'latency-before.json',
+);
 const OUTPUT_FILE = path.join(OUTPUT_DIR, 'latency-baseline.json');
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -54,7 +62,8 @@ interface BaselineRecord {
   min_ms: number;
   median_ms: number;
   max_ms: number;
-  label: 'BEFORE_PREWARM';
+  label: 'BEFORE_PREWARM' | 'AFTER_PREWARM';
+  note?: string;
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -73,7 +82,7 @@ async function main(): Promise<void> {
   console.log('=== Customer360 PERF-01 latency baseline ===');
   console.log(`Question: Q7_ANCHOR_PROMPT (structured-only anchor)`);
   console.log(`Runs:     ${N_RUNS}`);
-  console.log(`Label:    BEFORE_PREWARM (v1 baseline)\n`);
+  console.log(`Label:    ${LABEL}\n`);
 
   const runs: RunResult[] = [];
 
@@ -104,10 +113,10 @@ async function main(): Promise<void> {
   console.log('\n─── BASELINE SUMMARY ───────────────────────────────────────');
   console.log(`BASELINE total_ms median=${med_ms}`);
   console.log(`BASELINE total_ms min=${min_ms}  max=${max_ms}`);
-  console.log(`Label:   BEFORE_PREWARM (v1 baseline — before PERF-01 changes)`);
+  console.log(`Label:   ${LABEL}`);
   console.log('────────────────────────────────────────────────────────────\n');
 
-  // Persist the record for Task 2 after/before comparison and SUMMARY inclusion.
+  // Persist the record for before/after comparison and SUMMARY inclusion.
   mkdirSync(OUTPUT_DIR, { recursive: true });
 
   const record: BaselineRecord = {
@@ -119,11 +128,13 @@ async function main(): Promise<void> {
     min_ms,
     median_ms: med_ms,
     max_ms,
-    label: 'BEFORE_PREWARM',
+    label: LABEL,
   };
 
   writeFileSync(OUTPUT_FILE, JSON.stringify(record, null, 2));
+  writeFileSync(LABEL_FILE, JSON.stringify(record, null, 2));
   console.log(`Baseline persisted → ${OUTPUT_FILE}`);
+  console.log(`Labeled copy       → ${LABEL_FILE}`);
 }
 
 main().catch((err: unknown) => {
