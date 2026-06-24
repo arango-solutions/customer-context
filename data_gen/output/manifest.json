@@ -1522,7 +1522,7 @@
     "spine_events": [],
     "event_date": "2023-07-12"
   },
-  "meridian_slack_escalation_escalation_001.txt": {
+  "escalation_001.txt": {
     "module": "meridian_slack_escalation",
     "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
     "entity_id": "633f43bd-5cbd-579e-9105-2ded0f2e7c76",
