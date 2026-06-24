@@ -13,7 +13,9 @@ The zero-churn variant (UPDATE-PIPELINE.md §ADD "Zero-churn variant"):
 Concrete pipeline (UPDATE-PIPELINE.md §ADD):
   Stage 0 — health check
   Stage 1 — upload the pre-staged doc via File Manager (durable; NOT import-multiple)
-  Stage 2 — corpus build  incremental=True  modules=[module]  cluster_threshold=1
+  Stage 2 — corpus build  incremental=True  file_ids=[new doc]  cluster_threshold=1
+             (NO modules= arg — module tagging via import-multiple is a no-op on
+              this cluster; mirror the proven File Manager path, re-stamp post-build)
   Stage 3 — rag-strategizer analyze + wait for strategy to stabilize
   Stage 4 — read back partition_ids for the module (do NOT assume _0_a)
   Stage 5 — partition-prefix-scoped purge (STARTS_WITH partition_id @modulePrefix)
@@ -394,7 +396,7 @@ def main() -> int:
         print("[add] Planned step sequence:")
         print("  Stage 0 — health check AutoGraph")
         print("  Stage 1 — upload pre-staged doc via File Manager (durable path)")
-        print("  Stage 2 — corpus build: incremental=True, modules=[module], cluster_threshold=1")
+        print("  Stage 2 — corpus build: incremental=True, file_ids=[new doc], cluster_threshold=1 (no modules= arg)")
         print("  Stage 3 — rag-strategizer analyze + wait for strategy to stabilize")
         print("  Stage 4 — read back partition_ids from customer360_rags for module")
         print("  Stage 5 — partition-prefix-scoped purge (STARTS_WITH partition_id prefix)")
@@ -439,11 +441,19 @@ def main() -> int:
     print(f"[add]   uploaded — file_id={file_id}  ({wall_clocks['upload']:.0f}ms)")
 
     # Stage 2 — corpus build (incremental=True is the ADD-lane knob)
-    print(f"[add] Stage 2 — corpus build (incremental=True, modules=[{module!r}], cluster_threshold=1) ...")
+    # NOTE: do NOT pass modules=[module]. On this cluster doc->module tagging is
+    # done at import-multiple, which is a silent no-op here; the proven-GREEN
+    # full build (build_unstructured.py) ingests via File Manager file_ids with
+    # NO modules= arg and reconstructs module/account identity AFTER the build
+    # (repair_kg_attribution.py). Passing modules=[new-module] filtered on a
+    # module with zero member docs and the build inserted 0 docs
+    # ("No documents were inserted into the database"). See memory
+    # add-lane-modules-filter-fails. We mirror the proven file_ids path and keep
+    # incremental=True; eval-gate AFTER is the no-corruption guard.
+    print(f"[add] Stage 2 — corpus build (incremental=True, file_ids, cluster_threshold=1) ...")
     t0 = time.monotonic()
     resp, _ = client.create_corpus_build(
         file_ids=[file_id],
-        modules=[module],
         incremental=True,
         embedding_strategy="first_chunk",
         top_k=7,
