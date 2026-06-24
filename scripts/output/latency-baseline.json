@@ -1,0 +1,30 @@
+{
+  "captured_at": "2026-06-24T00:04:58.180Z",
+  "phase": "11-04",
+  "question": "Q7_ANCHOR_PROMPT",
+  "n_runs": 3,
+  "runs": [
+    {
+      "run": 1,
+      "total_ms": 77814,
+      "refused": false,
+      "citation_count": 14
+    },
+    {
+      "run": 2,
+      "total_ms": 121531,
+      "refused": false,
+      "citation_count": 13
+    },
+    {
+      "run": 3,
+      "total_ms": 115322,
+      "refused": false,
+      "citation_count": 13
+    }
+  ],
+  "min_ms": 77814,
+  "median_ms": 115322,
+  "max_ms": 121531,
+  "label": "BEFORE_PREWARM"
+}
