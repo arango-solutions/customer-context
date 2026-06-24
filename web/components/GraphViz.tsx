@@ -254,13 +254,28 @@ export function GraphViz({
     [retrievalPath],
   );
 
+  // Per-node display detail (key fields + content text) the agent attached.
+  type NodeDetail = { fields?: { label: string; value: string }[]; text?: string };
+  const detailForNode = React.useCallback(
+    (id: string): NodeDetail | undefined => {
+      for (const f of retrievalPath) {
+        const det = (f as { nodeDetails?: Record<string, NodeDetail> }).nodeDetails?.[id];
+        if (det) return det;
+      }
+      return undefined;
+    },
+    [retrievalPath],
+  );
+
   // ── Node → citations for the drawer. Real citation if present; otherwise a
   // synthesized entry enriched with the originating query (aql) + connections
   // (traversal) so EVERY node opens an informative drawer, not an empty one.
   const citationsForNode = React.useCallback(
     (node: VizNode): Citation[] => {
+      const detail = detailForNode(node.id); // { fields?, text? } | undefined
       const matches = citations.filter((c) => c._id === node.id);
-      if (matches.length > 0) return matches;
+      // Attach the display detail (content/fields) to whatever citation we open.
+      if (matches.length > 0) return matches.map((c) => ({ ...c, ...(detail ?? {}) }));
       const conns = describeConnections(node.id);
       const query = queryForNode(node.id);
       return [
@@ -270,10 +285,11 @@ export function GraphViz({
           _id: node.id,
           aql: query ?? '— this node is a traversal endpoint; no standalone retrieval query —',
           traversal: conns.length ? `Connections: ${conns.join('; ')}` : undefined,
+          ...(detail ?? {}),
         },
       ];
     },
-    [citations, describeConnections, queryForNode],
+    [citations, describeConnections, queryForNode, detailForNode],
   );
 
   // ── Pointer → world-space conversion (accounts for pan/zoom) ───────────────

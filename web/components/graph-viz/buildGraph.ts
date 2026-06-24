@@ -201,5 +201,17 @@ export function buildGraph(retrievalPath: RetrievalPathFragmentT[]): VizGraph {
     });
   }
 
+  // Drop isolated nodes (no incident edge) when the graph HAS edges — a floating
+  // record (e.g. an entityLookup account hub that was resolved but never traversed)
+  // shows no relationship and only clutters. The rail's Path view still lists them all.
+  if (edges.length > 0) {
+    const connected = new Set<string>();
+    for (const e of edges) {
+      connected.add(e.source);
+      connected.add(e.target);
+    }
+    return { nodes: nodes.filter((n) => connected.has(n.id)), edges };
+  }
+
   return { nodes, edges };
 }

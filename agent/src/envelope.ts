@@ -24,12 +24,30 @@ export type GraphKind = z.infer<typeof GraphEnum>;
  * A single grounding anchor: the real ArangoDB _id that supports a claim, plus
  * the exact AQL that produced it and (optionally) the traversal description.
  */
+/** Display-only key/value fact shown in the source drawer (e.g. "Tier: Enterprise"). */
+export const NodeDetailField = z.object({ label: z.string(), value: z.string() });
+export type NodeDetailFieldT = z.infer<typeof NodeDetailField>;
+
+/** Display-only per-node detail: a few key fields + a long-form text body (chunk
+ * content, document body, entity description, NPS verbatim). Additive — populated
+ * post-grounding by nodeLabels.ts; no grounding/eval/synthesis consumer reads it. */
+export const NodeDetail = z.object({
+  fields: z.array(NodeDetailField).optional(),
+  text: z.string().optional(),
+});
+export type NodeDetailT = z.infer<typeof NodeDetail>;
+
 export const CitationSchema = z.object({
   graph: GraphEnum,
   collection: z.string(),
   _id: z.string(), // the real ArangoDB _id (the grounding anchor)
   aql: z.string(), // the query that produced it
   traversal: z.string().optional(), // e.g. "Chunk -PART_OF-> Document"
+  // Display-only enrichment (optional, additive). Real grounded citations don't set
+  // these; the viz attaches them when opening the drawer for a clicked node so a
+  // buyer can read the actual record content/fields. Not read by the grounding gate.
+  fields: z.array(NodeDetailField).optional(),
+  text: z.string().optional(),
 });
 export type Citation = z.infer<typeof CitationSchema>;
 
@@ -98,6 +116,10 @@ export const RetrievalPathFragment = z.object({
   // by nodeLabels.ts so the viz can name nodes instead of showing opaque _ids. Optional
   // + additive — tools never set it; no grounding/eval/synthesis consumer reads it.
   labels: z.record(z.string(), z.string()).optional(),
+  // nodeDetails: _id → { fields, text } shown in the source drawer when a viz node is
+  // clicked (chunk content, entity description, account/usage/NPS facts). Same lifecycle
+  // + safety as labels: display-only, optional, populated post-grounding.
+  nodeDetails: z.record(z.string(), NodeDetail).optional(),
 });
 export type RetrievalPathFragmentT = z.infer<typeof RetrievalPathFragment>;
 

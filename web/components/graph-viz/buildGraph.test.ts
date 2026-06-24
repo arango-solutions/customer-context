@@ -209,6 +209,7 @@ describe('buildGraph: node coverage', () => {
     const frag = {
       ...makeFragment('structured', 'Account', ['Account/a1', 'Account/a2'], [
         makeEdge('structural', 'Account/a1', 'UsageFact/u1', 'account'),
+        makeEdge('structural', 'Account/a2', 'NPS/n1', 'account'),
       ]),
       labels: { 'Account/a1': 'Meridian Logistics' },
     };
@@ -216,6 +217,17 @@ describe('buildGraph: node coverage', () => {
     expect(nodes.find((n) => n.id === 'Account/a1')?.label).toBe('Meridian Logistics');
     // a2 has no label entry → falls back to the collection
     expect(nodes.find((n) => n.id === 'Account/a2')?.label).toBe('Account');
+  });
+
+  it('drops isolated nodes (no incident edge) when the graph has edges', () => {
+    const frag = makeFragment('structured', 'Account', ['Account/a1', 'Account/lonely'], [
+      makeEdge('structural', 'Account/a1', 'UsageFact/u1', 'account'),
+    ]);
+    const { nodes } = buildGraph([frag]);
+    // Account/lonely is in _ids but touches no edge → dropped from the graph.
+    expect(nodes.find((n) => n.id === 'Account/lonely')).toBeUndefined();
+    expect(nodes.find((n) => n.id === 'Account/a1')).toBeDefined();
+    expect(nodes.find((n) => n.id === 'UsageFact/u1')).toBeDefined();
   });
 
   it('nodes carry graph origin (structured/unstructured) for CSS token consumption', () => {

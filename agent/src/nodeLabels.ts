@@ -15,7 +15,7 @@
 
 import { db, withDbRetry } from './db.js';
 import type { Envelope } from './envelope.js';
-import type { RetrievalPathFragmentT } from './envelope.js';
+import type { RetrievalPathFragmentT, NodeDetailT } from './envelope.js';
 
 const titleCase = (s: string): string =>
   s.replace(/\w\S*/g, (w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
@@ -72,6 +72,93 @@ export function labelFor(collection: string, d: Record<string, unknown>): string
   }
 }
 
+const humanType = (t: unknown): string =>
+  typeof t === 'string' ? titleCase(t.replace(/_/g, ' ')) : '';
+
+// Chunk/document content is stored with a leading `<!-- module=… -->` metadata
+// comment; strip it so the drawer shows the readable body.
+const cleanContent = (s: string): string =>
+  s.replace(/^\s*<!--[\s\S]*?-->\s*/, '').trim();
+
+/** Compose the source-drawer detail (key fields + long-form text) for a record. */
+export function detailFor(collection: string, d: Record<string, unknown>): NodeDetailT {
+  const f = (label: string, value: unknown) =>
+    value != null && value !== '' ? { label, value: String(value) } : null;
+  const fields = (arr: ({ label: string; value: string } | null)[]) => {
+    const kept = arr.filter((x): x is { label: string; value: string } => x != null);
+    return kept.length ? kept : undefined;
+  };
+  const str = (v: unknown) => (typeof v === 'string' && v ? v : undefined);
+
+  switch (collection) {
+    case 'canonical_entities':
+      return { fields: fields([f('Type', humanType(d.entity_type))]) };
+    case 'customer360_Entities':
+      return {
+        fields: fields([f('Type', humanType(d.entity_type))]),
+        text: str(d.description),
+      };
+    case 'customer360_Chunks':
+      return { text: str(d.content) ? cleanContent(d.content as string) : undefined };
+    case 'customer360_Documents':
+      return {
+        fields: fields([
+          f('File', d.file_name),
+          f('Module', d.module),
+          f('Source URL', d.citable_url),
+        ]),
+        text: str(d.content) ? cleanContent(d.content as string) : undefined,
+      };
+    case 'Account':
+      return {
+        fields: fields([
+          f('Segment', d.segment),
+          f('Industry', d.industry),
+          f('Product tier', d.current_product_tier),
+          f('ACV (USD)', d.current_acv_usd),
+          f('Health', d.health_band),
+          f('Trajectory', d.account_trajectory),
+          f('CSM owner', d.csm_owner),
+        ]),
+      };
+    case 'Contact':
+      return {
+        fields: fields([
+          f('Title', d.title),
+          f('Role', d.role),
+          f('Engagement', d.engagement_status),
+          f('Influence', d.influence),
+          f('Primary champion', d.is_primary),
+        ]),
+      };
+    case 'UsageFact':
+      return {
+        fields: fields([
+          f('Period', d.period),
+          f('Query volume (M)', d.query_volume_m),
+          f('Growth %', d.query_volume_growth_pct),
+          f('Trend', d.volume_trend),
+          f('Edition', d.edition),
+          f('Cluster nodes', d.cluster_nodes),
+        ]),
+      };
+    case 'NPS':
+      return {
+        fields: fields([
+          f('Period', d.survey_period),
+          f('NPS score', d.nps_score ?? d.score),
+          f('Band', d.score_band),
+          f('Sentiment aligned', d.sentiment_aligned),
+        ]),
+        text: str(d.verbatim_sentiment),
+      };
+    case 'Contract':
+      return { fields: fields([f('Tier', d.product_tier), f('Edition', d.edition)]) };
+    default:
+      return {};
+  }
+}
+
 const collOf = (id: string): string => (id.includes('/') ? id.split('/')[0] : id);
 
 /** Resolve display labels for every node id referenced by the retrieval path and
@@ -97,6 +184,7 @@ export async function enrichRetrievalPathLabels(
   }
 
   const labels: Record<string, string> = {};
+  const nodeDetails: Record<string, NodeDetailT> = {};
   for (const [collection, idSet] of byCollection) {
     const ids = [...idSet];
     try {
@@ -110,17 +198,22 @@ export async function enrichRetrievalPathLabels(
       }, `nodeLabels.${collection}`);
       for (const d of docs) {
         const id = d._id as string;
+        if (!id) continue;
         const label = labelFor(collection, d);
-        if (id && label) labels[id] = label;
+        if (label) labels[id] = label;
+        const detail = detailFor(collection, d);
+        if (detail.fields?.length || detail.text) nodeDetails[id] = detail;
       }
     } catch {
       // best-effort: a missing collection / transient error must NOT break the answer
     }
   }
 
-  if (Object.keys(labels).length === 0) return retrievalPath;
-  // Attach the full map to every fragment (tiny; buildGraph merges them).
-  return retrievalPath.map((f) => ({ ...f, labels }));
+  if (Object.keys(labels).length === 0 && Object.keys(nodeDetails).length === 0) {
+    return retrievalPath;
+  }
+  // Attach the maps to every fragment (tiny; the viz merges them).
+  return retrievalPath.map((f) => ({ ...f, labels, nodeDetails }));
 }
 
 /** Envelope post-processor: enrich retrievalPath labels. Returns the envelope unchanged
