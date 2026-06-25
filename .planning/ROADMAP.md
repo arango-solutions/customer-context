@@ -6,7 +6,7 @@ A graph-based Customer 360 demo over 100%-synthetic data: a Next.js/Vercel dashb
 
 - ✅ **v1.0 — Lean demo (SHIPPED 2026-06-22)** — Phases 1–7, 31 plans. Architecture research → synthetic data + linter → both graphs → canonical entity bridge → custom reasoning agent → Next.js/Vercel UI → grounding eval + demo hardening. 27/29 v1 requirements complete (AGENT-04 generated-AQL fallback and AGENT-06 Q11 timeline deferred to v2). Full detail: [milestones/v1.0-ROADMAP.md](./milestones/v1.0-ROADMAP.md) · requirements: [milestones/v1.0-REQUIREMENTS.md](./milestones/v1.0-REQUIREMENTS.md).
 
-- 🔄 **v2.0 — Live, Visible, Trustworthy (IN PROGRESS)** — Phases 8–15. Evolve the lean v1 demo into a product-grade showcase that updates live, shows the graph behind every answer, withstands a security audience, and proves its own correctness deterministically — on richer synthetic data.
+- 🔄 **v2.0 — Live, Visible, Trustworthy (IN PROGRESS)** — Phases 8–18. Evolve the lean v1 demo into a product-grade showcase that updates live, shows the graph behind every answer, withstands a security audience, and proves its own correctness deterministically — on richer synthetic data. **Tail re-aim (2026-06-25):** Phases 14–18 pivot from "finish the app" to "make ArangoDB's core-DB + AI-platform capabilities undeniable and nameable to a Zscaler buyer" — per `DEMO-STRATEGY.md`.
 
 ## v2.0 Phases
 
@@ -14,10 +14,14 @@ A graph-based Customer 360 demo over 100%-synthetic data: a Next.js/Vercel dashb
 - [x] **Phase 9: Data Depth & 3rd Account** — Add a 3rd synthetic account + deepen existing docs; linter-gated, building the data foundation v2 features depend on (completed 2026-06-23)
 - [x] **Phase 10: Answer-Provenance Edge Enrichment** — Enrich `hybridRetrieve` + `bridgeResolve` to return traversed edges; add `edges[]` to `RetrievalPathFragment` (completed 2026-06-23)
 - [x] **Phase 11: Graph Viz + UI Refresh + Latency** — React Flow cross-graph subgraph render, ArangoDB-brand UI refresh, confidence score, and latency pass (completed 2026-06-24)
-- [ ] **Phase 12: Simulated CDC + What-Changed Diff** — File-watch CDC, live update trigger, and before/after diff of changed claims/citations
-- [ ] **Phase 13: Injection-Resistance + Adversarial Mode** — Harden the agent against prompt injection from docs; add audience-facing "try-to-break-it" mode
-- [ ] **Phase 14: Temporal Queries** — Time-scoped question support over multi-year synthetic data with period-correct sourcing
-- [ ] **Phase 15: Analyst Polish + Demo Control Panel** — Multi-turn follow-ups, demo control panel (presets, reset, CDC trigger)
+- [x] **Phase 12: Simulated CDC + What-Changed Diff** — File-watch CDC, live update trigger, and before/after diff of changed claims/citations (completed 2026-06-24)
+- [x] **Phase 13: Injection-Resistance + Adversarial Mode** — Harden the agent against prompt injection from docs; add audience-facing "try-to-break-it" mode (completed 2026-06-25)
+- [ ] **Phase 14: Graph-Depth + Explainability** — Real multi-hop structured traversal + single cross-graph join across `same_as`, then reveal the AQL with one-engine labels and the join as hero (GRAPH-03, EXPL-01)
+- [ ] **Phase 15: GraphRAG via AutoGraph Communities** — Hierarchical global↔local retrieval over the built-but-unqueried Leiden community layer; names the GenAI platform (RAG-01)
+- [ ] **Phase 16: Time-Travel (Temporal Graph)** — Effective-dated edges + `@asOf` traversal on Northwind; "as-of renewal" / "2023→2025 evolution" as a versioned graph traversal, honestly framed (TEMP-01)
+- [ ] **Phase 17: Agent Memory on ArangoDB** — Answers/entities/past-questions persisted as a graph; multi-turn follow-ups powered by graph-resident memory ("agentic brain on Arango") (MEM-01, subsumes AGENT-08)
+- [ ] **Phase 18: Presenter Control Panel + CDC Reframe** — Presets (wiring every capability moment) + reset + CDC trigger; CDC banner/talk-track reframed to name one-engine propagation (DEMO-01, CDC-04)
+- [ ] **Demo Assets track** *(parallel, non-code)* — Talk track, maps-to-your-data one-pager, competitive one-liner, capability-naming notes (ASSET-01)
 
 ## Phase Details
 
@@ -136,12 +140,24 @@ Plans:
   3. A re-ask after the update does not corrupt a previously-correct answer — the same question before and after the update returns consistent facts from the data that was not changed.
   4. A "what-changed" diff shows which specific claims or citations in an answer changed as a result of the update (before/after), grounded in the actual updated records.
 
-**Plans**: TBD
+**Plans**: 3 plans
+
+**Wave 1** *(gates the phase — resolves the D-03 STATE blocker)*
+- [ ] 12-01-PLAN.md — Build + LIVE-validate the incremental ADD lane (zero-churn tiny-module variant) + presenter reset; proves no full rebuild, no corruption, D-03 resolved (CDC-01)
+
+**Wave 2** *(blocked on 12-01)*
+- [ ] 12-02-PLAN.md — "Simulate update" trigger route (fixed scenario, fire-and-return-202, async) + status poll; security threat model on the only new attack surface (CDC-02)
+
+**Wave 3** *(blocked on 12-02)*
+- [ ] 12-03-PLAN.md — Grounded client-side what-changed diff + WhatChangedBanner + AnswerBody highlights + useAsk per-question cache + page wiring; eval-gate GREEN before/after (CDC-02, CDC-03)
+
 **Risk**: Medium — the idempotent pipeline (load_structured.py, build_unstructured.py AutoGraph incremental, stamp_account_id.py) already exists and was designed for this. The new work is the file-watch CDC layer, the UI/API trigger, and the before/after diff logic. The diff (CDC-03) is the highest-design-effort piece: it requires storing the pre-update answer envelope and comparing grounded citations. **Planning decision required up front (scope tweak, 2026-06-22):** pick the envelope-storage approach before building CDC-03 — in-memory session vs. a lightweight ArangoDB collection (no answer-envelope persistence exists in v1). Decide at `/gsd-plan-phase 12`.
 
 ### Phase 13: Injection-Resistance + Adversarial Mode
 
 **Goal**: The agent ignores adversarial instructions embedded in customer documents, and the demo can include a live audience moment where someone tries to break it and watches it refuse cleanly.
+
+> **SEC-02 hidden for demo (2026-06-25):** A preview smoke showed an off-script attack getting *answered* — the live path enforces `_id`-grounding only (semantic faithfulness is eval-only, not live). Judged overkill for a presenter-driven demo, so the "try-to-break-it" UI is hidden behind `ADVERSARIAL_MODE_ENABLED=false` (`web/app/page.tsx`). **SEC-01 hardening + `enforceGrounding` stay always-on.** Flip the flag to restore. See REQUIREMENTS.md §SEC-02 and [[live-path-id-grounding-only]].
 **Depends on**: Phase 7 (enforceGrounding pure-code gate + adversarial.ts — the foundation); Phase 11 (the UI mode for SEC-02 needs the refreshed UI shell); Phase 8 (eval gate covers adversarial refusal correctness)
 **Requirements**: SEC-01, SEC-02
 **Success Criteria** (what must be TRUE):
@@ -151,40 +167,106 @@ Plans:
   3. A "try-to-break-it" UI mode lets a presenter submit injection / out-of-scope / PII questions and watch the system refuse cleanly (refused:true, zero fabricated citations, clean structured message) — an interactive audience-facing trust demonstration.
   4. Legitimate questions continue to answer correctly through the same path — SEC-01 hardening does not regress grounded answers.
 
-**Plans**: TBD
-**Risk**: Medium — Phase 7's faithfulness.ts already strips injection markers from evidence (CR-01 fix in 07-01 SUMMARY). The incremental work is: document-level injection hardening in the retrieval path (not just evidence wrapping), the UI mode toggle for SEC-02, and a suite of curated adversarial payloads that are demonstrably defeatable. The "try-to-break-it" mode is mostly a UI/UX design decision.
+**Plans**: 4 plans
+
+**Wave 1** *(parallel — no shared files: agent-side vs data-side)*
+- [x] 13-01-PLAN.md — SEC-01 D-01 defense-in-depth: shared sanitizeUntrustedContent + content-wrap in runHybridRetrieve + DATA-not-instructions section in PLANNER_SYSTEM_PROMPT (shared-factory; stream.ts/grounding.ts untouched) — DONE 2026-06-25 (9c947b0, e06fed0)
+- [x] 13-02-PLAN.md — SEC-01 D-03 planted-payload corpus: 3-4 injection payloads in ONE allowlisted meridian_slack doc + manifest + LIVE-KG ingest + hybrid-probe retrievability gate
+
+**Wave 2** *(13-03 blocked on 13-01+13-02; 13-04 blocked on 13-01)*
+- [x] 13-03-PLAN.md — SEC-01 deterministic eval: 2 direct-question injection cases + doc-injection live case (pure-code invariants, never the stochastic judge) + eval-gate GREEN no-regression (SC-1/SC-2/SC-4)
+- [x] 13-04-PLAN.md — SEC-02 D-02/D-04 adversarial UI: labeled toggle/banner + AttackChips + free-form, presentation-only `adversarial` flag threaded to /api/ask, client-side attack-type label in RefusalPanel (adversarial-only) + manual streaming smoke (SC-3)
+
+**Risk**: Medium — Phase 7's faithfulness.ts already strips injection markers from evidence (CR-01 fix in 07-01 SUMMARY). PLANNING FINDINGS: (1) injection resistance is STRUCTURAL — the read-only 4-tool surface + pure-code enforceGrounding backstop already make a confident-wrong/exfil answer impossible; D-01 prompt+sanitizer are defense-in-depth on top, never a replacement (enforceGrounding NOT loosened). (2) The #1 "looks done but isn't" trap: a planted file in data_gen/output/ is NOT retrievable until ingested+embedded into the LIVE KG — 13-02 gates on a hybrid-probe retrievability check, not a file on disk. (3) Use the allowlisted module `meridian_slack` (the existing meridian_slack_escalation module already fails test_module_names_valid). (4) SEC-01 asserted via deterministic pure-code invariants only (the ~5% stochastic judge is never used). (5) The eval gate is non-streaming only — the SEC-02 live path carries a MANDATORY manual streaming smoke ([[agent-loop-shared-factory]]). (6) The attack-type label is client-side only — no field added to the locked Envelope/SynthEnvelopeSchema.
 **UI hint**: yes
 
-### Phase 14: Temporal Queries
+> **Tail re-aim (2026-06-25):** Phases 14–18 were restructured (was: 14 Temporal, 15 Analyst Polish + Control Panel) after a capability scout found the demo *under-uses* ArangoDB. The structured graph has 7 vertex + 7 edge collections but `structuredQuery` did flat `FILTER account_id ==` scans (zero traversal); the cross-graph "join" lived in LLM prose, not AQL; and AutoGraph's Leiden `Communities` layer was built but never queried. The new tail closes these gaps and makes each capability nameable. Sequenced by sell-value-per-effort. See `DEMO-STRATEGY.md`.
 
-**Goal**: The agent answers time-scoped questions over the multi-year synthetic data with fully-sourced, period-correct results — enabling "how did this account evolve" and "what did it look like at renewal" demo moments.
-**Depends on**: Phase 9 (3rd account + deeper data — temporal queries need rich multi-year history to traverse); Phase 5 (structured curated AQL tools — time-scoped filters extend the existing patterns); Phase 8 (eval gate covers new temporal questions)
+### Phase 14: Graph-Depth + Explainability
+
+**Goal**: We stop querying our graph database like SQL and start showing it doing graph work — the structured retrieval becomes a real multi-hop named-graph traversal, the structured↔unstructured join becomes a single AQL query across the `same_as` bridge, and the UI reveals the actual AQL behind every answer with retrieval-mode labels and the cross-graph join as the hero. The "no black box — one database, one query language" proof.
+**Depends on**: Phase 5 (curated AQL tools — the surface to deepen); Phase 10 (edge-honesty contract — no fabricated traversals); Phase 11 (viz + UI shell to host the AQL reveal); Phase 8 (eval gate stays green through retrieval changes)
+**Requirements**: GRAPH-03, EXPL-01
+**Success Criteria** (what must be TRUE):
+
+  1. `structuredQuery` traverses the existing structured edges (`Account → HAS_CONTRACT → Contract → HAS_USAGE → UsageFact`, `→ HAS_OPPORTUNITY → Opportunity`, `→ HAS_CONTACT → Contact`) via a real named-graph traversal — not six flat per-collection `FILTER account_id ==` scans — returning the same grounded records (honesty bar: no fabricated edges).
+  2. The structured↔unstructured join is executed as a single AQL query traversing the `same_as` bridge (hub → KG entity → mentions → chunks/documents), not stitched in agent TypeScript.
+  3. The UI reveals each retrieval step's actual AQL ("show me the query") from `retrievalPath.query`, labels each step by retrieval mode (vector / BM25 / graph traversal), and spotlights the cross-graph join — fully data-driven, no per-question hardcoding.
+  4. The eval gate (Phase 8) stays green and the streaming path is smoke-tested ([[agent-loop-shared-factory]]) — the deepened retrieval does not regress grounding.
+
+**Plans**: TBD
+**Risk**: Low–Med — the edges already exist and are populated (`load_structured.py`, 7 edge collections; `verify_graphs.py` asserts non-empty), so the traversal rewrite is mechanical; the single cross-graph join query is the only genuinely new AQL. Honesty constraint is strict (same grounded records, no invented traversals). Retrieval-path change rides the eval-gate + streaming-smoke discipline.
+**UI hint**: yes
+
+### Phase 15: GraphRAG via AutoGraph Communities
+
+**Goal**: Exercise the half of the AI platform we currently pay for and ignore — AutoGraph's Leiden community layer + summaries — so a "what are the themes across Meridian?" question does hierarchical global→local retrieval (community summary → drill to chunks) instead of uniform flat vector+BM25. Names ArangoDB's GenAI platform as what built the knowledge graph.
+**Depends on**: Phase 3 / build pipeline (AutoGraph builds `customer360_Communities` + `customer360_rags`); Phase 14 (AQL-reveal surface to show the hierarchical retrieval); Phase 8 (eval gate)
+**Requirements**: RAG-01
+**Success Criteria** (what must be TRUE):
+
+  1. A retrieval mode queries the `customer360_Communities` layer + community summaries for global/thematic questions and drills into chunks for local specifics — the community layer is no longer built-but-unqueried.
+  2. The hierarchical retrieval is visible in the AQL reveal + viz (community → chunk), and the talk track names ArangoDB's GenAI platform / AutoGraph.
+  3. Community summaries exist (generated at build time if absent) and are grounded — citations still trace to real records.
+  4. The eval gate stays green; legitimate questions still answer correctly through the existing flat path where appropriate.
+
+**Plans**: TBD
+**Risk**: Med–High — may require generating community summaries at build time and a routing decision (when to go global vs. local). The grounding bar applies to summary-derived claims. Keep the flat hybrid path as the default so this is additive.
+
+### Phase 16: Time-Travel (Temporal Graph)
+
+**Goal**: "Show me the Northwind account graph as it was at renewal" — and watch the traversal re-resolve when we flip the date. Implemented as ArangoDB's documented time-travel modeling pattern (effective-dated edges + `@asOf` traversal in plain AQL), framed honestly as a pattern the platform makes clean, not a native time machine.
+**Depends on**: Phase 9 (multi-year Northwind history); Phase 14 (the traversal + AQL-reveal surface the `@asOf` filter rides on); Phase 8 (eval gate covers a temporal question)
 **Requirements**: TEMP-01
 **Success Criteria** (what must be TRUE):
 
-  1. The agent answers a time-scoped question ("how did Northwind evolve from 2023 to 2025") with a period-correct, fully-sourced answer — every cited record is dated within the stated window.
-  2. The agent answers a point-in-time question ("what did the account look like at renewal") drawing on both the structured timeline (contract dates, usage facts) and the unstructured record (Slack threads, emails from that period) with citations.
-  3. Temporal claims are individually grounded — each claim cites a record with a date or period within the stated range; the eval gate flags claims that cite out-of-window records.
-  4. The eval gate (Phase 8) is extended to cover at least one temporal question and stays green.
+  1. The relevant Northwind structured edges carry `valid_from`/`valid_to` (effective-dated), derived from the dates already on the connected records; curated tools accept an optional `@asOf` bind parameter (default "now" — existing behavior unchanged when absent).
+  2. The agent answers "how did Northwind evolve 2023→2025" and "what did it look like at renewal" as a versioned graph traversal — every cited record is valid within the stated window; the `valid_from <= @asOf < valid_to` filter is visible in the revealed AQL.
+  3. Temporal claims are individually grounded — the eval gate flags claims citing out-of-window records — and is extended with at least one temporal question that stays green.
+  4. The pitch is honest: positioned as effective-dated modeling on one engine (not native bitemporality), parity-acknowledged vs. Neo4j, differentiated on "temporal + traversal + hybrid + cross-graph join, one AQL."
 
 **Plans**: TBD
-**Risk**: Medium — temporal filtering in AQL is straightforward (WHERE doc.date >= @start AND doc.date <= @end). The design challenge is the planner's ability to decompose time-scoped questions and cite records with date provenance. The LLM may still under-cite multi-period trend claims (the known faithfulness gap from 07-01-SUMMARY). Temporal queries may need a dedicated curated AQL tool pattern.
+**Risk**: High (relative to the tail) — the heaviest remaining item: synthetic-data coherence. The validity intervals across Account/Contract/Usage/Slack/email must line up so the as-of snapshot tells a consistent story (Phase-9-class generation effort, not engine effort). *(Opportunistic add at plan time: compute trends in AQL via COLLECT/WINDOW and cite the engine's number — a cheap grounding win on the known trend-claim faithfulness gap; not committed, flag during /gsd-plan-phase.)*
 
-### Phase 15: Analyst Polish + Demo Control Panel
+### Phase 17: Agent Memory on ArangoDB
 
-**Goal**: The demo is fully presenter-ready — a control panel gives instant access to preset scenarios, state reset, and the CDC trigger; multi-turn follow-ups let an analyst drill deeper into any answer; every interaction is still fully grounded.
-**Depends on**: Phase 11 (refreshed UI shell — control panel and multi-turn are UI additions); Phase 12 (CDC trigger is a control panel button); Phase 8 (eval gate stays green through multi-turn)
-**Requirements**: AGENT-08, DEMO-01
+**Goal**: Make ArangoDB the agent's brain, not just its retriever — persist each grounded answer + the entities/records it touched as a graph, embed past questions for related-Q&A recall, and power multi-turn follow-ups from that graph-resident memory. The "agentic brain on Arango" moment: write-path + vector + graph for agent state, one engine.
+**Depends on**: Phase 14 (graph-resident entities to link memory into); Phase 11 (UI shell for multi-turn); Phase 8 (eval gate covers a multi-turn scenario)
+**Requirements**: MEM-01 (subsumes AGENT-08), MEM-02 (conversation-history UI, revives 999.3)
 **Success Criteria** (what must be TRUE):
 
-  1. The agent supports conversational follow-ups ("why?", "show me the contract", "compare to the other account") with retained context across turns — each turn's answer is independently grounded (citations trace to real records, not to prior turns).
-  2. A demo control panel provides: one-click access to at least 6 preset question scenarios, a state reset that returns the UI to a clean start, and a CDC update trigger that initiates the Phase 12 live update moment.
-  3. A presenter can run the full demo arc — open demo, pick a preset, ask a follow-up, trigger an update, ask the same question again, see the diff — without touching the keyboard beyond those interactions.
-  4. The eval gate (Phase 8) covers at least one multi-turn scenario and stays green.
+  1. The agent writes state into ArangoDB — each answer envelope + the entities/records it cited stored as graph nodes; past questions embedded for retrieval — demonstrating the DB as the agent's backing store (the agent is no longer fully stateless).
+  2. Multi-turn follow-ups ("why?", "show me the contract", "compare to the other account") retain context across turns, each turn independently grounded (citations trace to real records, never to prior turns).
+  3. Related-Q&A / memory retrieval is a graph+vector query over the persisted memory, visible in the AQL reveal.
+  4. A conversation-history UI surface (MEM-02) lists past questions/answers — read back out of ArangoDB — so a presenter tracks the arc and revisits prior answers; doubles as a platform-visibility moment ("this history comes from the graph").
+  5. The eval gate covers at least one multi-turn scenario and stays green; the per-turn grounding invariant holds (no prior-turn ungrounded content leaks into a later grounded answer).
 
 **Plans**: TBD
-**Risk**: Medium — multi-turn (AGENT-08) requires the agent to maintain a conversation history that does not inflate the context unboundedly and does not allow a prior turn's ungrounded content to influence a later grounded answer. The demo control panel (DEMO-01) is mostly a UI build on top of existing primitives. The hardest part is enforcing the per-turn grounding invariant through multi-turn context.
+**Risk**: Med–High — new write-path on a previously read-only agent (the read-only credibility property must be preserved for *source* data; memory is a separate, agent-owned namespace). Scope risk: keep memory bounded and the per-turn grounding invariant strict. Revives AGENT-08 as a platform capability.
 **UI hint**: yes
+
+### Phase 18: Presenter Control Panel + CDC Reframe
+
+**Goal**: The demo is fully presenter-ready and the live-update moment finally *names ArangoDB* — a control panel gives one-click access to every capability moment (traversal, cross-graph join, GraphRAG, time-travel, memory) plus reset and the CDC trigger; the what-changed moment is reframed so the buyer attributes the propagation to one-engine consistency.
+**Depends on**: Phases 14–17 (the moments the presets wire up); Phase 12 (the built CDC pipeline + trigger to reframe); Phase 11 (UI shell)
+**Requirements**: DEMO-01, CDC-04
+**Success Criteria** (what must be TRUE):
+
+  1. A control panel provides one-click access to ≥6 preset scenarios spanning the capability moments, a state reset to a clean start, and the CDC update trigger.
+  2. A presenter can run the full demo arc — pick a preset, reveal the AQL, flip the time-travel date, trigger an update, ask a follow-up, see the diff — without touching the keyboard beyond those interactions.
+  3. The CDC what-changed banner + talk track name ArangoDB's role: one source change updates the structured graph, re-embedded vectors, and the BM25 view in one store — describing only what the pipeline genuinely does (no implied real-time WAL streaming).
+  4. The eval gate stays green and the streaming path is smoke-tested.
+
+**Plans**: TBD
+**Risk**: Low–Med — mostly a UI build on existing primitives (Phase 12 trigger, Phase 13 toggle/banner pattern). Placed last (per discussion 2026-06-25) so presets wire every capability moment in one clean build rather than being reworked as moments land. CDC-04 is presentation-only.
+**UI hint**: yes
+
+### Demo Assets track *(parallel, non-code — ASSET-01)*
+
+**Goal**: Make the sales narrative a first-class deliverable, not an afterthought — runs alongside Phases 14–18.
+**Requirements**: ASSET-01
+**Deliverables**: a talk track sequencing the aha moments across the 3-account arc (Northwind expansion / Meridian hidden-risk / Helio churn); a "maps to your Salesforce / Slack / contracts" one-pager that bridges demo → POC; a "3 systems + glue vs. one engine" competitive one-liner; capability-naming notes (ArangoDB GenAI platform, a platform-security slide for the Zscaler audience — RBAC / encryption / audit / SSO, ArangoGraph managed cloud, multi-model umbrella).
+**Risk**: Low — non-code; highest strategic leverage per `DEMO-STRATEGY.md §6.4`. Should track the capability moments as they land so the talk track stays accurate.
 
 ## Progress
 
@@ -194,10 +276,14 @@ Plans:
 | 9. Data Depth & 3rd Account | 3/3 | Complete   | 2026-06-23 |
 | 10. Answer-Provenance Edge Enrichment | 3/3 | Complete    | 2026-06-23 |
 | 11. Graph Viz + UI Refresh + Latency | 4/4 | Complete    | 2026-06-24 |
-| 12. Simulated CDC + What-Changed Diff | 0/TBD | Not started | - |
-| 13. Injection-Resistance + Adversarial Mode | 0/TBD | Not started | - |
-| 14. Temporal Queries | 0/TBD | Not started | - |
-| 15. Analyst Polish + Demo Control Panel | 0/TBD | Not started | - |
+| 12. Simulated CDC + What-Changed Diff | 3/3 | Complete | 2026-06-24 |
+| 13. Injection-Resistance + Adversarial Mode | 4/4 | Complete   | 2026-06-25 |
+| 14. Graph-Depth + Explainability | 0/TBD | Not started | - |
+| 15. GraphRAG via AutoGraph Communities | 0/TBD | Not started | - |
+| 16. Time-Travel (Temporal Graph) | 0/TBD | Not started | - |
+| 17. Agent Memory on ArangoDB | 0/TBD | Not started | - |
+| 18. Presenter Control Panel + CDC Reframe | 0/TBD | Not started | - |
+| Demo Assets track (parallel, non-code) | 0/TBD | Not started | - |
 
 ---
 
@@ -239,6 +325,8 @@ Plans:
 - [x] TBD (promote with /gsd-review-backlog when ready, or fold into Phase 11 UI-04) (completed 2026-06-24)
 
 ### Phase 999.3: Conversation history in demo UI (BACKLOG)
+
+> **Update 2026-06-25:** The *multi-turn* half of this (AGENT-08) was un-demoted and folded into **Phase 17 (Agent Memory on ArangoDB / MEM-01)** — reframed as a platform capability (graph-resident agent memory) rather than UI polish. What remains in backlog is the optional *history list* UI affordance; revisit only if it serves a specific demo moment.
 
 **Goal:** The demo should keep and display past questions/answers — a history list and/or multi-turn conversation — so a buyer can revisit prior questions during a live demo. Surfaced during Phase 10 review (2026-06-23).
 **Requirements:** TBD

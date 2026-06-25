@@ -18,6 +18,8 @@ A free-form question that can only be answered by joining the structured and uns
 
 **Goal:** Evolve the lean v1 demo into a product-grade showcase that updates live, *shows* the graph behind every answer, withstands a security audience, and proves its own correctness deterministically.
 
+**v2.0 progress (updated 2026-06-23):** Phases 8–10 complete. Phase 8 (deterministic eval gate), Phase 9 (3rd account + data depth), **Phase 10 (answer-provenance edge enrichment — `edges[]` on `RetrievalPathFragment`; `hybridRetrieve`/`bridgeResolve` emit real traversed edges; `structuredQuery` synthesizes honest `structural` edges; D-04 honesty guard now enforced at runtime in both agent loops; SC-5 edge/grounding isolation verified)**. Edge *data* now ships in every envelope; the React Flow render of it is Phase 11 (VIZ-02). Two UI gaps surfaced in Phase 10 review and captured to backlog: inline per-claim citation markers (999.2) and conversation history (999.3). Next: Phase 11 — Graph Viz + UI Refresh + Latency.
+
 **Target features (8 areas):**
 1. **Simulated CDC + what-changed diff** — watch the synthetic source files (the system-of-record), capture the delta, propagate through the existing UPSERT/incremental pipeline, and show which claims/citations changed in the answer. Real change-capture semantics; live demo moment.
 2. **Answer-provenance graph viz** — React Flow cross-graph subgraph rendered strictly from the grounded `retrievalPath` (the actual nodes/edges traversed to produce the answer; never a decorative re-query).
@@ -126,4 +128,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-16 — pivot to ArangoDB-domain lean AutoGraph-hybrid demo (internal/broad/reusable audience; 6 questions, 2 accounts, curated-AQL + citation cards; ~5–6 wk). Supersedes the post-Phase-1 state.*
+*Last updated: 2026-06-23 — Phase 10 complete (answer-provenance edge enrichment); v2.0 Phases 8–10 done, Phase 11 (Graph Viz + UI Refresh + Latency) next. Prior: 2026-06-16 pivot to ArangoDB-domain lean AutoGraph-hybrid demo.*

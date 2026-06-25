@@ -10,6 +10,14 @@ reviewed_at: 2026-06-23
 
 # Phase 11 — UI Design Contract
 
+> **⚠ EXECUTION ADDENDUM (2026-06-24) — supersedes the React Flow / rail-toggle specifics below.**
+> During the Plan 03 human-verify checkpoint the user redirected the cross-graph viz. The viz as SHIPPED:
+> - **Render engine: d3-force in React-controlled SVG**, NOT React Flow. `@xyflow/react` + `@dagrejs/dagre` were removed; the only viz dep is `d3-force`. The deleted React Flow node/edge components (KindEdge/RecordNode/SuperNode/QuestionNode) are folded into `GraphViz.tsx`'s SVG.
+> - **Placement: full-width directly UNDER the answer** in `page.tsx`, **always visible** — NOT in the rail behind a Graph/Path toggle (the toggle + `GraphPathToggle` were removed; the rail keeps the textual `RetrievalPathByGraph`). This overrides D-05.
+> - **Origin-banded layout**: structured (green) left / `canonical_entities` hub (neutral) center / unstructured (slate-blue) right. Node origin is derived from the **collection** (`customer360_*`→unstructured, `canonical_entities`→bridge, else structured), not the fragment's `graph` field.
+> - **Canvas navigation**: pan (drag bg), scroll-zoom, ⤢ fit, draggable nodes.
+> What is UNCHANGED and still authoritative below: the honesty edge-style language (traversed=solid, structural=dashed, hybrid=dotted; never mislabel), the always-visible 3-kind legend copy, node-click→shared SourceDrawer, edge-hover `{label} · {collection}` tooltip, reduced-motion behaviour, the brand token swap (#007339), the TrustChip, and the AnswerBody numbered-claim-list (D-12).
+
 > Visual and interaction contract for the **graph viz + brand refresh + latency + trust-chip** phase. Honors LOCKED decisions D-01..D-12 in `11-CONTEXT.md` and **inherits the established Phase 6 contract** (`06-UI-SPEC.md`) — this phase EXTENDS that contract, it does not redefine it. Verified by gsd-ui-checker.
 
 This phase is **presentation + latency only** — no change to the agent's answer *data* (envelope/grounding/eval). It adds four things on top of the v1 surface: (1) a **React Flow cross-graph subgraph** (VIZ-02), (2) an **ArangoDB-brand token pass + targeted polish** (UI-04), (3) a **per-answer trust chip** (UI-06), and (4) a **latency pass** (PERF-01). It also folds in backlog 999.2 by re-rendering `AnswerBody` as a **numbered claim list** (D-12). The CARDINAL RULE holds throughout: the persistent answer is the terminal-gated grounded envelope; the viz renders once from that terminal envelope (D-07), never mid-stream.

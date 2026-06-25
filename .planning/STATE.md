@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Live, Visible, Trustworthy
 status: executing
-last_updated: "2026-06-23T19:40:09.617Z"
-last_activity: 2026-06-23 -- Phase 10 planning complete
+last_updated: "2026-06-25T16:31:57.802Z"
+last_activity: 2026-06-25
 progress:
-  total_phases: 9
-  completed_phases: 2
-  total_plans: 7
-  completed_plans: 4
-  percent: 22
+  total_phases: 11
+  completed_phases: 5
+  total_plans: 18
+  completed_plans: 17
+  percent: 45
 ---
 
 # Project State
@@ -20,21 +20,22 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-22)
 
 **Core value:** A free-form question only answerable by joining the structured and unstructured graphs returns a correct, fully-sourced answer — every fact traceable to the record and graph it came from.
-**Current focus:** Phase 10 — answer-provenance-edge-enrichment
+**Current focus:** Phase 14 — graph-depth-explainability (v2 tail RE-AIMED at nameable ArangoDB platform capabilities; see [[tail-platform-capability-pivot]] + DEMO-STRATEGY.md)
 
 ## Current Position
 
-Phase: 10 (answer-provenance-edge-enrichment) — CONTEXT GATHERED (ready to plan)
-Plan: none yet
-Status: Ready to execute
-Resume file: .planning/phases/10-answer-provenance-edge-enrichment/10-CONTEXT.md
-Last activity: 2026-06-23 -- Phase 10 planning complete
+Phase: 14 (graph-depth-explainability) — CONTEXT captured (14-CONTEXT.md), ready to plan. Phase 13 EXECUTED+SECURED; /gsd-verify-work 13 still optional/outstanding.
+Plan: 0 plans (next: /gsd-plan-phase 14)
+Status: 2026-06-25 ROADMAP/REQUIREMENTS RESTRUCTURED — v2 tail is now P14 Graph-Depth+Explainability / P15 GraphRAG / P16 Time-Travel / P17 Agent-Memory / P18 Control-Panel+CDC-reframe + Demo-Assets track. SEC-02 adversarial mode HIDDEN for demo (ADVERSARIAL_MODE_ENABLED=false in web/app/page.tsx) — preview smoke showed off-script attacks answered ([[live-path-id-grounding-only]]). Prod promote HELD (current viz still congested d3 graph).
+Resume file: .planning/phases/14-graph-depth-explainability/14-CONTEXT.md
+Last activity: 2026-06-25 -- Strategy session: restructured roadmap tail; deployed 2 PREVIEWS (not prod) of P11-13 code; hid SEC-02 adversarial UI; SHIPPED citation-drawer fix (SourcingRail enriches citations from nodeDetails → chunk text + structured fields show on click; web typecheck clean, UNCOMMITTED working-tree change on phase-06-03-streaming-seam); locked stepped-pipeline retrieval-viz design (14-CONTEXT D-02).
+Next action: /gsd-plan-phase 14 (context captured). Uncommitted working-tree changes to commit first for a clean start: web/app/page.tsx (adversarial hide), web/components/SourcingRail.tsx (citation enrich), .vercelignore (hygiene). NOTE: prod NOT promoted — ship after P14 lands the pipeline + label + de-congestion.
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 31 (v1.0, all shipped)
+- Total plans completed: 38 (v1.0, all shipped)
 - Average duration: —
 - Total execution time: ~6 days (v1.0)
 
@@ -50,6 +51,8 @@ Last activity: 2026-06-23 -- Phase 10 planning complete
 | 13 — Injection-Resistance + Adversarial Mode | TBD | - | - |
 | 14 — Temporal Queries | TBD | - | - |
 | 15 — Analyst Polish + Demo Control Panel | TBD | - | - |
+| 10 | 3 | - | - |
+| 11 | 4 | - | - |
 
 **Recent Trend:**
 
@@ -76,6 +79,15 @@ Last activity: 2026-06-23 -- Phase 10 planning complete
 | Phase 09 P01 | 35min | 3 tasks | 14 files |
 | Phase 09 P02 | ~20min | 2 tasks | 7 files |
 | Phase 09 P03 | 40min | 3 tasks | 6 files |
+| Phase 10-answer-provenance-edge-enrichment P01 | 6min | 2 tasks | 9 files |
+| Phase 10-answer-provenance-edge-enrichment P02 | 11min | 2 tasks | 4 files |
+| Phase 10-answer-provenance-edge-enrichment P03 | 43min | 3 tasks | 4 files |
+| Phase 11-graph-viz-ui-refresh-latency P01 | 25min | 2 tasks | 8 files |
+| Phase 11-graph-viz-ui-refresh-latency P04 | 10min | 2 tasks | 5 files |
+| Phase 11 P02 | 7min | 2 tasks | 12 files |
+| Phase 11-graph-viz-ui-refresh-latency P03 | 15min | 3 tasks | 7 files |
+| Phase 13-injection-resistance-adversarial-mode P01 | ~6min | 2 tasks | 4 files |
+| Phase 13 P03 | 12min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -113,6 +125,15 @@ Recent decisions affecting current work:
 - [Phase ?]: Phase 08-01: temperature:0 on ToolLoopAgent; seed NOT set (Responses API ignores it); EnvelopeSchema gains groundingScore required field; PreGroundingEnvelope for type safety; eval-gate.ts is the pre-demo command
 - [Phase ?]: [Phase 09-01]: Account C = Helio Retail; honest contraction arc (usage+contract+NPS all falling) — load-bearing D-03 distinction from Meridian Q12; Q13/Q14/Q15 wired into locked gate; near-miss guard empirically green for Q13 with no N/M bleed
 - [Phase 09]: Deepened N+M prose and all-account structured records as EDIT-lane content-only edits (no new DocEvents, no nondeterminism); DATA-05 satisfied at generator level
+- [Phase ?]: Phase 10-01: EdgeKindEnum + edges[].default([]) in RetrievalPathFragment; traversedEdgesAreGrounded D-04 guard exported; edgeKey null-safe dedup
+- [Phase ?]: Phase 10-03: buildPath threaded accountId synthesizes deterministic kind:'structural' account-anchored edges (SC-4/D-02); both agent loop returnedIds locked with SC-5 comment; eval gate GREEN 124/124 additive; streaming smoke-test PASSED on Q12 Meridian (38 edges, all kinds honestly labeled)
+- [Phase ?]: Phase 11-01: edgeKey mirrored verbatim from agent/src/retrievalPath.ts — buildGraph.ts inherits collision-free id guarantee by construction
+- [Phase ?]: Phase 11-01: StrokeStyle inline type (not React.CSSProperties) keeps buildGraph.ts React-free; agent/dist rebuild required when envelope changes
+- [Phase ?]: Phase 11-04: prewarmDb() fires at module-load (ARANGO_ENDPOINT guard) as fire-and-forget
+- [Phase 11-03]: Brand token VALUE swap: #5c9e31→#007339 (arango.ai primary green) + #0f1b24→#151d25 (dark surface); token NAMES + @theme inline unchanged; #3a6ea5 dual-graph retained; badge/viz parity via --graph-structured (console parity deferred to human checkpoint)
+- [Phase 11-03]: GraphPathToggle default=Path (lowest-regression); SourcingRail hosts toggle; GraphViz.onOpenSource === rail.openSource (shared drawer, no new drawer created; D-06)
+- [Phase 11-03]: TrustChip mounted per-answer adjacent to question echo for all terminal envelopes (grounded + refused); CARDINAL RULE: reads terminal envelope only, never mid-stream state
+- [Phase 11-03]: e2e Playwright spec authored (streaming-viz.spec.ts); live run deferred to human checkpoint — requires npm run dev + live ArangoDB/OpenAI agent (pre-existing infra requirement matching ask.spec.ts)
 
 ### Pending Todos
 
@@ -121,7 +142,7 @@ None yet.
 ### Blockers/Concerns
 
 - [v2.0]: ~5% stochastic planner refusal residual (Phase 08 target) — safe failure mode, no fabrication, but must close before live v2 demos.
-- [v2.0]: AutoGraph `incremental` re-ingest behavior on the 3rd account (Phase 09) — the existing UPDATE-PIPELINE.md design covers 2 accounts; adding a 3rd module needs verification that Leiden re-clustering is scoped correctly.
+- [v2.0 — RESOLVED 2026-06-24, D-03] AutoGraph `incremental` re-ingest / Leiden re-cluster scoping. Empirically validated in Phase 12-01 Task 4: an incremental corpus build (new file only) + partition-scoped orchestrate lands the new doc in its OWN singleton Leiden community (partition default_6_b) → Documents 139→140 with ZERO churn to the other accounts' partitions (unchanged at 33/33/32/18/14/9). eval-gate GREEN before AND after. The "tiny-module" mechanism in the original design does NOT work (modules= is a no-op on this cluster); the working path is post-build partition discovery via the corpus-graph trace (source.file_id → IN_DOMAIN → cluster → INGESTED_AS → rag.rag_partition_id). KEY GOTCHA: the importer runs ASYNC and lags orchestrate kickoff — wait for the doc count to GROW past baseline, not just "stable" (a stability-only check exits early at the OLD count and looks like nothing imported). Shipped in scripts/add_lane.py (commit 4913203). See 12-01-SUMMARY.md.
 - [v2.0]: React Flow layout for arbitrary traversal shapes (Phase 11) — no prior art in this codebase; requires a design decision on KG granularity (Document vs Chunk vs Entity level) for legibility at cap.
 - [Phase 09]: data_gen/output/ is git-tracked (committed 2-account data) — new helio answerability/composite linter tests fail until Plan 03 regenerates with --clean; validated correct via reverted throwaway regen (linter 26/26, near-miss Q13 green). Delete iCloud ' 2'/' 3' junk dirs before Plan 03 regen.
 - [Phase 09-03 Task 2 — RESOLVED 2026-06-22] build_unstructured.py append-not-replace contamination FIXED via Option C: patched self-cleaning delete-first Layer-3 truncate (commit 5240b0a) + ran ONE fresh full rebuild (corpus cb_1782167308_a2ffe336). Cleared 5766 stale records, landed exactly 139 clean docs (3 accounts: northwind=40 meridian=61 helio=38, all attributed, 0 null). verify_kg_loaded.py hardened (≈139 NOT 244) exits 0 (commit cd61d89). Structured 3 accounts loaded.
@@ -150,7 +171,7 @@ Items acknowledged and deferred at v1.0 milestone close on 2026-06-22:
 
 ## Session Continuity
 
-Last session: 2026-06-23T19:11:38.356Z
-Stopped at: Phase 10 context gathered
-Resume file: .planning/phases/10-answer-provenance-edge-enrichment/10-CONTEXT.md
-Next action (two NON-infra fixes, no infra auth needed): (1) extend scripts/demo_critical.py with Helio's org+champion+contract canonical ids (lift assert len==9) and re-run `python scripts/build_entity_bridge.py` so `canonical_entities` resolves "Helio Retail" → unblocks Q13/Q14/Q15 (verify with scripts/verify_entity_bridge.py). (2) harden agent/src/agent.ts to strip null `_id` elements from model-authored retrievalPath._ids before envelope parse → unblocks Q9 (D-06 files untouched). Then re-run `npx tsx scripts/eval-gate.ts` x2. Vector-index fix + data + view + gate thresholds are all already correct (D-06 intact).
+Last session: 2026-06-25T16:31:52.575Z
+Stopped at: Phase 13 context gathered
+Resume file: .planning/phases/11-graph-viz-ui-refresh-latency/11-03-SUMMARY.md
+Next action: Human verifies streaming path (npm run dev): Q12 streamed claim-list render, TrustChip "Grounded ✓", Graph toggle → React Flow viz with same_as bridge + legend + node-click drawer, brand-green parity vs arango.ai console, RefusalPanel + "Partially grounded". Then approve checkpoint to unlock Phase 11 Plan 04 (PERF-01 latency).
