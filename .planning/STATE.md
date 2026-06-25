@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Live, Visible, Trustworthy
 status: executing
-last_updated: "2026-06-25T16:31:57.802Z"
-last_activity: 2026-06-25
+last_updated: "2026-06-25T20:56:50.005Z"
+last_activity: 2026-06-25 -- Phase 14 execution started
 progress:
-  total_phases: 11
-  completed_phases: 5
-  total_plans: 18
-  completed_plans: 17
-  percent: 45
+  total_phases: 14
+  completed_phases: 6
+  total_plans: 22
+  completed_plans: 18
+  percent: 43
 ---
 
 # Project State
@@ -20,16 +20,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-22)
 
 **Core value:** A free-form question only answerable by joining the structured and unstructured graphs returns a correct, fully-sourced answer — every fact traceable to the record and graph it came from.
-**Current focus:** Phase 14 — graph-depth-explainability (v2 tail RE-AIMED at nameable ArangoDB platform capabilities; see [[tail-platform-capability-pivot]] + DEMO-STRATEGY.md)
+**Current focus:** Phase 14 — graph-depth-explainability
 
 ## Current Position
 
-Phase: 14 (graph-depth-explainability) — CONTEXT captured (14-CONTEXT.md), ready to plan. Phase 13 EXECUTED+SECURED; /gsd-verify-work 13 still optional/outstanding.
-Plan: 0 plans (next: /gsd-plan-phase 14)
-Status: 2026-06-25 ROADMAP/REQUIREMENTS RESTRUCTURED — v2 tail is now P14 Graph-Depth+Explainability / P15 GraphRAG / P16 Time-Travel / P17 Agent-Memory / P18 Control-Panel+CDC-reframe + Demo-Assets track. SEC-02 adversarial mode HIDDEN for demo (ADVERSARIAL_MODE_ENABLED=false in web/app/page.tsx) — preview smoke showed off-script attacks answered ([[live-path-id-grounding-only]]). Prod promote HELD (current viz still congested d3 graph).
-Resume file: .planning/phases/14-graph-depth-explainability/14-CONTEXT.md
-Last activity: 2026-06-25 -- Strategy session: restructured roadmap tail; deployed 2 PREVIEWS (not prod) of P11-13 code; hid SEC-02 adversarial UI; SHIPPED citation-drawer fix (SourcingRail enriches citations from nodeDetails → chunk text + structured fields show on click; web typecheck clean, UNCOMMITTED working-tree change on phase-06-03-streaming-seam); locked stepped-pipeline retrieval-viz design (14-CONTEXT D-02).
-Next action: /gsd-plan-phase 14 (context captured). Uncommitted working-tree changes to commit first for a clean start: web/app/page.tsx (adversarial hide), web/components/SourcingRail.tsx (citation enrich), .vercelignore (hygiene). NOTE: prod NOT promoted — ship after P14 lands the pipeline + label + de-congestion.
+Phase: 14 (graph-depth-explainability) — EXECUTING
+Plan: 1 of 4
+Status: Executing Phase 14
+Resume file: .planning/phases/14-graph-depth-explainability/14-CONTEXT.md (+ 14-RESEARCH.md, 14-01..04-PLAN.md)
+Last activity: 2026-06-25 -- Phase 14 execution started
+Next action: /clear then /gsd-execute-phase 14 (model=opus). v2 tail after: P15 GraphRAG / P16 Time-Travel / P17 Agent-Memory / P18 Control-Panel+CDC-reframe + Demo-Assets track.
 
 ## Performance Metrics
 

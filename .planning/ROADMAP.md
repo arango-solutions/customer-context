@@ -17,7 +17,7 @@ A graph-based Customer 360 demo over 100%-synthetic data: a Next.js/Vercel dashb
 - [x] **Phase 12: Simulated CDC + What-Changed Diff** — File-watch CDC, live update trigger, and before/after diff of changed claims/citations (completed 2026-06-24)
 - [x] **Phase 13: Injection-Resistance + Adversarial Mode** — Harden the agent against prompt injection from docs; add audience-facing "try-to-break-it" mode (completed 2026-06-25)
 - [ ] **Phase 14: Graph-Depth + Explainability** — Real multi-hop structured traversal + single cross-graph join across `same_as`, then reveal the AQL with one-engine labels and the join as hero (GRAPH-03, EXPL-01)
-- [ ] **Phase 15: GraphRAG via AutoGraph Communities** — Hierarchical global↔local retrieval over the built-but-unqueried Leiden community layer; names the GenAI platform (RAG-01)
+- [ ] **Phase 15: Full GraphRAG — Entity Expansion + Community Retrieval** — Entity-anchored local expansion (`MENTIONED_IN`/`RELATED_TO` — "graph beats vector") + community/global thematic retrieval over the built-but-unqueried layers (agent uses 7% of the KG today; summaries already exist) (RAG-01, RAG-02)
 - [ ] **Phase 16: Time-Travel (Temporal Graph)** — Effective-dated edges + `@asOf` traversal on Northwind; "as-of renewal" / "2023→2025 evolution" as a versioned graph traversal, honestly framed (TEMP-01)
 - [ ] **Phase 17: Agent Memory on ArangoDB** — Answers/entities/past-questions persisted as a graph; multi-turn follow-ups powered by graph-resident memory ("agentic brain on Arango") (MEM-01, subsumes AGENT-08)
 - [ ] **Phase 18: Presenter Control Panel + CDC Reframe** — Presets (wiring every capability moment) + reset + CDC trigger; CDC banner/talk-track reframed to name one-engine propagation (DEMO-01, CDC-04)
@@ -198,8 +198,8 @@ Plans:
 Plans:
 
 **Wave 1** *(parallel — no shared files: structuredQuery vs new crossGraphJoin tool)*
-- [ ] 14-01-PLAN.md — GRAPH-03a: rewrite structuredQuery facets as real HAS_* OUTBOUND named-graph traversals returning identical _ids + real traversed edges (GRAPH-03)
-- [ ] 14-02-PLAN.md — GRAPH-03b: live same_as pre-flight + single-AQL crossGraphJoin tool (hub→KG→MENTIONED_IN→PART_OF) + register in shared TOOLS (GRAPH-03)
+- [x] 14-01-PLAN.md — GRAPH-03a: rewrite structuredQuery facets as real HAS_* OUTBOUND named-graph traversals returning identical _ids + real traversed edges (GRAPH-03)
+- [x] 14-02-PLAN.md — GRAPH-03b: live same_as pre-flight + single-AQL crossGraphJoin tool (hub→KG→MENTIONED_IN→PART_OF) + register in shared TOOLS (GRAPH-03)
 
 **Wave 2** *(blocked on 14-01 + 14-02)*
 - [ ] 14-03-PLAN.md — EXPL-01 core: D-04 clean doc/chunk labels + pure buildPipeline(retrievalPath) transform (conditional/honest stages + D-03 chunk→doc collapse) (EXPL-01)
@@ -210,20 +210,29 @@ Plans:
 **Risk**: Low–Med — the edges already exist and are populated (`load_structured.py`, 7 edge collections; `verify_graphs.py` asserts non-empty), so the traversal rewrite is mechanical; the single cross-graph join query is the only genuinely new AQL. The dangling-bridge blocker is ALREADY FIXED (build_entity_bridge.py re-run + verified live); 14-02 only adds a pre-flight verification, not a repair. Honesty constraint is strict (same grounded records, no invented traversals). Retrieval-path change rides the eval-gate + streaming-smoke discipline.
 **UI hint**: yes
 
-### Phase 15: GraphRAG via AutoGraph Communities
+### Phase 15: Full GraphRAG — Entity Expansion + Community Retrieval
 
-**Goal**: Exercise the half of the AI platform we currently pay for and ignore — AutoGraph's Leiden community layer + summaries — so a "what are the themes across Meridian?" question does hierarchical global→local retrieval (community summary → drill to chunks) instead of uniform flat vector+BM25. Names ArangoDB's GenAI platform as what built the knowledge graph.
-**Depends on**: Phase 3 / build pipeline (AutoGraph builds `customer360_Communities` + `customer360_rags`); Phase 14 (AQL-reveal surface to show the hierarchical retrieval); Phase 8 (eval gate)
-**Requirements**: RAG-01
+**Goal**: Stop using 7% of the knowledge graph. AutoGraph built the full FullGraphRAG KG — **611 entities, 42 communities (with embedded summaries), 1,941 typed edges across 5 edge types** — and the agent traverses only `PART_OF` (139 edges; **93% of the graph is unqueried**, live-verified). This phase lights up the rest: (a) **entity-anchored local expansion** — pivot from a search hit through the entity graph (`MENTIONED_IN`/`RELATED_TO`) to connected evidence vector search missed (the textbook "graph beats vector" moment); (b) **community/global retrieval** — semantic-search the community summaries for thematic questions ("what are the risks across Meridian?") then drill to source chunks. Names ArangoDB's GenAI platform as what built it.
+**Depends on**: Phase 3 / build pipeline (AutoGraph already built `customer360_Entities` + `customer360_Communities` + `customer360_Relations`, all vector-indexed); Phase 14 (AQL-reveal surface + the cross-graph join's `MENTIONED_IN` hop); Phase 8 (eval gate)
+**Requirements**: RAG-01 (entity-anchored expansion), RAG-02 (community/global retrieval)
 **Success Criteria** (what must be TRUE):
 
-  1. A retrieval mode queries the `customer360_Communities` layer + community summaries for global/thematic questions and drills into chunks for local specifics — the community layer is no longer built-but-unqueried.
-  2. The hierarchical retrieval is visible in the AQL reveal + viz (community → chunk), and the talk track names ArangoDB's GenAI platform / AutoGraph.
-  3. Community summaries exist (generated at build time if absent) and are grounded — citations still trace to real records.
-  4. The eval gate stays green; legitimate questions still answer correctly through the existing flat path where appropriate.
+  1. **Entity expansion (RAG-01):** after hybrid retrieval lands chunks, an AQL traversal hops `chunk →MENTIONED_IN(INBOUND)→ entity →RELATED_TO→ neighbors →MENTIONED_IN→ chunks` to surface connected evidence the vector/BM25 pass missed — visible in the AQL reveal as a real `kind:'traversed'` expansion. Entities account-scoped via traversal to `Document.account_id` (no re-stamp).
+  2. **Community/global (RAG-02):** a retrieval mode semantic-searches `customer360_Communities.embedding`, reads the existing `report_string` summary for thematic questions, and drills `Community ←IN_COMMUNITY← Entity →MENTIONED_IN→ Chunk` to specifics.
+  3. **Grounding policy (LOCKED decision):** a community `report_string` is an LLM-synthesized artifact — it may be cited as *provenance* (it is a real stored `customer360_Communities/_id`), but any specific claim MUST be backed by a drilled-down source chunk. The no-confident-wrong bar holds: never let a synthesis stand as the sole source for a fact.
+  4. The eval gate stays green + streaming smoke; flat hybrid stays the default (this is additive); a routing decision (global vs. local vs. both-then-merge) is made and documented.
 
 **Plans**: TBD
-**Risk**: Med–High — may require generating community summaries at build time and a routing decision (when to go global vs. local). The grounding bar applies to summary-derived claims. Keep the flat hybrid path as the default so this is additive.
+**Risk**: Med (DOWNGRADED from Med–High, 2026-06-25) — the assumed blocker (generating community summaries) is **already done**: 42 communities carry embedded, demo-grade `report_string` summaries + HNSW vector indexes (live-verified, `docs/research/autograph-kg-retrieval-surface.md`). Remaining scope is **query + routing + grounding-policy**, not data generation. Open decisions: routing heuristic; entity-quality spot-check before surfacing entity nodes in the viz (some are generic — `SUPPORT CASE`, `DATE`); partition double-count hygiene (`default_0_a` overlaps per-account partitions).
+**Canonical refs**: `docs/research/autograph-kg-retrieval-surface.md` (live-verified KG surface, edge taxonomy, AQL for all 3 strategies, grounding-policy + account-scoping decisions) AND `docs/research/arango-showcase-gaps.md` (additional verified capabilities below) — MUST read before planning. See memory [[autograph-kg-retrieval-surface]].
+
+**Fold-in capabilities (verified 2026-06-25, `arango-showcase-gaps.md` — planner decides waves/split):**
+- **Agentic graph navigation** — the planner *walks* the graph hop-by-hop (retrieve → expand neighbors → decide next hop → re-retrieve), each hop a named auditable AQL traversal the reveal shows ("the agent queries the graph to think"). NOT a loop rebuild — the ToolLoopAgent already runs bounded multi-step (`stepCountIs(12)` + a `prepareStep` router stub); this is prompting + one `expandEntity` tool. The headline agentic-workflow improvement.
+- **Path-finding hero (`K_SHORTEST_PATHS`)** — live-verified returns the exact Meridian story (`ALEX RIVERA → chunk → PRICING OBJECTIONS → RENEWAL DATE`); "the path IS the explanation," security blast-radius framing. (Caveat: paths route through chunk vertices — label that hop.)
+- **Multi-model "one query, four models" hero AQL** — BM25 + traversal + doc filter (+ vector, same shape) in one statement; the literal "one engine, one query language" proof. Rides the P14 AQL-reveal.
+- **Degree-centrality "most-connected stakeholder"** — plain AQL `COLLECT … WITH COUNT` (live; the honest in-demo proxy for the unavailable Pregel/Graph-Analytics-Engine — see Risk).
+- **Quick fold-ins:** trend aggregation in AQL (`COLLECT`/`WINDOW` — "the DB does the math"); RRF fusion pushed into AQL (makes the multi-model query genuinely four-models-one-query); `SIMILAR_TO` "more like this" (655 edges AutoGraph already computed, ignored today).
+- **NOT available (do not gate on):** Pregel is REMOVED in 3.12; Graph Analytics Engine is request-only separate AWS compute (not on our cluster) → talk-track "scale-out roadmap" only, with degree-centrality as the live proxy. Geo: SKIP (no coordinates in our data, only `Account.region` category).
 
 ### Phase 16: Time-Travel (Temporal Graph)
 
@@ -255,6 +264,7 @@ Plans:
 
 **Plans**: TBD
 **Risk**: Med–High — new write-path on a previously read-only agent (the read-only credibility property must be preserved for *source* data; memory is a separate, agent-owned namespace). Scope risk: keep memory bounded and the per-turn grounding invariant strict. Revives AGENT-08 as a platform capability.
+**Fold-in (verified, `arango-showcase-gaps.md`)**: implement the memory write-path with ArangoDB **ACID stream transactions** — the correct, nameable way to do it (and a "the database guarantees consistency" platform point), not bare UPSERTs.
 **UI hint**: yes
 
 ### Phase 18: Presenter Control Panel + CDC Reframe
@@ -290,7 +300,7 @@ Plans:
 | 11. Graph Viz + UI Refresh + Latency | 4/4 | Complete    | 2026-06-24 |
 | 12. Simulated CDC + What-Changed Diff | 3/3 | Complete | 2026-06-24 |
 | 13. Injection-Resistance + Adversarial Mode | 4/4 | Complete   | 2026-06-25 |
-| 14. Graph-Depth + Explainability | 0/4 | Planned | - |
+| 14. Graph-Depth + Explainability | 2/4 | In Progress|  |
 | 15. GraphRAG via AutoGraph Communities | 0/TBD | Not started | - |
 | 16. Time-Travel (Temporal Graph) | 0/TBD | Not started | - |
 | 17. Agent Memory on ArangoDB | 0/TBD | Not started | - |
