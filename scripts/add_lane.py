@@ -487,6 +487,12 @@ def main() -> int:
         help="resume from Stage 4: skip upload + corpus build (Stages 0-3); use the source "
         "already present in the corpus (recovers a partial run without creating a duplicate source)",
     )
+    ap.add_argument(
+        "--file",
+        default=None,
+        help="ingest a SPECIFIC manifest doc by filename (instead of the first doc for --module). "
+        "Required for multi-doc modules like meridian_slack; module is derived from the entry.",
+    )
     args = ap.parse_args()
 
     module = args.module
@@ -496,8 +502,17 @@ def main() -> int:
     cfg = _arango_cfg()
     manifest = _load_manifest()
 
-    # Locate the pre-staged doc for this module.
-    file_name, doc_path = _module_doc_path(module, manifest)
+    # Locate the doc to ingest. --file targets a specific manifest entry by filename
+    # (needed for multi-doc modules); otherwise fall back to the first doc for --module.
+    if args.file:
+        meta = manifest.get(args.file)
+        if not meta:
+            raise SystemExit(f"[add] FAIL — no manifest entry found for file={args.file!r}")
+        module = meta.get("module") or module  # derive module from the entry
+        file_name = args.file
+        doc_path = _UNSTRUCTURED / module / file_name
+    else:
+        file_name, doc_path = _module_doc_path(module, manifest)
 
     if dry_run:
         print("[add] DRY-RUN — no corpus build, orchestrate, or purge will be called\n")
