@@ -461,6 +461,101 @@ def check_demo_critical(db) -> tuple[bool, str]:
 # ---------------------------------------------------------------------------
 
 
+def check_crossgraph_join(db) -> tuple[bool, str]:
+    """
+    GRAPH-03b pre-flight gate — the SINGLE-AQL cross-graph join must return rows.
+
+    This is the gating prerequisite for the crossGraphJoin tool (Phase 14, 14-02):
+    before the tool is built/trusted, prove the live `same_as` bridge resolves the
+    full hub → KG entity → MENTIONED_IN → Chunk → PART_OF → Document traversal for a
+    known seeded account (Meridian Logistics — the account the critical context says
+    now resolves after build_entity_bridge.py was re-run).
+
+    The join is ONE read-only AQL (RESEARCH §Code Examples #2): full cluster-mode
+    `WITH` clause; `customer360_Relations.type` (NOT `relation_type` — null on every
+    row); 1..1 per hop; LIMIT-bounded. It anchors on `hub.account_id == @account_id`.
+
+    GATE SEMANTICS (Pitfall 1):
+      - Exits NON-ZERO only if the join returns 0 rows (the real GRAPH-03b blocker —
+        "bridge not resolving — re-run build_entity_bridge.py").
+      - The 30 historical KG-side dangling `same_as` edges (stale `_from` keys) are
+        HARMLESS to the FILTER-by-live-node join (RESEARCH A1): the count of LIVE-broken
+        same_as edges is reported as a WARNING, never a hard fail (unless the join
+        itself returns 0). It does NOT influence the exit code.
+
+    AQL safety: @account_id is the only bind value; all collection names are hardcoded
+    constants. The dangling-edge audit AQL takes no user values.
+    """
+    if not db.has_collection(_COLLECTION_SAME_AS):
+        return (False, f"{_COLLECTION_SAME_AS} not found — run build_entity_bridge.py first")
+
+    if not db.has_collection(_COLLECTION_CANONICAL):
+        return (False, f"{_COLLECTION_CANONICAL} not found — run build_entity_bridge.py first")
+
+    # Meridian Logistics — the seeded account the critical context confirms resolves
+    # (Account._key == account_id; the hub's account_id is this same value).
+    meridian_account_id = "9eff6d7b-7311-5525-be75-5b82a855ece7"
+
+    # WARNING-only audit: count LIVE-broken KG-side same_as edges (dangling _from).
+    # These are the 30 historical orphans; harmless to the join (it FILTERs by live
+    # nodes), so this is informational and never affects the exit code (RESEARCH A1).
+    aql_dangling = """
+        RETURN LENGTH(
+          FOR e IN same_as
+            FILTER SPLIT(e._from, "/")[0] == "customer360_Entities"
+              AND DOCUMENT(e._from) == null
+            RETURN 1
+        )
+    """
+    dangling_count = next(iter(db.aql.execute(aql_dangling)), 0)
+    if dangling_count and dangling_count > 0:
+        print(
+            f"[bridge-verify] WARNING: {dangling_count} historical dangling KG-side "
+            f"same_as edges (stale _from keys). Harmless to the FILTER-by-live-node "
+            f"join (RESEARCH A1) — not a blocker, only pollutes counts."
+        )
+
+    # The GRAPH-03b single-AQL cross-graph join (RESEARCH §Code Examples #2).
+    # Full WITH (cluster mode, Pitfall 2); `type` not `relation_type`; LIMIT-bounded.
+    aql_join = """
+        WITH Account, Contact, Contract, canonical_entities, customer360_Entities,
+             customer360_Chunks, customer360_Documents
+        FOR hub IN canonical_entities
+          FILTER hub.account_id == @account_id
+          FOR kg, eSame IN 1..1 INBOUND hub._id same_as
+            FILTER IS_SAME_COLLECTION("customer360_Entities", kg)
+            FOR ch, eMen IN 1..1 OUTBOUND kg._id customer360_Relations
+              FILTER IS_SAME_COLLECTION("customer360_Chunks", ch)
+                AND eMen.type == "MENTIONED_IN"
+              FOR doc, ePart IN 1..1 OUTBOUND ch._id customer360_Relations
+                FILTER IS_SAME_COLLECTION("customer360_Documents", doc)
+                  AND ePart.type == "PART_OF"
+                LIMIT 20
+                RETURN {
+                  hub: hub._id, kg: kg._id, chunk: ch._id, doc: doc._id
+                }
+    """
+    rows = list(
+        db.aql.execute(aql_join, bind_vars={"account_id": meridian_account_id})
+    )
+
+    if not rows:
+        return (
+            False,
+            f"GRAPH-03b BLOCKER: the live hub→KG→chunk→doc join returned 0 rows for "
+            f"account_id={meridian_account_id} — bridge not resolving; re-run "
+            f"scripts/build_entity_bridge.py (the KG-side same_as may be dangling).",
+        )
+
+    sample = rows[0]
+    return (
+        True,
+        f"GRAPH-03b OK: live cross-graph join returned {len(rows)} row(s) for "
+        f"account_id={meridian_account_id} (hub→KG→MENTIONED_IN→chunk→PART_OF→doc). "
+        f"e.g. kg={sample['kg']} → chunk={sample['chunk']} → doc={sample['doc']}.",
+    )
+
+
 def probe_trace(db) -> tuple[bool, str]:
     """
     ENT-02 — cross-graph trace AQL returns a renderable fragment.
@@ -601,7 +696,7 @@ def main() -> None:
         metavar="NAME",
         help=(
             "Run one named check: collections | no-double-resolution | "
-            "bijection | entity-id-stamp | demo-critical"
+            "bijection | entity-id-stamp | demo-critical | crossgraph-join"
         ),
     )
     parser.add_argument(
@@ -611,10 +706,11 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    # Require at least one mode
-    if not any([args.quick, args.full, args.check, args.probe]):
-        parser.print_help()
-        sys.exit(0)
+    # Default mode (NO args): the GRAPH-03b cross-graph join pre-flight gate.
+    # `python scripts/verify_entity_bridge.py` proves the live single-AQL join
+    # returns rows (exit 0) or is blocked (exit non-zero) — the gate the 14-02
+    # plan's Task-1 verify command relies on. Explicit modes below are unchanged.
+    run_default_crossgraph = not any([args.quick, args.full, args.check, args.probe])
 
     # Connect to ArangoDB
     try:
@@ -626,7 +722,11 @@ def main() -> None:
     # Build check list based on mode
     checks: list[tuple[str, object]] = []
 
-    if args.quick:
+    if run_default_crossgraph:
+        checks = [
+            ("crossgraph-join", lambda: check_crossgraph_join(db)),
+        ]
+    elif args.quick:
         checks = [
             ("collections",     lambda: check_bridge_collections(db)),
             ("entity-id-stamp", lambda: check_entity_id_stamp(db)),
@@ -638,6 +738,7 @@ def main() -> None:
             ("no-double-resolution", lambda: check_no_double_resolution(db)),
             ("bijection",            lambda: check_bijection(db)),
             ("demo-critical",        lambda: check_demo_critical(db)),
+            ("crossgraph-join",      lambda: check_crossgraph_join(db)),
             ("trace",                lambda: probe_trace(db)),
         ]
     elif args.check:
@@ -647,6 +748,7 @@ def main() -> None:
             "no-double-resolution": lambda: check_no_double_resolution(db),
             "bijection":            lambda: check_bijection(db),
             "demo-critical":        lambda: check_demo_critical(db),
+            "crossgraph-join":      lambda: check_crossgraph_join(db),
         }
         name = args.check
         if name not in check_map:
