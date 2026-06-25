@@ -20,11 +20,6 @@ import type { RetrievalPathFragmentT, NodeDetailT } from './envelope.js';
 const titleCase = (s: string): string =>
   s.replace(/\w\S*/g, (w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
 
-const snippet = (s: string, n = 38): string => {
-  const clean = s.replace(/\s+/g, ' ').trim();
-  return clean.length > n ? `${clean.slice(0, n)}…` : clean;
-};
-
 // helio_email_he_email_license_confirmation_2022q3_d01f5342a629.txt
 //   → "helio email he email license confirmation 2022q3"
 const prettifyFile = (f: string): string =>
@@ -33,6 +28,77 @@ const prettifyFile = (f: string): string =>
     .replace(/_[0-9a-f]{8,}$/i, '') // trailing content hash
     .replace(/_/g, ' ')
     .trim();
+
+// ── D-04: clean human titles for doc/chunk nodes ─────────────────────────────
+//
+// Source data shape (verified against data_gen/output/manifest.json):
+//   module    = "<account>_<source>"          e.g. "meridian_slack", "helio_email"
+//   file_name = "<module>_<abbr>_<source>_<topic…>_<period>_<hash>.txt"
+//     e.g. "meridian_slack_me_slack_escalation_2024q3_a243d414ac6d.txt"
+// Compose: "<TitleCasedAccount> · <Topic> <PeriodQ#'YY>" — best-effort, never throws.
+// Display-only: runs post-grounding; never affects which _ids/citations are grounded.
+
+// Extract a clean period token from a module/file_name string. Recognizes
+// `2024q3`, `2024-q3`, `q3` → "Q3'24" / "Q3". Returns undefined when none found.
+const periodToken = (...src: (string | undefined)[]): string | undefined => {
+  const hay = src.filter(Boolean).join(' ').toLowerCase();
+  // year + quarter (2024q3 / 2024-q3 / 2024_q3)
+  const yq = hay.match(/(20\d{2})[-_ ]?q([1-4])/);
+  if (yq) return `Q${yq[2]}'${yq[1].slice(2)}`;
+  // bare quarter (q3) — only as a standalone token, not inside a word/hash
+  const q = hay.match(/(?:^|[_\- ])q([1-4])(?:[_\- ]|$)/);
+  if (q) return `Q${q[1]}`;
+  return undefined;
+};
+
+// Human-readable source-type from the module's second token.
+const SOURCE_LABEL: Record<string, string> = {
+  email: 'email',
+  slack: 'Slack thread',
+  docs: 'doc',
+  doc: 'doc',
+  pdf: 'PDF',
+  qbr: 'QBR',
+};
+
+// Pull the descriptive "topic" out of a file_name: strip the leading module
+// prefix + duplicated abbr/source tokens, the trailing period token, and the
+// trailing content hash, then title-case a short remainder. Best-effort.
+const topicFrom = (fileName: string | undefined, module: string | undefined): string | undefined => {
+  if (!fileName) return undefined;
+  let base = fileName
+    .replace(/\.[a-z0-9]+$/i, '') // extension
+    .replace(/_[0-9a-f]{8,}$/i, '') // trailing content hash
+    .replace(/(20\d{2})[-_]?q[1-4]/gi, '') // period token
+    .replace(/(?:^|_)q[1-4](?:_|$)/gi, '_');
+  if (module) base = base.replace(new RegExp(`^${module}_?`, 'i'), '');
+  // drop short 2-3 letter abbreviations and the bare source token
+  const words = base
+    .split(/[_\s]+/)
+    .filter((w) => w && w.length > 3 && !/^[0-9]+$/.test(w))
+    .filter((w) => !Object.keys(SOURCE_LABEL).includes(w.toLowerCase()));
+  if (!words.length) return undefined;
+  return titleCase(words.slice(0, 4).join(' '));
+};
+
+// Compose the clean title from module (+ file_name) for a doc/chunk node.
+// Returns undefined when there's not enough to build one (caller falls back).
+const docTitle = (module: string | undefined, fileName: string | undefined): string | undefined => {
+  if (!module && !fileName) return undefined;
+  if (!module) {
+    // no module → best-effort cleaned filename (never the raw mangled name w/ hash)
+    return fileName ? prettifyFile(fileName) || undefined : undefined;
+  }
+  const [account, source] = module.split('_');
+  const acct = titleCase(account);
+  const period = periodToken(fileName, module);
+  const topic = topicFrom(fileName, module);
+  const sourceLabel = source ? SOURCE_LABEL[source.toLowerCase()] : undefined;
+  // Prefer a specific topic; fall back to the source type; then bare account.
+  const descriptor = topic ?? (sourceLabel ? titleCase(sourceLabel) : undefined);
+  const right = [descriptor, period].filter(Boolean).join(' ');
+  return right ? `${acct} · ${right}` : acct;
+};
 
 /** Compose a human-readable label from a record, by collection. Returns undefined
  * when the collection has no sensible name (caller falls back to the collection). */
@@ -60,9 +126,15 @@ export function labelFor(collection: string, d: Record<string, unknown>): string
       return score != null ? `NPS · ${score}` : undefined;
     }
     case 'customer360_Documents':
-      return s(d.file_name) ? prettifyFile(d.file_name as string) : undefined;
+      // D-04: clean human title from module (+ file_name); no mangled filename/snippet.
+      return docTitle(s(d.module), s(d.file_name));
     case 'customer360_Chunks':
-      return s(d.content) ? `“${snippet(d.content as string)}”` : undefined;
+      // D-04: title from the chunk's parent module/file_name. If it carries neither,
+      // return undefined (caller falls back to the collection) rather than a 38-char
+      // content snippet.
+      return s(d.module) || s(d.file_name)
+        ? docTitle(s(d.module), s(d.file_name))
+        : undefined;
     case 'Contract':
       return s(d.product_tier) ?? s(d.contract_name) ?? s(d.edition);
     case 'Opportunity':
