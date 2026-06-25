@@ -189,7 +189,7 @@ Plans:
 **Requirements**: GRAPH-03, EXPL-01
 **Success Criteria** (what must be TRUE):
 
-  1. `structuredQuery` traverses the existing structured edges (`Account → HAS_CONTRACT → Contract → HAS_USAGE → UsageFact`, `→ HAS_OPPORTUNITY → Opportunity`, `→ HAS_CONTACT → Contact`) via a real named-graph traversal — not six flat per-collection `FILTER account_id ==` scans — returning the same grounded records (honesty bar: no fabricated edges).
+  1. `structuredQuery` traverses the existing structured edges via real named-graph traversals — Account-anchored **star**, one hop per facet: `Account → HAS_CONTRACT → Contract`, `→ HAS_USAGE → UsageFact`, `→ HAS_NPS → NPS`, `→ HAS_CONTACT → Contact`, `→ HAS_OPPORTUNITY → Opportunity` (the schema is a star, not a chain — verified against `load_structured.py`) — not six flat per-collection `FILTER account_id ==` scans — returning the same grounded records (honesty bar: no fabricated edges).
   2. The structured↔unstructured join is executed as a single AQL query traversing the `same_as` bridge (hub → KG entity → mentions → chunks/documents), not stitched in agent TypeScript.
   3. The UI reveals each retrieval step's actual AQL ("show me the query") from `retrievalPath.query`, labels each step by retrieval mode (vector / BM25 / graph traversal), and spotlights the cross-graph join — fully data-driven, no per-question hardcoding.
   4. The eval gate (Phase 8) stays green and the streaming path is smoke-tested ([[agent-loop-shared-factory]]) — the deepened retrieval does not regress grounding.
