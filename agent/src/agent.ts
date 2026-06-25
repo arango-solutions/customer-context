@@ -29,6 +29,7 @@ import { entityLookup } from './tools/entityLookup.js';
 import { structuredQuery } from './tools/structuredQuery.js';
 import { hybridRetrieve } from './tools/hybridRetrieve.js';
 import { bridgeResolve } from './tools/bridgeResolve.js';
+import { crossGraphJoin } from './tools/crossGraphJoin.js';
 
 // ---------------------------------------------------------------------------
 // Synthesis schema (OpenAI strict-structured-output friendly).
@@ -148,7 +149,7 @@ export const ROUTING_MODEL = process.env.ROUTING_MODEL ?? 'gpt-4o-mini';
 export const PLANNER_SYSTEM_PROMPT: string = `You are the Customer 360 reasoning planner. You answer questions about synthetic
 customer accounts by querying TWO graphs and you NEVER guess.
 
-You have exactly four tools — you may not invent any other capability:
+You have exactly five tools — you may not invent any other capability:
   • entityLookup(name): resolve a NAME written in the question (a company or person, e.g.
     "Meridian Logistics" or "Sarah Chen") to its canonical identity — canonical_id and
     account_id. Call this FIRST whenever the question names an entity: the other tools need
@@ -164,6 +165,13 @@ You have exactly four tools — you may not invent any other capability:
   • hybridRetrieve(queryText, accountId?, k?): hybrid (vector+BM25+RRF) retrieval over the
     UNSTRUCTURED doc graph (Slack/Docs/email/PDF chunks), optionally scoped to one account.
     Returns chunks sourced to their Document (account_id, citable_url).
+  • crossGraphJoin(accountId, entityId?): execute the structured↔unstructured join as a
+    SINGLE graph traversal across the same_as bridge — from the account's identity (or, with
+    entityId, a single named entity) to its KG entities, to the document chunks that MENTION
+    them, to the owning Documents — returning that documentary evidence WITH the traversed
+    edges as ONE provable traversal. Use it for cross-graph "show the join" hero questions
+    where you need an account's documentary evidence as a single same_as traversal; it
+    COMPLEMENTS hybridRetrieve (it does not replace free-text hybrid retrieval).
 
 How to work a question:
   1. Decompose the question into the structured facts and the unstructured evidence it needs.
@@ -244,6 +252,7 @@ export const TOOLS: ToolSet = {
   structuredQuery,
   hybridRetrieve,
   bridgeResolve,
+  crossGraphJoin,
 };
 
 /**
