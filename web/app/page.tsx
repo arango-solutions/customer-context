@@ -33,9 +33,11 @@ import { ReasoningTimeline } from '@/components/ReasoningTimeline';
 import { AnswerBody } from '@/components/AnswerBody';
 import { RefusalPanel } from '@/components/RefusalPanel';
 import { TrustChip } from '@/components/TrustChip';
+import { WhatChangedBanner } from '@/components/WhatChangedBanner';
 import { GraphViz } from '@/components/GraphViz';
 import { SourcingRail, type SourcingRailHandle } from '@/components/SourcingRail';
 import { ErrorState, TimeoutState } from '@/components/ResponseStates';
+import { Button } from '@/components/ui/button';
 
 /** The six known D-01 phases — the live `data-step` value the timeline understands. */
 const KNOWN_PHASES: ReadonlyArray<StreamPhase> = [
@@ -58,7 +60,7 @@ function asStreamPhase(phase: string | undefined): StreamPhase | null {
 const TIMEOUT_MS = 40_000;
 
 export default function Home() {
-  const { ask, input, setInput, phase, envelope, isStreaming, stop, error } =
+  const { ask, input, setInput, phase, envelope, diff, isStreaming, stop, error } =
     useAsk();
 
   // The last submitted question — Retry / Keep-waiting re-submit this exact text.
@@ -66,6 +68,50 @@ export default function Home() {
   // Latched timeout: flips true if >40s elapse with no final envelope; the user then
   // chooses Keep waiting (clears it, keeps the stream) or Retry (re-submits).
   const [timedOut, setTimedOut] = React.useState(false);
+
+  // CDC-02 (D-08): the single "Simulate update" trigger. POST fires the fixed
+  // pre-staged escalation scenario (Plan 02 route) and returns 202 immediately; we
+  // then poll the status endpoint until 'done' (the ADD lane is ~4-6 min — Plan 01).
+  // The button is disabled while running/done (re-clicking would re-run the full lane);
+  // after 'done' the presenter re-asks the same question and the diff renders (D-06).
+  const [updateStatus, setUpdateStatus] = React.useState<
+    'idle' | 'running' | 'done' | 'error'
+  >('idle');
+
+  const simulateUpdate = React.useCallback(async () => {
+    if (updateStatus === 'running') return; // serialize (Pitfall 6)
+    setUpdateStatus('running');
+    try {
+      const res = await fetch('/api/simulate-update', { method: 'POST' });
+      if (res.status !== 202) {
+        setUpdateStatus('error');
+        return;
+      }
+      // Poll status until the async ADD lane lands (the doc-count increase is the
+      // completion signal — the POST response is NOT). Bounded by Plan 01's latency.
+      const poll = async () => {
+        try {
+          const s = await fetch('/api/simulate-update/status');
+          const { status } = (await s.json()) as { status?: string };
+          if (status === 'done') return setUpdateStatus('done');
+          if (status === 'error') return setUpdateStatus('error');
+          setTimeout(poll, 3000);
+        } catch {
+          setUpdateStatus('error');
+        }
+      };
+      setTimeout(poll, 3000);
+    } catch {
+      setUpdateStatus('error');
+    }
+  }, [updateStatus]);
+
+  const updateLabel: Record<typeof updateStatus, string> = {
+    idle: 'Simulate update',
+    running: 'Applying update… (~5 min)',
+    done: 'Update applied — re-ask to see what changed',
+    error: 'Update failed — retry',
+  };
 
   const submit = React.useCallback(
     (question: string) => {
@@ -106,9 +152,24 @@ export default function Home() {
   return (
     <main className="mx-auto flex min-h-screen max-w-6xl flex-col gap-8 px-6 py-16">
       <header className="flex flex-col gap-2">
-        <h1 className="text-[28px] font-semibold leading-tight">
-          Ask across both graphs.
-        </h1>
+        <div className="flex items-start justify-between gap-4">
+          <h1 className="text-[28px] font-semibold leading-tight">
+            Ask across both graphs.
+          </h1>
+          {/* CDC-02 / D-08: the single "Simulate update" trigger. Disabled while the
+              ADD lane is running or after it has applied (re-running would duplicate);
+              the presenter re-asks to reveal the diff (D-06). */}
+          <Button
+            type="button"
+            variant={updateStatus === 'error' ? 'destructive' : 'outline'}
+            onClick={simulateUpdate}
+            disabled={updateStatus === 'running' || updateStatus === 'done'}
+            aria-busy={updateStatus === 'running'}
+            className="shrink-0"
+          >
+            {updateLabel[updateStatus]}
+          </Button>
+        </div>
         <p className="text-base text-muted-foreground">
           Every answer is traced to the record, graph, and query it came from.
           {isIdle ? ' Try one of these, or ask your own:' : null}
@@ -158,8 +219,13 @@ export default function Home() {
                   <RefusalPanel envelope={envelope} />
                 ) : (
                   <>
+                    {/* CDC-03 (D-04): one grounded "what-changed" banner ABOVE the
+                        single answer (not side-by-side). Renders nothing on a first
+                        ask (diff === null) or when there is no grounded change. */}
+                    <WhatChangedBanner diff={diff} envelope={envelope} />
                     <AnswerBody
                       envelope={envelope}
+                      changedClaimIndices={diff?.addedClaims}
                       onOpenSource={(citations) =>
                         railRef.current?.openSource(citations)
                       }

@@ -22,12 +22,13 @@
 
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport, type UIMessage, type UIDataTypes } from 'ai';
 import type { Envelope } from 'customer360-agent';
 import type { C360UIDataParts, StreamPhase } from './ui-message';
 import { STREAM_PHASE_ORDER } from './ui-message';
+import { diffEnvelopes, type EnvelopeDiff } from './diff-envelope';
 
 /**
  * Advance the live phase MONOTONICALLY. The planner runs specialists in parallel, so
@@ -66,6 +67,12 @@ export interface UseAskResult {
   phase: string | undefined;
   /** The terminal-gated grounded answer from the persistent data-envelope part. */
   envelope: Envelope | undefined;
+  /**
+   * CDC-03: the grounded diff vs. the SAME question's previous grounded answer.
+   * null on a first ask (nothing to compare). Computed client-side, strictly
+   * downstream of the data-envelope — never feeds the grounding gate (D-06/D-07).
+   */
+  diff: EnvelopeDiff | null;
   /** The SDK chat status ('submitted' | 'streaming' | 'ready' | 'error'). */
   status: ReturnType<typeof useChat<C360UIMessage>>['status'];
   /** True while a request is in flight (Ask disabled / Stop affordance). */
@@ -87,10 +94,22 @@ export function selectEnvelope(
   return part && 'data' in part ? (part.data as Envelope) : undefined;
 }
 
+/** Normalize a question for the per-question cache (preset chips → exact match). */
+const normalizeQuestion = (q: string): string => q.trim().toLowerCase();
+
 export function useAsk(): UseAskResult {
   const [input, setInput] = useState('');
   // The live phase from the transient data-step parts (never persisted as an answer).
   const [phase, setPhase] = useState<string | undefined>(undefined);
+
+  // CDC-03 (D-06): remember the last grounded envelope PER normalized question, so a
+  // re-ask of the same question can diff against it. The question that produced the
+  // current envelope is captured at ask() time (asks are serialized, so this is
+  // unambiguous). The diff itself (D-07) runs strictly downstream of the
+  // data-envelope and never feeds returnedIds/enforceGrounding.
+  const lastByQuestion = useRef<Map<string, Envelope>>(new Map());
+  const askedQuestionRef = useRef<string>('');
+  const [diff, setDiff] = useState<EnvelopeDiff | null>(null);
 
   const { messages, sendMessage, status, stop, error } = useChat<C360UIMessage>({
     transport: new DefaultChatTransport({
@@ -120,11 +139,27 @@ export function useAsk(): UseAskResult {
     (question: string) => {
       const trimmed = question.trim();
       if (!trimmed) return;
+      askedQuestionRef.current = trimmed; // the question this next envelope answers (D-06)
       setPhase('planning'); // optimistic: rail shows life before the first server step
       void sendMessage({ text: trimmed });
     },
     [sendMessage],
   );
+
+  const envelope = selectEnvelope(messages);
+
+  // When a NEW grounded envelope arrives, diff it against the same question's prior
+  // grounded answer (if any) and roll the cache forward so this becomes the next
+  // "before" (D-06/D-07). Fires once per new data-envelope (stable reference per
+  // message); the transient streaming gap (envelope === undefined) is a no-op.
+  useEffect(() => {
+    if (!envelope) return;
+    const q = normalizeQuestion(askedQuestionRef.current);
+    if (!q) return;
+    const before = lastByQuestion.current.get(q);
+    setDiff(before ? diffEnvelopes(before, envelope) : null);
+    lastByQuestion.current.set(q, envelope);
+  }, [envelope]);
 
   const isStreaming = status === 'submitted' || status === 'streaming';
 
@@ -133,7 +168,8 @@ export function useAsk(): UseAskResult {
     input,
     setInput,
     phase,
-    envelope: selectEnvelope(messages),
+    envelope,
+    diff,
     status,
     isStreaming,
     stop,

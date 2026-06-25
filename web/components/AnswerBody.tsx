@@ -64,10 +64,22 @@ export interface AnswerBodyProps {
    * the shared drawer). If omitted, AnswerBody owns a local SourceDrawer.
    */
   onOpenSource?: (citations: Citation[]) => void;
+  /**
+   * CDC-03 (additive, render-only): zero-based indices of claims that are NEW/changed
+   * vs. the prior answer (from the client-side diff). Matching <li>s get a brand-token
+   * highlight. Does NOT touch envelope.claims/answer DATA (CARDINAL RULE — eval reads them).
+   */
+  changedClaimIndices?: number[];
   className?: string;
 }
 
-export function AnswerBody({ envelope, onOpenSource, className }: AnswerBodyProps) {
+export function AnswerBody({
+  envelope,
+  onOpenSource,
+  changedClaimIndices,
+  className,
+}: AnswerBodyProps) {
+  const changed = new Set(changedClaimIndices ?? []);
   const [localCitations, setLocalCitations] = React.useState<Citation[] | null>(
     null,
   );
@@ -93,7 +105,12 @@ export function AnswerBody({ envelope, onOpenSource, className }: AnswerBodyProp
         {envelope.claims.map((claim, i) => (
           <li
             key={i}
-            className="text-base leading-relaxed text-foreground"
+            data-changed={changed.has(i) ? 'true' : undefined}
+            className={cn(
+              'text-base leading-relaxed text-foreground',
+              // CDC-03: brand-token highlight on new/changed claims (render-only).
+              changed.has(i) && 'rounded bg-primary/10 px-2 py-1 -mx-2',
+            )}
           >
             {claim.text}
             <ClaimSuperscript index={i} onActivate={() => activate(i)} />
