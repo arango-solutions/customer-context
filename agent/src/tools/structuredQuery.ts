@@ -111,7 +111,7 @@ function buildPath(
  * bind value; every collection/field name below is a string literal in the
  * template (never interpolated from input).
  */
-async function runFacet(
+export async function runFacet(
   accountId: string,
   facet: StructuredFacetT,
 ): Promise<StructuredResult> {

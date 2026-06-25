@@ -6,6 +6,8 @@ export default defineConfig({
     environment: 'node',
     // Live-DB spikes can take a few seconds (embedding call + traversal).
     testTimeout: 60_000,
-    include: ['test/**/*.test.ts'],
+    // Co-located unit/integration tests (src/**) + the legacy test/ suite.
+    // GRAPH-03 (14-01) introduces src/tools/structuredQuery.test.ts.
+    include: ['test/**/*.test.ts', 'src/**/*.test.ts'],
   },
 });
