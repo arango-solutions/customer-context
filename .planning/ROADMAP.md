@@ -194,8 +194,20 @@ Plans:
   3. The UI reveals each retrieval step's actual AQL ("show me the query") from `retrievalPath.query`, labels each step by retrieval mode (vector / BM25 / graph traversal), and spotlights the cross-graph join — fully data-driven, no per-question hardcoding.
   4. The eval gate (Phase 8) stays green and the streaming path is smoke-tested ([[agent-loop-shared-factory]]) — the deepened retrieval does not regress grounding.
 
-**Plans**: TBD
-**Risk**: Low–Med — the edges already exist and are populated (`load_structured.py`, 7 edge collections; `verify_graphs.py` asserts non-empty), so the traversal rewrite is mechanical; the single cross-graph join query is the only genuinely new AQL. Honesty constraint is strict (same grounded records, no invented traversals). Retrieval-path change rides the eval-gate + streaming-smoke discipline.
+**Plans**: 4 plans
+Plans:
+
+**Wave 1** *(parallel — no shared files: structuredQuery vs new crossGraphJoin tool)*
+- [ ] 14-01-PLAN.md — GRAPH-03a: rewrite structuredQuery facets as real HAS_* OUTBOUND named-graph traversals returning identical _ids + real traversed edges (GRAPH-03)
+- [ ] 14-02-PLAN.md — GRAPH-03b: live same_as pre-flight + single-AQL crossGraphJoin tool (hub→KG→MENTIONED_IN→PART_OF) + register in shared TOOLS (GRAPH-03)
+
+**Wave 2** *(blocked on 14-01 + 14-02)*
+- [ ] 14-03-PLAN.md — EXPL-01 core: D-04 clean doc/chunk labels + pure buildPipeline(retrievalPath) transform (conditional/honest stages + D-03 chunk→doc collapse) (EXPL-01)
+
+**Wave 3** *(blocked on 14-03)*
+- [ ] 14-04-PLAN.md — EXPL-01 UI: RetrievalPipeline stepped component (AQL-on-demand, spotlighted join) replacing GraphViz + page wiring + eval-gate GREEN + manual streaming smoke (EXPL-01 / SC-4)
+
+**Risk**: Low–Med — the edges already exist and are populated (`load_structured.py`, 7 edge collections; `verify_graphs.py` asserts non-empty), so the traversal rewrite is mechanical; the single cross-graph join query is the only genuinely new AQL. The dangling-bridge blocker is ALREADY FIXED (build_entity_bridge.py re-run + verified live); 14-02 only adds a pre-flight verification, not a repair. Honesty constraint is strict (same grounded records, no invented traversals). Retrieval-path change rides the eval-gate + streaming-smoke discipline.
 **UI hint**: yes
 
 ### Phase 15: GraphRAG via AutoGraph Communities
@@ -278,7 +290,7 @@ Plans:
 | 11. Graph Viz + UI Refresh + Latency | 4/4 | Complete    | 2026-06-24 |
 | 12. Simulated CDC + What-Changed Diff | 3/3 | Complete | 2026-06-24 |
 | 13. Injection-Resistance + Adversarial Mode | 4/4 | Complete   | 2026-06-25 |
-| 14. Graph-Depth + Explainability | 0/TBD | Not started | - |
+| 14. Graph-Depth + Explainability | 0/4 | Planned | - |
 | 15. GraphRAG via AutoGraph Communities | 0/TBD | Not started | - |
 | 16. Time-Travel (Temporal Graph) | 0/TBD | Not started | - |
 | 17. Agent Memory on ArangoDB | 0/TBD | Not started | - |
