@@ -55,10 +55,24 @@ export type C360DataParts = C360UIDataParts & UIDataTypes;
 /** The typed UI message for this app: the two custom data parts the stream carries. */
 export type C360UIMessage = UIMessage<unknown, C360DataParts>;
 
+/**
+ * Options for `ask`. SEC-02: `adversarial` is PRESENTATION-ONLY — it is carried into
+ * the request body so the UI can label the mode, but it NEVER branches agent/request
+ * behavior. Defense (plan 13-01 hardening + enforceGrounding) is unconditional; the
+ * route does not forward this flag to the agent (RESEARCH Pattern 3 "Critical").
+ */
+export interface AskOptions {
+  adversarial?: boolean;
+}
+
 /** The surface the dashboard (and Plan 04) consumes. */
 export interface UseAskResult {
-  /** Submit a free-form question (thin wrapper over sendMessage({ text })). */
-  ask: (question: string) => void;
+  /**
+   * Submit a free-form question (thin wrapper over sendMessage({ text })). The optional
+   * `{ adversarial }` flag is presentation-only — it rides in the request body but never
+   * branches behavior (SEC-02).
+   */
+  ask: (question: string, options?: AskOptions) => void;
   /** The current question-box value. */
   input: string;
   /** Set the question-box value — example chips call this to FILL the box. */
@@ -111,6 +125,11 @@ export function useAsk(): UseAskResult {
   const askedQuestionRef = useRef<string>('');
   const [diff, setDiff] = useState<EnvelopeDiff | null>(null);
 
+  // SEC-02: the current adversarial flag, captured at ask() time so the transport's
+  // (stable) prepareSendMessagesRequest closure can read it. Presentation-only — it
+  // rides in the body and never branches behavior (defense is always on).
+  const adversarialRef = useRef<boolean>(false);
+
   const { messages, sendMessage, status, stop, error } = useChat<C360UIMessage>({
     transport: new DefaultChatTransport({
       api: '/api/ask',
@@ -122,7 +141,10 @@ export function useAsk(): UseAskResult {
             .filter((p) => p.type === 'text')
             .map((p) => ('text' in p ? p.text : ''))
             .join('') ?? '';
-        return { body: { question } };
+        // SEC-02: carry the presentation-only adversarial flag alongside the question.
+        // The route accepts it (so the body does not 400) but never forwards it to the
+        // agent — defense is unconditional.
+        return { body: { question, adversarial: adversarialRef.current } };
       },
     }),
     onData: (part) => {
@@ -136,10 +158,13 @@ export function useAsk(): UseAskResult {
   });
 
   const ask = useCallback(
-    (question: string) => {
+    (question: string, options?: AskOptions) => {
       const trimmed = question.trim();
       if (!trimmed) return;
       askedQuestionRef.current = trimmed; // the question this next envelope answers (D-06)
+      // SEC-02: capture the presentation-only flag for the body lift. Defaults false so
+      // a plain ask(q) carries adversarial:false (never branches behavior).
+      adversarialRef.current = options?.adversarial ?? false;
       setPhase('planning'); // optimistic: rail shows life before the first server step
       void sendMessage({ text: trimmed });
     },
