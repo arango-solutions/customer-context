@@ -1,13 +1,14 @@
 // web/components/AnswerBody.tsx
 //
-// Numbered claim-list rendering (D-12, folds 999.2). Replaces the prose-with-
-// trailing-superscripts layout with a semantic <ol>; each <li> is one claim's
-// `text` + a `ClaimSuperscript` opening the shared drawer (RESEARCH Pattern 5).
+// Cohesive answer + sourced "Supporting facts" (2026-06-25). The PRIMARY read is the
+// cohesive narrative `envelope.answer`; BELOW it, the decomposed `envelope.claims[]`
+// render as a de-emphasized "Supporting facts" <ol>, each <li> = one claim's `text` +
+// a `ClaimSuperscript` opening the shared drawer (RESEARCH Pattern 5).
 //
-// D-12 DESIGN RATIONALE: render `envelope.claims[]` as a numbered list rather
-// than raw prose because claim text is NOT a guaranteed verbatim substring of
-// `answer`. The old layout (prose + trailing markers) had a fuzzy claim→prose-span
-// mapping. Every fact is now unambiguously sourced — the strongest expression of
+// DESIGN RATIONALE: D-12 originally rendered claims[] AS the answer (a numbered list)
+// to guarantee per-fact sourcing, since claim text is NOT a verbatim substring of
+// `answer`. That read as fragmented. This version restores the cohesive answer as the
+// lead while KEEPING every claim click-to-source below it — coherent to read, still
 // "every fact traceable" (UI-SPEC Answer Rendering).
 //
 // CARDINAL RULE (T-06-09): this renders ONLY the grounded envelope's `claims`.
@@ -94,29 +95,45 @@ export function AnswerBody({
   };
 
   return (
-    <div className={cn('flex flex-col gap-4', className)}>
+    <div className={cn('flex flex-col gap-5', className)}>
       {/*
-       * D-12: Numbered claim list — each claim is one <li> with its text + a
-       * ClaimSuperscript linking to that claim's citations. This replaces the old
-       * `<p>{envelope.answer}</p>` + trailing markers block. The envelope.answer
-       * and envelope.claims DATA are untouched (eval reads them; rendering only).
+       * PRIMARY — the cohesive narrative answer (envelope.answer). Leads the read so
+       * the response is a coherent answer, not a list of fragments (2026-06-25 — reverses
+       * D-12's claim-list-as-answer). DATA untouched: eval still reads answer + claims.
        */}
-      <ol className="flex flex-col gap-4 list-decimal pl-6">
-        {envelope.claims.map((claim, i) => (
-          <li
-            key={i}
-            data-changed={changed.has(i) ? 'true' : undefined}
-            className={cn(
-              'text-base leading-relaxed text-foreground',
-              // CDC-03: brand-token highlight on new/changed claims (render-only).
-              changed.has(i) && 'rounded bg-primary/10 px-2 py-1 -mx-2',
-            )}
-          >
-            {claim.text}
-            <ClaimSuperscript index={i} onActivate={() => activate(i)} />
-          </li>
-        ))}
-      </ol>
+      <p className="whitespace-pre-wrap text-base leading-relaxed text-foreground">
+        {envelope.answer}
+      </p>
+
+      {/*
+       * SECONDARY — per-fact sourcing. Every claim stays click-to-source (traceability,
+       * the core value), but now SUPPORTS the cohesive answer above instead of replacing
+       * it. Rendered as a de-emphasized "Supporting facts" <ol> (the existing claim list +
+       * ClaimSuperscript behavior is preserved verbatim).
+       */}
+      {envelope.claims.length > 0 ? (
+        <div className="flex flex-col gap-2 border-t border-border pt-3">
+          <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Supporting facts
+          </span>
+          <ol className="flex flex-col gap-2 list-decimal pl-6">
+            {envelope.claims.map((claim, i) => (
+              <li
+                key={i}
+                data-changed={changed.has(i) ? 'true' : undefined}
+                className={cn(
+                  'text-sm leading-relaxed text-muted-foreground',
+                  // CDC-03: brand-token highlight on new/changed claims (render-only).
+                  changed.has(i) && 'rounded bg-primary/10 px-2 py-1 -mx-2',
+                )}
+              >
+                {claim.text}
+                <ClaimSuperscript index={i} onActivate={() => activate(i)} />
+              </li>
+            ))}
+          </ol>
+        </div>
+      ) : null}
 
       {/* Locally-owned drawer (only when no parent owns it). */}
       {onOpenSource ? null : (
