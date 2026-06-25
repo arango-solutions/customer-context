@@ -35,7 +35,7 @@ import { AnswerBody } from '@/components/AnswerBody';
 import { RefusalPanel } from '@/components/RefusalPanel';
 import { TrustChip } from '@/components/TrustChip';
 import { WhatChangedBanner } from '@/components/WhatChangedBanner';
-import { GraphViz } from '@/components/GraphViz';
+import { RetrievalPipeline } from '@/components/RetrievalPipeline';
 import { SourcingRail, type SourcingRailHandle } from '@/components/SourcingRail';
 import { ErrorState, TimeoutState } from '@/components/ResponseStates';
 import { Button } from '@/components/ui/button';
@@ -300,14 +300,17 @@ export default function Home() {
                         railRef.current?.openSource(citations)
                       }
                     />
-                    {/* Phase 11 D3 pivot: the cross-graph VISUAL renders full-width
-                        directly under the answer (always visible, not behind a rail
-                        toggle). Node click → the SAME rail-owned SourceDrawer. */}
-                    <section aria-label="Cross-graph visualization" className="mt-2">
+                    {/* EXPL-01 / D-02 (Phase 14): the stepped RETRIEVAL PIPELINE
+                        renders full-width directly under the answer (replacing the
+                        Phase-11 d3-force hairball viz). Left→right capability
+                        stages, AQL-on-demand, cross-graph join spotlighted. Stage
+                        click → the SAME rail-owned SourceDrawer (records + chunk text
+                        + AQL, D-01). Fully data-driven via the pure buildPipeline. */}
+                    <section aria-label="Retrieval pipeline" className="mt-2">
                       <h2 className="mb-2 text-lg font-semibold text-foreground">
-                        Cross-graph traversal
+                        How this answer was retrieved
                       </h2>
-                      <GraphViz
+                      <RetrievalPipeline
                         retrievalPath={envelope.retrievalPath}
                         citations={envelope.citations}
                         onOpenSource={(citations) =>
