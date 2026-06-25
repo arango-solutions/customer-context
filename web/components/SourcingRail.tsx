@@ -48,9 +48,35 @@ export const SourcingRail = React.forwardRef<
     Citation[] | null
   >(null);
 
-  const openSource = React.useCallback((citations: Citation[]) => {
-    setDrawerCitations(citations);
-  }, []);
+  // _id → { fields, text } merged across every retrieval-path fragment. nodeLabels.ts
+  // (server, post-grounding) builds this for every node id the path references — chunk
+  // CONTENT for unstructured, the actual returned record FIELDS for structured. Citations
+  // emitted on the answer carry only _id + aql, so we join the detail in here when the
+  // drawer opens (the GraphViz node-click path already enriches; this gives the SAME
+  // payoff to citation-card + claim-superscript clicks). Display-only; never touches grounding.
+  const nodeDetailsById = React.useMemo(() => {
+    const map = new Map<string, { fields?: Citation['fields']; text?: string }>();
+    for (const frag of envelope.retrievalPath ?? []) {
+      if (!frag.nodeDetails) continue;
+      for (const [id, detail] of Object.entries(frag.nodeDetails)) {
+        if (!map.has(id)) map.set(id, detail);
+      }
+    }
+    return map;
+  }, [envelope.retrievalPath]);
+
+  const openSource = React.useCallback(
+    (citations: Citation[]) => {
+      // Prefer detail already on the citation (viz node-click path); else join from nodeDetails.
+      const enriched = citations.map((c) => {
+        if (c.text || (c.fields && c.fields.length > 0)) return c;
+        const detail = nodeDetailsById.get(c._id);
+        return detail ? { ...c, fields: detail.fields, text: detail.text } : c;
+      });
+      setDrawerCitations(enriched);
+    },
+    [nodeDetailsById],
+  );
 
   React.useImperativeHandle(ref, () => ({ openSource }), [openSource]);
 

@@ -60,6 +60,14 @@ function asStreamPhase(phase: string | undefined): StreamPhase | null {
 /** The timeout budget (UI-SPEC: >40s with no final envelope → TimeoutState). */
 const TIMEOUT_MS = 40_000;
 
+/** SEC-02 demo gate (2026-06-25): the "try-to-break-it" adversarial mode is hidden for the
+ * demo — it invited off-script attacks the live _id-grounding gate can't fully refuse
+ * (semantic faithfulness is eval-only, not on the live path). Set false → the toggle never
+ * renders, so `adversarial` stays false and the banner/AttackChips/attack-label all stay dark.
+ * The underlying SEC-01 hardening + enforceGrounding gate are UNAFFECTED (always-on). Flip to
+ * true to restore the feature. */
+const ADVERSARIAL_MODE_ENABLED = false;
+
 export default function Home() {
   const { ask, input, setInput, phase, envelope, diff, isStreaming, stop, error } =
     useAsk();
@@ -166,18 +174,21 @@ export default function Home() {
             Ask across both graphs.
           </h1>
           <div className="flex shrink-0 items-center gap-2">
-            {/* SEC-02 / D-02: the "try-to-break-it" adversarial-mode toggle. Mirrors the
-                Simulate-update button styling; uses the destructive (brand clay) accent
-                when ON so it reads as "attack mode" without alarming the audience. */}
-            <Button
-              type="button"
-              variant={adversarial ? 'destructive' : 'outline'}
-              onClick={() => setAdversarial((v) => !v)}
-              aria-pressed={adversarial}
-              className="shrink-0"
-            >
-              {adversarial ? 'Adversarial mode: ON' : 'Adversarial mode'}
-            </Button>
+            {/* SEC-02 / D-02: the "try-to-break-it" adversarial-mode toggle. Hidden for the
+                demo behind ADVERSARIAL_MODE_ENABLED (2026-06-25) — when disabled the toggle
+                never renders, so `adversarial` stays false and the banner/chips/label below
+                stay dark. SEC-01 hardening + enforceGrounding remain always-on regardless. */}
+            {ADVERSARIAL_MODE_ENABLED ? (
+              <Button
+                type="button"
+                variant={adversarial ? 'destructive' : 'outline'}
+                onClick={() => setAdversarial((v) => !v)}
+                aria-pressed={adversarial}
+                className="shrink-0"
+              >
+                {adversarial ? 'Adversarial mode: ON' : 'Adversarial mode'}
+              </Button>
+            ) : null}
             {/* CDC-02 / D-08: the single "Simulate update" trigger. Disabled while the
                 ADD lane is running or after it has applied (re-running would duplicate);
                 the presenter re-asks to reveal the diff (D-06). */}

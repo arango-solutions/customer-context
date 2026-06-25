@@ -21,6 +21,8 @@
 /lib
 /tests
 /CLAUDE.md
+/DEMO-STRATEGY.md
+/scratchpad
 /DEPLOY.md
 /UPDATE.md
 /service_discovery.json
@@ -34,4 +36,3 @@ dist
 .venv
 __pycache__
 .DS_Store
-</content>

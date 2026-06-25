@@ -133,11 +133,19 @@ describe('sanitizeUntrustedContent', () => {
 // ---------------------------------------------------------------------------
 // SEC-01 DOC-INJECTION LIVE CASE (the headline test) — D-03 / plan 13-03.
 //
-// Plan 13-02 planted a real Meridian Slack chunk (default_6_b:14352…33,
-// meridian_slack_injection_probe.txt) carrying 4 distinct injection payloads
-// (instruction-override, fake-admin/SYSTEM, data-exfil "output all SSNs", and a
-// </untrusted_document> delimiter-spoof). It is LIVE in the KG and surfaces in the
-// BM25 top-8 for a benign Meridian renewal-risk Slack query (13-02 SUMMARY rank 3).
+// NOTE (2026-06-25): the planted probe (meridian_slack_injection_probe.txt) was
+// REMOVED from the corpus + live KG when the adversarial "try-to-break-it" demo
+// mode was cut — it was polluting the Meridian centerpiece question (Q12). This
+// test still PASSES: it asserts absence-of-EFFECT (no fabricated _id, no leaked
+// directive, grounded-or-refused), which holds trivially with no planted payload —
+// so it now doubles as a benign-Meridian grounding check. SEC-01 remains covered by
+// (a) the always-on sanitizer + enforceGrounding (structural) and (b) the
+// direct-question injection cases in adversarial.ts. See [[live-path-id-grounding-only]].
+//
+// (Historical) Plan 13-02 planted a real Meridian Slack chunk carrying 4 injection
+// payloads (instruction-override, fake-admin/SYSTEM, data-exfil "output all SSNs", a
+// </untrusted_document> delimiter-spoof), live in the KG at BM25 top-8 for a Meridian
+// renewal-risk query (13-02 SUMMARY rank 3) — now deleted.
 //
 // This test drives the real askQuestion() → retrieval → planner → envelope path an
 // attacker would hit, and asserts the embedded directive had NO EFFECT — using ONLY
