@@ -29,6 +29,7 @@ import type { StreamPhase } from '@/lib/ui-message';
 
 import { QuestionBox } from '@/components/QuestionBox';
 import { ExampleChips } from '@/components/ExampleChips';
+import { AttackChips } from '@/components/AttackChips';
 import { ReasoningTimeline } from '@/components/ReasoningTimeline';
 import { AnswerBody } from '@/components/AnswerBody';
 import { RefusalPanel } from '@/components/RefusalPanel';
@@ -68,6 +69,12 @@ export default function Home() {
   // Latched timeout: flips true if >40s elapse with no final envelope; the user then
   // chooses Keep waiting (clears it, keeps the stream) or Retry (re-submits).
   const [timedOut, setTimedOut] = React.useState(false);
+
+  // SEC-02 / D-02: the "try-to-break-it" adversarial mode toggle. PRESENTATION-ONLY —
+  // it surfaces preset attack chips + a labeled banner and rides in the request body so
+  // refusals can be attack-labeled (D-04). It NEVER branches agent behavior; defense
+  // (plan 13-01 hardening + enforceGrounding) is unconditional regardless of this flag.
+  const [adversarial, setAdversarial] = React.useState(false);
 
   // CDC-02 (D-08): the single "Simulate update" trigger. POST fires the fixed
   // pre-staged escalation scenario (Plan 02 route) and returns 202 immediately; we
@@ -119,9 +126,11 @@ export default function Home() {
       if (!trimmed) return;
       setLastQuestion(trimmed);
       setTimedOut(false);
-      ask(trimmed);
+      // SEC-02: carry the presentation-only adversarial flag so the route accepts it and
+      // the refusal can be attack-labeled (D-04). Defense is always on regardless.
+      ask(trimmed, { adversarial });
     },
-    [ask],
+    [ask, adversarial],
   );
 
   // Arm the 40s timeout while streaming with no envelope yet; disarm on envelope /
@@ -156,25 +165,61 @@ export default function Home() {
           <h1 className="text-[28px] font-semibold leading-tight">
             Ask across both graphs.
           </h1>
-          {/* CDC-02 / D-08: the single "Simulate update" trigger. Disabled while the
-              ADD lane is running or after it has applied (re-running would duplicate);
-              the presenter re-asks to reveal the diff (D-06). */}
-          <Button
-            type="button"
-            variant={updateStatus === 'error' ? 'destructive' : 'outline'}
-            onClick={simulateUpdate}
-            disabled={updateStatus === 'running' || updateStatus === 'done'}
-            aria-busy={updateStatus === 'running'}
-            className="shrink-0"
-          >
-            {updateLabel[updateStatus]}
-          </Button>
+          <div className="flex shrink-0 items-center gap-2">
+            {/* SEC-02 / D-02: the "try-to-break-it" adversarial-mode toggle. Mirrors the
+                Simulate-update button styling; uses the destructive (brand clay) accent
+                when ON so it reads as "attack mode" without alarming the audience. */}
+            <Button
+              type="button"
+              variant={adversarial ? 'destructive' : 'outline'}
+              onClick={() => setAdversarial((v) => !v)}
+              aria-pressed={adversarial}
+              className="shrink-0"
+            >
+              {adversarial ? 'Adversarial mode: ON' : 'Adversarial mode'}
+            </Button>
+            {/* CDC-02 / D-08: the single "Simulate update" trigger. Disabled while the
+                ADD lane is running or after it has applied (re-running would duplicate);
+                the presenter re-asks to reveal the diff (D-06). */}
+            <Button
+              type="button"
+              variant={updateStatus === 'error' ? 'destructive' : 'outline'}
+              onClick={simulateUpdate}
+              disabled={updateStatus === 'running' || updateStatus === 'done'}
+              aria-busy={updateStatus === 'running'}
+              className="shrink-0"
+            >
+              {updateLabel[updateStatus]}
+            </Button>
+          </div>
         </div>
         <p className="text-base text-muted-foreground">
           Every answer is traced to the record, graph, and query it came from.
           {isIdle ? ' Try one of these, or ask your own:' : null}
         </p>
       </header>
+
+      {/* SEC-02 / D-02: the clearly-labeled adversarial-mode banner. Always visible when
+          the toggle is ON (above the box) so the audience knows they are attacking on
+          purpose, and so the doc-injection moment is framed: embedded directives in
+          retrieved documents are detected and ignored (the plan-13-01 hardening). The
+          calm clay accent (destructive == brand clay) — no red alarm. */}
+      {adversarial ? (
+        <div
+          role="status"
+          aria-label="Adversarial mode active"
+          className="rounded-lg border border-destructive/50 bg-destructive/5 px-4 py-3"
+        >
+          <p className="text-sm font-semibold text-destructive">
+            Adversarial mode — you are attacking on purpose.
+          </p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Embedded instructions in retrieved documents are detected and ignored, and
+            out-of-scope / PII / injection prompts are refused cleanly. Try a preset
+            attack or type your own.
+          </p>
+        </div>
+      ) : null}
 
       <QuestionBox
         value={input}
@@ -184,9 +229,16 @@ export default function Home() {
         onStop={stop}
       />
 
-      {/* IDLE — the only screen with no rail (EmptyState): chips FILL the box.
-          `value` lets the picked chip render selected (and deselect on edit). */}
-      {isIdle ? <ExampleChips onPick={setInput} value={input} /> : null}
+      {/* IDLE — the only screen with no rail (EmptyState). In NORMAL mode the example
+          chips FILL the box (free-form NL premise); in ADVERSARIAL mode the AttackChips
+          SUBMIT a preset attack on click (the one-click repeatable trust moment, D-02). */}
+      {isIdle ? (
+        adversarial ? (
+          <AttackChips onAttack={submit} />
+        ) : (
+          <ExampleChips onPick={setInput} value={input} />
+        )
+      ) : null}
 
       {/* Once a question is asked, the two-column desktop layout (main + sticky rail).
           The rail stacks below the main column on tablet/mobile; during the empty-answer
@@ -216,7 +268,14 @@ export default function Home() {
                   <TrustChip envelope={envelope} />
                 </div>
                 {envelope.refused ? (
-                  <RefusalPanel envelope={envelope} />
+                  // D-04: pass the flag + the asked question so the attack-type label
+                  // renders ONLY in adversarial mode (client-side derivation; the
+                  // envelope contract is never extended).
+                  <RefusalPanel
+                    envelope={envelope}
+                    adversarial={adversarial}
+                    question={lastQuestion}
+                  />
                 ) : (
                   <>
                     {/* CDC-03 (D-04): one grounded "what-changed" banner ABOVE the
