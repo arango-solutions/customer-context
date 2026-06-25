@@ -1,7 +1,7 @@
 // agent/test/structuredQuery.test.ts
 //
-// Wave-1 (05-02) integration tests + Phase-10 (10-03) structural-edge assertions
-// for the structuredQuery specialist.
+// Wave-1 (05-02) integration tests + Phase-14 (14-01, GRAPH-03a) traversed-edge
+// assertions for the structuredQuery specialist.
 //
 // These exercise each curated facet against the live customer360 structural
 // named graph, asserting:
@@ -9,7 +9,9 @@
 //   - retrievalPath.graph === 'structured' + the correct collection,
 //   - the NPS green/red split (both score and verbatim_sentiment present),
 //   - the Zod inputSchema rejects an unknown facet before any AQL runs.
-//   - (Phase 10-03) structural-edge determinism + never-traversed + self-edge-skip
+//   - (Phase 14-01) real HAS_* traversed-edge honesty: kind:'traversed', real
+//     HAS_*/... edge ids, account facet emits no self-traversal.
+//     (SUPERSEDES the Phase 10-03 synthesized-structural-edge block.)
 //
 // loadEnv() runs at module scope (override:true) BEFORE the skip-guard so the
 // cluster creds come from .env, not a stale shell value (D-06). hasLiveDb()
@@ -98,23 +100,26 @@ describe.skipIf(!live)('structuredQuery — live facets (account-scoped, sourced
 });
 
 // ---------------------------------------------------------------------------
-// Phase 10-03: Structural-edge determinism + honesty invariants (SC-4 / D-02)
+// Phase 14-01 (GRAPH-03a): Traversed-edge honesty invariants (SC-1).
 //
-// These tests run against the live cluster so real row _ids are available for
-// determinism assertions. The assertions do NOT require a specific account — they
-// exercise the structural-edge contract on any facet that returns rows.
+// SUPERSEDES the Phase 10-03 structural-edge block: structuredQuery now performs a
+// REAL 1..1 OUTBOUND Account/<id> HAS_* named-graph traversal per non-account facet,
+// so the synthesized `kind:'structural'` account edges are promoted to REAL
+// `kind:'traversed'` HAS_* edge documents (id/_from/_to captured verbatim from AQL).
+// (Detailed per-facet identity vs flat-scan oracle tests live in the co-located
+// src/tools/structuredQuery.test.ts; these guard the legacy call site.)
 // ---------------------------------------------------------------------------
-describe.skipIf(!live)('structuredQuery — structural edges (SC-4 / D-02)', () => {
-  it('synthesizes edges[] with kind:structural and label:account — NEVER kind:traversed', async () => {
+describe.skipIf(!live)('structuredQuery — traversed HAS_* edges (GRAPH-03a / SC-1)', () => {
+  it('emits edges[] with kind:traversed and a real HAS_* label/collection — NEVER kind:structural', async () => {
     const { retrievalPath } = await run({ accountId: MERIDIAN_ACCOUNT_ID, facet: 'usage' });
     // Must have at least one edge (usage returns ≥1 row)
     expect(retrievalPath.edges.length).toBeGreaterThan(0);
     for (const edge of retrievalPath.edges) {
-      // SC-4 / D-02 — the core honesty invariant
-      expect(edge.kind).toBe('structural');
-      expect(edge.kind).not.toBe('traversed');
-      expect(edge.label).toBe('account');
-      expect(edge.collection).toBe('account');
+      // SC-1 — the core honesty invariant: this is now a real traversal.
+      expect(edge.kind).toBe('traversed');
+      expect(edge.kind).not.toBe('structural');
+      expect(edge.label).toBe('HAS_USAGE');
+      expect(edge.collection).toBe('HAS_USAGE');
     }
   });
 
@@ -128,12 +133,14 @@ describe.skipIf(!live)('structuredQuery — structural edges (SC-4 / D-02)', () 
     }
   });
 
-  it('edge _id is deterministic: structural:${accountId}:${record._id}', async () => {
+  it('edge _id is the REAL AQL-returned HAS_* edge id (e.g. HAS_NPS/...), not synthesized', async () => {
     const accountId = MERIDIAN_ACCOUNT_ID;
     const { retrievalPath } = await run({ accountId, facet: 'nps' });
+    expect(retrievalPath.edges.length).toBeGreaterThan(0);
     for (const edge of retrievalPath.edges) {
-      const expectedId = `structural:${accountId}:${edge._to}`;
-      expect(edge._id).toBe(expectedId);
+      expect(typeof edge._id).toBe('string');
+      expect((edge._id as string).startsWith('HAS_NPS/')).toBe(true);
+      expect((edge._id as string).startsWith('structural:')).toBe(false);
     }
   });
 
@@ -146,31 +153,31 @@ describe.skipIf(!live)('structuredQuery — structural edges (SC-4 / D-02)', () 
     expect(ids1).toEqual(ids2);
   });
 
-  it('skips the self-edge where _to === _from (account facet self-row)', async () => {
+  it('account facet emits NO traversed edge (single-vertex lookup, no self-traversal)', async () => {
     const accountId = MERIDIAN_ACCOUNT_ID;
     const { retrievalPath } = await run({ accountId, facet: 'account' });
-    // The account facet returns a single Account row whose _id is `Account/${accountId}`.
-    // That would produce _from === _to — a degenerate self-edge that MUST be filtered out.
+    // The account facet is a LIMIT 1 vertex lookup — there is no edge to traverse to
+    // itself, so it must emit no traversed edge (and certainly no self-loop).
+    expect(retrievalPath.edges.filter((e) => e.kind === 'traversed').length).toBe(0);
     for (const edge of retrievalPath.edges) {
       expect(edge._from).not.toBe(edge._to);
     }
   });
 
-  it('edges count equals data rows count (one edge per row, after self-edge filter)', async () => {
+  it('edges count equals data rows count (one HAS_* edge per traversed leaf row)', async () => {
     const accountId = MERIDIAN_ACCOUNT_ID;
     const { data, retrievalPath } = await run({ accountId, facet: 'contact' });
-    // contact facet rows are NOT the Account collection — no self-edge expected.
-    // edge count must equal row count.
     expect(retrievalPath.edges.length).toBe(data.length);
   });
 
-  it('no edge has a uuid4/random _id — all ids start with "structural:"', async () => {
+  it('every non-account facet emits only real HAS_*/... edge ids — no uuid4/random, no "structural:"', async () => {
     const accountId = NORTHWIND_ACCOUNT_ID;
     for (const facet of ['usage', 'contract', 'nps', 'contact', 'opportunity'] as const) {
       const { retrievalPath } = await run({ accountId, facet });
       for (const edge of retrievalPath.edges) {
         expect(typeof edge._id).toBe('string');
-        expect((edge._id as string).startsWith('structural:')).toBe(true);
+        expect((edge._id as string).startsWith('HAS_')).toBe(true);
+        expect((edge._id as string).startsWith('structural:')).toBe(false);
       }
     }
   });
