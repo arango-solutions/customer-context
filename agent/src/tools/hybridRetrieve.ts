@@ -26,6 +26,11 @@ import { literal } from 'arangojs/aql';
 import { db } from '../db.js';
 import { embedQuery } from '../embed.js';
 import { fuseRRF } from '../rrf.js';
+import {
+  sanitizeUntrustedContent,
+  UNTRUSTED_OPEN,
+  UNTRUSTED_CLOSE,
+} from '../sanitize.js';
 import type { RetrievalPathFragmentT, RetrievalPathEdgeT } from '../envelope.js';
 
 // Whitelisted collection / view names (module constants — never user input).
@@ -135,7 +140,25 @@ export async function runHybridRetrieve(args: {
           edge: { _id: edge._id, _from: edge._from, _to: edge._to }
         }
   `);
-  const data = (await srcCursor.all()) as HybridChunk[];
+  const rawData = (await srcCursor.all()) as HybridChunk[];
+
+  // SEC-01 (D-01b) — UNTRUSTED-CONTENT HARDENING (the single chokepoint where
+  // chunk text crosses into the planner's context as tool output):
+  // wrap each chunk's `content` in <untrusted_document>...</untrusted_document>
+  // delimiters and neutralize delimiter-spoofing markers BEFORE the planner sees
+  // it. Done IN TYPESCRIPT at tool-return time — NEVER in the AQL RETURN (keeps
+  // the AQL bind-safe and the transform unit-testable) and NEVER persisted to the
+  // DB (Pitfall 6 — customer360_Chunks keeps raw content; faithfulness.ts reads
+  // DOCUMENT(_id) straight from the DB and is unaffected). The wrapped value is
+  // what the model reasons over so it cannot mistake document text for its own
+  // instructions; precedence is reinforced by PLANNER_SYSTEM_PROMPT (D-01a).
+  // INVARIANTS PRESERVED: chunk_id/account_id/citable_url/file_name/edge are
+  // untouched, so retrievalPath._ids (built from chunk_id below) is unchanged and
+  // the grounding contract + VIZ edges are unaffected.
+  const data: HybridChunk[] = rawData.map((d) => ({
+    ...d,
+    content: `${UNTRUSTED_OPEN}\n${sanitizeUntrustedContent(d.content)}\n${UNTRUSTED_CLOSE}`,
+  }));
 
   // SC-1: Build kind:'traversed' PART_OF edges from the AQL-returned edge docs.
   // Capture _from/_to verbatim from the edge document (Pitfall 2 — do not reconstruct).
