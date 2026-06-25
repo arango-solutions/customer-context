@@ -40,7 +40,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
-import subprocess
+import re
 import sys
 import time
 from pathlib import Path
@@ -83,6 +83,10 @@ CHUNKS_VECTOR_COLLECTION = "customer360_Chunks"
 
 # The rags collection that stores partition strategy metadata.
 KG_RAGS = "customer360_rags"
+# Corpus-side collections used to discover which partition the newly-built doc
+# was clustered into (source -> IN_DOMAIN -> cluster -> INGESTED_AS -> rag).
+KG_SOURCES = "customer360_sources"
+KG_CORPUS_RELATIONS = "customer360_corpus_relations"
 
 # Allowed collection-name prefix (defence-in-depth allowlist guard).
 _KG_PREFIX = "customer360_"
@@ -206,6 +210,112 @@ def _purge_module_layer3(db, module_prefix: str, *, dry_run: bool) -> dict[str, 
 
 
 # ── read-back partition ids from rags ────────────────────────────────────────
+
+
+def _discover_partition_ids_for_file(db, file_id: str, file_name: str) -> list[str]:
+    """Discover which partition(s) the newly-built doc was clustered into.
+
+    On this cluster every doc is built under module='default' (passing
+    modules=[new-module] inserts 0 docs — see memory add-lane-modules-filter-fails),
+    so the partition can NOT be found by module name. Instead trace the corpus
+    graph from the source we just uploaded:
+
+        source (file_id match) --IN_DOMAIN--> cluster --INGESTED_AS--> rag
+
+    and return the rag's rag_partition_id. This is content-addressed (keyed on
+    the upload's file_id), so it survives the AutoGraph filename scramble
+    (memory autograph-filename-scramble) and finds the exact Leiden community the
+    new doc landed in — which, for a dissimilar escalation doc, is typically its
+    OWN singleton partition (true zero-churn).
+    """
+    if not db.has_collection(KG_SOURCES) or not db.has_collection(KG_CORPUS_RELATIONS):
+        raise SystemExit(
+            f"[add] FAIL — corpus collections absent ({KG_SOURCES}/{KG_CORPUS_RELATIONS}); "
+            "cannot discover partition for the new doc"
+        )
+    # Primary: match the source by the upload's file_id (most reliable).
+    # Fallback: match by filename (the uploaded basename).
+    aql = """
+    FOR s IN @@sources
+      FILTER s.file_id == @file_id OR s.filename == @file_name
+      FOR e IN @@rels
+        FILTER e.label == 'IN_DOMAIN' AND e._from == s._id
+        FOR ia IN @@rels
+          FILTER ia.label == 'INGESTED_AS' AND ia._from == e._to
+          LET r = DOCUMENT(ia._to)
+          FILTER r != null AND r.rag_partition_id != null
+          RETURN DISTINCT r.rag_partition_id
+    """
+    ids = list(
+        db.aql.execute(
+            aql,
+            bind_vars={
+                "@sources": KG_SOURCES,
+                "@rels": KG_CORPUS_RELATIONS,
+                "file_id": file_id,
+                "file_name": file_name,
+            },
+        )
+    )
+    ids = [x for x in ids if x]
+    return ids
+
+
+_HEADER_RE = re.compile(
+    r"module=(?P<module>\S+)\s+account_id=(?P<account_id>\S+)\s+"
+    r"entity_id=(?P<entity_id>\S+)\s+citable_url=(?P<citable_url>\S+)"
+)
+
+
+def _restamp_unattributed_docs(db) -> int:
+    """Targeted, content-derived re-stamp of any Layer-3 Document missing its
+    attribution fields (account_id / entity_id / module / citable_url).
+
+    AutoGraph's importer lands the Document content (which carries the
+    `<!-- module=… account_id=… entity_id=… citable_url=… -->` header) but does
+    NOT populate the per-doc attribution FIELDS — that is the re-stamp's job.
+    The repo-wide repair_kg_attribution.py rebuilds ALL 140 docs and is brittle
+    (it fails its file_name<->manifest bijection on the scrambled corpus). For
+    the ADD lane we only need to stamp the NEWLY imported doc(s), so we re-stamp
+    ONLY the records whose attribution is still null/empty — parsing each doc's
+    own content header. Scramble-safe (keyed on content, not file_name) and
+    zero-churn (touches only the new records).
+
+    Returns the number of documents stamped.
+    """
+    targets = list(
+        db.aql.execute(
+            """
+            FOR d IN customer360_Documents
+              FILTER d.account_id == null OR d.account_id == ''
+                  OR d.entity_id == null OR d.entity_id == ''
+                  OR d.module == null OR d.module == ''
+                  OR d.citable_url == null OR d.citable_url == ''
+              RETURN d
+            """
+        )
+    )
+    stamped = 0
+    for d in targets:
+        m = _HEADER_RE.search(d.get("content") or "")
+        if not m:
+            print(f"[add]   WARNING: doc {d['_key']} has no parseable content header — left unstamped")
+            continue
+        db.collection("customer360_Documents").update(
+            {
+                "_key": d["_key"],
+                "module": m.group("module"),
+                "account_id": m.group("account_id"),
+                "entity_id": m.group("entity_id"),
+                "citable_url": m.group("citable_url"),
+            }
+        )
+        stamped += 1
+        print(
+            f"[add]   stamped {d['_key']}: module={m.group('module')} "
+            f"account_id={m.group('account_id')[:8]}.. citable_url={m.group('citable_url')[:50]}"
+        )
+    return stamped
 
 
 def _read_partition_ids(db, module: str) -> list[str]:
@@ -371,10 +481,17 @@ def main() -> int:
         action="store_true",
         help="print the planned steps + staged doc + target module WITHOUT making any destructive calls",
     )
+    ap.add_argument(
+        "--skip-build",
+        action="store_true",
+        help="resume from Stage 4: skip upload + corpus build (Stages 0-3); use the source "
+        "already present in the corpus (recovers a partial run without creating a duplicate source)",
+    )
     args = ap.parse_args()
 
     module = args.module
     dry_run = args.dry_run
+    skip_build = args.skip_build
 
     cfg = _arango_cfg()
     manifest = _load_manifest()
@@ -398,14 +515,12 @@ def main() -> int:
         print("  Stage 1 — upload pre-staged doc via File Manager (durable path)")
         print("  Stage 2 — corpus build: incremental=True, file_ids=[new doc], cluster_threshold=1 (no modules= arg)")
         print("  Stage 3 — rag-strategizer analyze + wait for strategy to stabilize")
-        print("  Stage 4 — read back partition_ids from customer360_rags for module")
-        print("  Stage 5 — partition-prefix-scoped purge (STARTS_WITH partition_id prefix)")
+        print("  Stage 4 — discover partition via source->IN_DOMAIN->cluster->INGESTED_AS->rag")
+        print("             (keyed on the upload file_id; live-run only — needs the post-build corpus graph)")
+        print("  Stage 5 — partition-scoped purge (STARTS_WITH partition_id == discovered partition)")
         print("             allowlist: customer360_ collections only; NEVER truncate-all")
-        db = _get_db(cfg)
-        _purge_module_layer3(db, f"{module}_", dry_run=True)
-        print("  Stage 6 — orchestrate_with_wait(partition_ids=<step-4 list>)")
-        print("  Stage 7 — content-derived re-stamp via repair_kg_attribution.py")
-        print("             (content-derived; scramble-safe; RESEARCH Pitfall 3)")
+        print("  Stage 6 — orchestrate_with_wait(partition_ids=<step-4 discovered list>); wait for docs > baseline (async import)")
+        print("  Stage 7 — targeted content-derived re-stamp of unattributed doc(s) (NOT the brittle full repair_kg_attribution.py)")
         print("  Stage 8a — BM25 view DROP + RECREATE")
         print("  Stage 8b — HNSW vector index DROP + RECREATE")
         print("  Stage 9 — hybrid probe: BM25 + APPROX_NEAR_COSINE")
@@ -419,90 +534,130 @@ def main() -> int:
     total_start = time.monotonic()
     wall_clocks: dict[str, float] = {}
 
-    # Stage 0 — health check
-    print(f"[add] Stage 0 — health check {_autograph_url()} ...")
-    t0 = time.monotonic()
-    health, _ = client.health()
-    status = str(health.get("status") or "").upper()
-    if status != "SERVING":
-        raise SystemExit(f"[add] FAIL — AutoGraph health not SERVING: {health!r}")
-    wall_clocks["health"] = (time.monotonic() - t0) * 1000
-    print(f"[add]   health OK — {status}  ({wall_clocks['health']:.0f}ms)")
+    if skip_build:
+        # Resume path: the source is already in the corpus from a prior partial
+        # run. Recover its file_id by filename instead of re-uploading (which
+        # would create a duplicate source). Stages 0-3 are skipped.
+        print(f"[add] --skip-build — resuming from Stage 4; resolving existing file_id for {file_name!r} ...")
+        db = _get_db(cfg)
+        rows = list(
+            db.aql.execute(
+                "FOR s IN @@sources FILTER s.filename == @fn RETURN s.file_id",
+                bind_vars={"@sources": KG_SOURCES, "fn": file_name},
+            )
+        )
+        rows = [r for r in rows if r]
+        if not rows:
+            raise SystemExit(
+                f"[add] FAIL — --skip-build set but no source with filename={file_name!r} "
+                f"found in {KG_SOURCES}; run a normal (non-skip) lane first"
+            )
+        file_id = rows[0]
+        print(f"[add]   resolved existing file_id={file_id}")
+    else:
+        # Stage 0 — health check
+        print(f"[add] Stage 0 — health check {_autograph_url()} ...")
+        t0 = time.monotonic()
+        health, _ = client.health()
+        status = str(health.get("status") or "").upper()
+        if status != "SERVING":
+            raise SystemExit(f"[add] FAIL — AutoGraph health not SERVING: {health!r}")
+        wall_clocks["health"] = (time.monotonic() - t0) * 1000
+        print(f"[add]   health OK — {status}  ({wall_clocks['health']:.0f}ms)")
 
-    if not doc_path.exists():
-        raise SystemExit(f"[add] FAIL — pre-staged doc missing: {doc_path}")
+        if not doc_path.exists():
+            raise SystemExit(f"[add] FAIL — pre-staged doc missing: {doc_path}")
 
-    # Stage 1 — upload via File Manager (durable path; NOT import-multiple)
-    print(f"[add] Stage 1 — upload {file_name} via File Manager ...")
-    t0 = time.monotonic()
-    content = doc_path.read_bytes()
-    file_id = client.upload_rag_input(cfg["db"], file_name, content, content_type=_content_type(file_name))
-    wall_clocks["upload"] = (time.monotonic() - t0) * 1000
-    print(f"[add]   uploaded — file_id={file_id}  ({wall_clocks['upload']:.0f}ms)")
+        # Stage 1 — upload via File Manager (durable path; NOT import-multiple)
+        print(f"[add] Stage 1 — upload {file_name} via File Manager ...")
+        t0 = time.monotonic()
+        content = doc_path.read_bytes()
+        file_id = client.upload_rag_input(cfg["db"], file_name, content, content_type=_content_type(file_name))
+        wall_clocks["upload"] = (time.monotonic() - t0) * 1000
+        print(f"[add]   uploaded — file_id={file_id}  ({wall_clocks['upload']:.0f}ms)")
 
-    # Stage 2 — corpus build (incremental=True is the ADD-lane knob)
-    # NOTE: do NOT pass modules=[module]. On this cluster doc->module tagging is
-    # done at import-multiple, which is a silent no-op here; the proven-GREEN
-    # full build (build_unstructured.py) ingests via File Manager file_ids with
-    # NO modules= arg and reconstructs module/account identity AFTER the build
-    # (repair_kg_attribution.py). Passing modules=[new-module] filtered on a
-    # module with zero member docs and the build inserted 0 docs
-    # ("No documents were inserted into the database"). See memory
-    # add-lane-modules-filter-fails. We mirror the proven file_ids path and keep
-    # incremental=True; eval-gate AFTER is the no-corruption guard.
-    print(f"[add] Stage 2 — corpus build (incremental=True, file_ids, cluster_threshold=1) ...")
-    t0 = time.monotonic()
-    resp, _ = client.create_corpus_build(
-        file_ids=[file_id],
-        incremental=True,
-        embedding_strategy="first_chunk",
-        top_k=7,
-        cluster_threshold=1,
-    )
-    build_id = (
-        resp.get("corpus_build_id") or resp.get("corpusBuildId")
-        or resp.get("buildId") or resp.get("id") or resp.get("build_id")
-    )
-    if not build_id:
-        raise SystemExit(f"[add] FAIL — corpus build response missing id: {resp!r}")
-    print(f"[add]   build submitted: {build_id}")
-    for body, _ in client.poll_corpus_build(build_id, interval_s=20, timeout_s=5400):
-        bstatus = str(body.get("status") or body.get("state") or "").lower()
-        print(f"[add]   corpus status: {bstatus or 'pending'}")
-        if bstatus == "completed":
-            break
-        if bstatus in {"failed", "error", "cancelled"}:
-            msg = str(body.get("message") or "")[:400]
-            raise SystemExit(f"[add] FAIL — corpus build {bstatus}: {msg}")
-    wall_clocks["corpus_build"] = (time.monotonic() - t0) * 1000
-    print(f"[add]   corpus build COMPLETED  ({wall_clocks['corpus_build']:.0f}ms)")
+        # Stage 2 — corpus build (incremental=True is the ADD-lane knob)
+        # NOTE: do NOT pass modules=[module]. On this cluster doc->module tagging is
+        # done at import-multiple, which is a silent no-op here; the proven-GREEN
+        # full build (build_unstructured.py) ingests via File Manager file_ids with
+        # NO modules= arg and reconstructs module/account identity AFTER the build
+        # (repair_kg_attribution.py). Passing modules=[new-module] filtered on a
+        # module with zero member docs and the build inserted 0 docs
+        # ("No documents were inserted into the database"). See memory
+        # add-lane-modules-filter-fails. We mirror the proven file_ids path and keep
+        # incremental=True; eval-gate AFTER is the no-corruption guard.
+        print(f"[add] Stage 2 — corpus build (incremental=True, file_ids, cluster_threshold=1) ...")
+        t0 = time.monotonic()
+        resp, _ = client.create_corpus_build(
+            file_ids=[file_id],
+            incremental=True,
+            embedding_strategy="first_chunk",
+            top_k=7,
+            cluster_threshold=1,
+        )
+        build_id = (
+            resp.get("corpus_build_id") or resp.get("corpusBuildId")
+            or resp.get("buildId") or resp.get("id") or resp.get("build_id")
+        )
+        if not build_id:
+            raise SystemExit(f"[add] FAIL — corpus build response missing id: {resp!r}")
+        print(f"[add]   build submitted: {build_id}")
+        for body, _ in client.poll_corpus_build(build_id, interval_s=20, timeout_s=5400):
+            bstatus = str(body.get("status") or body.get("state") or "").lower()
+            print(f"[add]   corpus status: {bstatus or 'pending'}")
+            if bstatus == "completed":
+                break
+            if bstatus in {"failed", "error", "cancelled"}:
+                msg = str(body.get("message") or "")[:400]
+                raise SystemExit(f"[add] FAIL — corpus build {bstatus}: {msg}")
+        wall_clocks["corpus_build"] = (time.monotonic() - t0) * 1000
+        print(f"[add]   corpus build COMPLETED  ({wall_clocks['corpus_build']:.0f}ms)")
 
-    # Stage 3 — rag-strategizer analyze + stabilize
-    print("[add] Stage 3 — rag-strategizer analyze + wait for strategy to stabilize ...")
-    t0 = time.monotonic()
-    client.analyze_strategizer(full_graph_rag_strategy="high")
-    strategy_body, _, _ = client.wait_for_strategy_stable(timeout_s=1800)
-    strategies = strategy_body.get("strategies") or strategy_body.get("partitions") or []
-    wall_clocks["strategize"] = (time.monotonic() - t0) * 1000
-    print(f"[add]   strategy stable — {len(strategies)} partition strategies  ({wall_clocks['strategize']:.0f}ms)")
+        # Stage 3 — rag-strategizer analyze + stabilize
+        print("[add] Stage 3 — rag-strategizer analyze + wait for strategy to stabilize ...")
+        t0 = time.monotonic()
+        client.analyze_strategizer(full_graph_rag_strategy="high")
+        strategy_body, _, _ = client.wait_for_strategy_stable(timeout_s=1800)
+        strategies = strategy_body.get("strategies") or strategy_body.get("partitions") or []
+        wall_clocks["strategize"] = (time.monotonic() - t0) * 1000
+        print(f"[add]   strategy stable — {len(strategies)} partition strategies  ({wall_clocks['strategize']:.0f}ms)")
 
-    # Stage 4 — read back partition ids (Guardrail 3: do NOT assume _0_a)
-    print(f"[add] Stage 4 — reading back partition_ids for module={module!r} ...")
+    # Stage 4 — discover the partition the new doc was clustered into.
+    # On this cluster everything builds under module='default', so we trace the
+    # corpus graph from the source we just uploaded (file_id) to its rag
+    # partition rather than filtering rags by a (non-existent) module name.
+    print(f"[add] Stage 4 — discovering partition for the new doc (file_id={file_id}) ...")
     db = _get_db(cfg)
-    partition_ids = _read_partition_ids(db, module)
-    print(f"[add]   partition_ids: {partition_ids}")
+    partition_ids = _discover_partition_ids_for_file(db, file_id, file_name)
+    print(f"[add]   discovered partition_ids: {partition_ids}")
     if not partition_ids:
-        raise SystemExit(f"[add] FAIL — no partition ids found for module={module!r}")
+        raise SystemExit(
+            "[add] FAIL — could not discover the partition for the new doc via "
+            f"{KG_SOURCES}->{KG_CORPUS_RELATIONS}->{KG_RAGS} (file_id={file_id})"
+        )
 
-    # Stage 5 — partition-prefix-scoped purge (T-12-01 mitigation)
-    print(f"[add] Stage 5 — purge Layer-3 for module={module!r} (prefix-scoped, allowlist-guarded) ...")
-    module_prefix = f"{module}_"
-    purge_counts = _purge_module_layer3(db, module_prefix, dry_run=False)
-    total_purged = sum(purge_counts.values())
-    print(f"[add]   purge complete — {total_purged} records removed across {len(purge_counts)} collections")
+    # Stage 5 — partition-scoped purge (T-12-01 mitigation). Idempotent re-run
+    # safety: REMOVE any Layer-3 records already under the discovered partition(s)
+    # before orchestrate re-imports them. For a net-new singleton partition this
+    # removes 0 (zero churn); for a re-run it cleans the prior import.
+    print(f"[add] Stage 5 — purge Layer-3 for partitions {partition_ids} (scoped, allowlist-guarded) ...")
+    total_purged = 0
+    for pid in partition_ids:
+        purge_counts = _purge_module_layer3(db, pid, dry_run=False)
+        total_purged += sum(purge_counts.values())
+    print(f"[add]   purge complete — {total_purged} records removed across {len(partition_ids)} partition(s)")
 
     # Stage 6 — orchestrate (partition-scoped; Guardrail 1: serialize)
+    # Capture the pre-orchestrate doc count: the importer runs ASYNC and lags the
+    # kickoff (and the JWT-refreshed reads can briefly trail), so we must wait for
+    # the count to INCREASE past this baseline — a "stable" check alone exits
+    # early at the OLD count while the import is still in flight.
+    KG_DOCUMENTS = "customer360_Documents"
+    KG_CHUNKS = "customer360_Chunks"
+    db = _get_db(cfg)
+    baseline_docs = db.collection(KG_DOCUMENTS).count() if db.has_collection(KG_DOCUMENTS) else 0
     print(f"[add] Stage 6 — orchestrate(replicas=2, partition_ids={partition_ids}) ...")
+    print(f"[add]   pre-orchestrate {KG_DOCUMENTS}={baseline_docs}; expecting it to grow")
     t0 = time.monotonic()
     oresp, kickoff_ms, wait_ms = client.orchestrate_with_wait(
         replicas=2,
@@ -512,46 +667,63 @@ def main() -> int:
     oid = oresp.get("orchestration_id") or oresp.get("orchestrationId") or oresp.get("id")
     wall_clocks["orchestrate"] = (time.monotonic() - t0) * 1000
     print(f"[add]   orchestration started: {oid}  kickoff={kickoff_ms:.0f}ms  prior_wait={wait_ms:.0f}ms")
-    # Wait for KG collections to populate (same pattern as build_unstructured.py Stage 5).
-    print("[add]   waiting for KG collections to populate ...")
-    KG_DOCUMENTS = "customer360_Documents"
-    KG_CHUNKS = "customer360_Chunks"
+    # Wait for the ASYNC import to land: docs must climb above baseline AND hold.
+    print("[add]   waiting for the import to land (docs > baseline) ...")
     deadline = time.monotonic() + 2400
     prev = (-1, -1)
     stable_count = 0
+    grew = False
     while time.monotonic() < deadline:
         db = _get_db(cfg)  # refresh JWT
         docs = db.collection(KG_DOCUMENTS).count() if db.has_collection(KG_DOCUMENTS) else 0
         chunks = db.collection(KG_CHUNKS).count() if db.has_collection(KG_CHUNKS) else 0
-        print(f"[add]   {KG_DOCUMENTS}={docs}  {KG_CHUNKS}={chunks}")
+        print(f"[add]   {KG_DOCUMENTS}={docs}  {KG_CHUNKS}={chunks}  (baseline={baseline_docs})")
         cur = (docs, chunks)
-        if docs > 0 and chunks > 0 and cur == prev:
+        # Require the count to have GROWN past baseline before we accept stability;
+        # otherwise the lagging pre-import reads look "stable" at the old value.
+        if docs > baseline_docs and chunks > baseline_docs:
+            grew = True
+        if grew and cur == prev:
             stable_count += 1
             if stable_count >= 2:
-                print("[add]   KG collections populated and stable")
+                print(f"[add]   import landed and stable ({baseline_docs} → {docs})")
                 break
         else:
             stable_count = 0
         prev = cur
         time.sleep(30)
     else:
-        raise SystemExit("[add] FAIL — KG collections did not stabilize within 2400s")
+        raise SystemExit(
+            f"[add] FAIL — import did not land within 2400s "
+            f"(docs={prev[0]} never exceeded baseline={baseline_docs})"
+        )
     wall_clocks["orchestrate_total"] = (time.monotonic() - t0) * 1000
-    print(f"[add]   orchestrate + KG stabilize complete  ({wall_clocks['orchestrate_total']:.0f}ms)")
+    print(f"[add]   orchestrate + import complete  ({wall_clocks['orchestrate_total']:.0f}ms)")
 
-    # Stage 7 — content-derived re-stamp via repair_kg_attribution.py
-    # MUST use content-derived re-stamp (repair_kg_attribution) — the manifest-keyed approach
-    # mis-attributes ~78/105 docs due to AutoGraph filename scramble (RESEARCH Pitfall 3).
-    print("[add] Stage 7 — content-derived re-stamp (repair_kg_attribution.py) ...")
+    # Stage 7 — targeted, content-derived re-stamp of the newly imported doc(s).
+    # The importer lands the Document content (with its module/account/entity/
+    # citable_url header) but not the per-doc attribution FIELDS. We stamp ONLY
+    # the records whose attribution is still null/empty (the new doc), parsing
+    # each doc's own content header — scramble-safe and zero-churn. The repo-wide
+    # repair_kg_attribution.py is intentionally NOT used here: it rebuilds all 140
+    # docs and fails its file_name<->manifest bijection on the scrambled corpus.
+    print("[add] Stage 7 — targeted content-derived re-stamp of unattributed doc(s) ...")
     t0 = time.monotonic()
-    rc = subprocess.run(
-        [sys.executable, str(_REPO_ROOT / "scripts" / "repair_kg_attribution.py")],
-        cwd=str(_REPO_ROOT),
-    ).returncode
-    if rc != 0:
-        raise SystemExit(f"[add] FAIL — repair_kg_attribution.py exited {rc} (scramble unresolved)")
+    db = _get_db(cfg)
+    stamped = _restamp_unattributed_docs(db)
+    if stamped == 0:
+        print("[add]   WARNING: no unattributed docs found to stamp (already attributed?)")
+    nulls = list(
+        db.aql.execute(
+            "RETURN LENGTH(FOR d IN customer360_Documents "
+            "FILTER d.account_id == null OR d.account_id == '' "
+            "OR d.module == null OR d.module == '' RETURN 1)"
+        )
+    )
+    if nulls and nulls[0] > 0:
+        raise SystemExit(f"[add] FAIL — {nulls[0]} doc(s) still have null attribution after re-stamp")
     wall_clocks["restamp"] = (time.monotonic() - t0) * 1000
-    print(f"[add]   re-stamp complete  ({wall_clocks['restamp']:.0f}ms)")
+    print(f"[add]   re-stamp complete — {stamped} doc(s) stamped, 0 null attribution  ({wall_clocks['restamp']:.0f}ms)")
 
     # Stage 8 — BM25 view + vector index self-heal (Pitfall 4 mitigation)
     db = _get_db(cfg)
