@@ -116,9 +116,11 @@ describe('RetrievalPipeline – stage ordering (D-02 left→right)', () => {
 
   it('shows each capability label', () => {
     render(<RetrievalPipeline retrievalPath={dualEnvelope()} citations={[]} onOpenSource={vi.fn()} />);
-    expect(screen.getByText(/Vector \+ BM25/i)).toBeInTheDocument();
-    expect(screen.getByText(/Cross-graph join/i)).toBeInTheDocument();
-    expect(screen.getByText(/Graph traversal/i)).toBeInTheDocument();
+    // Match the full capability labels (the badge text "The cross-graph join" is
+    // distinct from the label "Cross-graph join (same_as traversal)").
+    expect(screen.getByText(/Vector \+ BM25 \(ArangoSearch\)/i)).toBeInTheDocument();
+    expect(screen.getByText(/Cross-graph join \(same_as traversal\)/i)).toBeInTheDocument();
+    expect(screen.getByText(/Graph traversal \(HAS_\* named graph\)/i)).toBeInTheDocument();
   });
 });
 
