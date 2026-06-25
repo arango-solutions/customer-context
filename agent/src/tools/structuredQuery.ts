@@ -8,34 +8,40 @@
 //
 // SECURITY (CLAUDE.md cardinal rule + RESEARCH §Security Domain / §Anti-Patterns):
 //   - read-only AQL (FOR ... RETURN; no write ops),
-//   - never interpolate a collection or field name from input,
-//   - every query FILTERs on account_id and is LIMIT-bounded (T-05-05 DoS),
+//   - never interpolate a collection / edge / field name from input (HAS_* edge
+//     names and field names are STRING LITERALS in the template; accountId is the
+//     ONLY bind value, embedded only via the account anchor `Account/${accountId}`),
+//   - every non-account query is a single-hop 1..1 OUTBOUND traversal (bounded depth)
+//     and LIMIT-bounded (12/30) (T-14-02 DoS); the account facet is a LIMIT 1 lookup,
 //   - facet routed by a Zod enum; unknown facets rejected before any AQL runs.
 //
 // Each branch returns { data, retrievalPath } where retrievalPath is the shared
 // RetrievalPathFragment { graph, collection, _ids, query, edges[] } carrying the real
-// ArangoDB _ids the query returned (the grounding anchors the planner merges) and
-// the synthesized structural edges (SC-4 / D-02).
+// ArangoDB _ids the query returned (the grounding anchors the planner merges) and,
+// for non-account facets, the real traversed HAS_* edges (GRAPH-03a / SC-1).
 //
 // Field names are live-verified (RESEARCH §Live Data Layer, probed 2026-06-18).
 // NPS exposes BOTH the GREEN numeric (score/nps_score) AND the RED free-text
 // (verbatim_sentiment) — the green-vs-red split critical for Q12/Q2.
 //
-// STRUCTURAL EDGES (Phase 10-03, SC-4 / D-02):
-// structuredQuery walks no graph edges — it does account-scoped attribute lookups.
-// Per D-02, it SYNTHESIZES one account-anchored structural edge per returned row:
-//   _from: `Account/${accountId}` (a real vertex — the account node exists)
-//   _to:   row._id (the returned record)
-//   _id:   `structural:${accountId}:${row._id}` — a clearly-synthetic, deterministic
-//          string. It is NOT an ArangoDB document key (no "/" separator in the leading
-//          segment). The `structural:` prefix is an unambiguous synthetic marker.
-//          Deterministic: same inputs → same id every run (no uuid4/Math.random). (D-02)
-//   kind:  'structural' — NEVER 'traversed'. This is the D-02 honesty boundary:
-//          'structural' means "account-induced, not a traversal that actually ran".
-//          The D-04 guard (traversedEdgesAreGrounded) explicitly exempts structural edges.
-//   label: 'account'
-// The account facet self-edge (Account/x → Account/x, where _from === _to) is filtered
-// out to avoid a degenerate self-loop in the Phase 11 graph viz.
+// TRAVERSED EDGES (Phase 14-01, GRAPH-03a — "stop querying the graph DB like SQL"):
+// Each non-account facet is a REAL named-graph traversal
+//   FOR leaf, edge IN 1..1 OUTBOUND Account/<id> HAS_*
+// over the existing `customer360_structured` HAS_* edge collections (all directed
+// Account → leaf). The traversal returns the IDENTICAL `_id` set as the prior flat
+// `FILTER x.account_id == @id` scan (live-verified 2026-06-25: usage 18==18, every
+// facet IDENTICAL — Account._key == account_id, so `Account/${accountId}` is a valid
+// anchor; each leaf has exactly one HAS_* edge). Because it now actually walks the
+// edge, structuredQuery promotes the prior synthesized `kind:'structural'` edges to
+// REAL `kind:'traversed'` edges, built verbatim from the AQL-returned edge document:
+//   _id:   edge._id   — the REAL ArangoDB edge id (e.g. "HAS_USAGE/<acct>_<leaf>").
+//                       NEVER synthesized (no `structural:` marker, no uuid4/Math.random).
+//   _from: edge._from — `Account/${accountId}` (captured verbatim, not reconstructed).
+//   _to:   edge._to   — the leaf record `_id` (captured verbatim).
+//   kind:  'traversed' — survives `enforceEdgeHonesty` because the _id is AQL-returned.
+//   collection/label: the HAS_* edge collection name (honest provenance).
+// The `account` facet stays a single-vertex lookup (there is no edge to traverse to
+// itself); it emits NO traversed edge — no fabricated self-traversal (SC-1 honesty).
 
 import { tool } from 'ai';
 import { aql } from 'arangojs';
@@ -59,47 +65,53 @@ interface StructuredResult {
   retrievalPath: RetrievalPathFragmentT;
 }
 
+/** The AQL-returned HAS_* edge document, captured verbatim from the traversal RETURN. */
+interface TraversedEdge {
+  _id: string;
+  _from: string;
+  _to: string;
+}
+
 /**
  * Build a RetrievalPathFragment for a curated structured-query result.
  *
- * Synthesizes one structural edge per data row (SC-4 / D-02). Each edge has:
- *   - kind: 'structural' — NEVER 'traversed' (D-02 honesty boundary)
- *   - _id: `structural:${accountId}:${row._id}` — deterministic, clearly-synthetic
- *   - _from: `Account/${accountId}` (the real account vertex)
- *   - _to: row._id
- * The self-edge case (_from === _to — the account facet's Account row) is filtered
- * out to prevent a degenerate self-loop.
+ * GRAPH-03a (Phase 14-01): for the five non-account facets, every row carries an
+ * `edge` field — the REAL HAS_* edge document the OUTBOUND traversal returned. We
+ * build one `kind:'traversed'` RetrievalPathEdge per row directly from that edge
+ * document (verbatim _id/_from/_to; never synthesized). These survive
+ * `enforceEdgeHonesty` because every _id was AQL-returned.
+ *
+ * The `account` facet passes `hasEdge === undefined` (no traversal — a single-vertex
+ * lookup): no traversed edge is emitted, so the Account vertex never claims a
+ * fabricated self-traversal (SC-1 honesty clause).
  */
 function buildPath(
   collection: string,
   data: Array<Record<string, unknown>>,
   query: string,
-  accountId: string,
+  hasEdge?: string,
 ): RetrievalPathFragmentT {
-  const edges: RetrievalPathEdgeT[] = data
-    .map((d) => {
-      const recordId = d._id as string;
-      const from = `Account/${accountId}`;
-      const to = recordId;
-      return {
-        // `structural:` prefix is a deterministic synthetic marker — NOT an ArangoDB
-        // document key. kind:'structural' signals "account-induced, not a traversal
-        // that ran" (D-02). No uuid4/Math.random — same inputs → same id. (SC-4)
-        _id: `structural:${accountId}:${recordId}`,
-        _from: from,
-        _to: to,
-        collection: 'account',
-        kind: 'structural' as const,
-        label: 'account' as const,
-      };
-    })
-    // Skip the degenerate self-edge (_from === _to) produced by the account facet
-    // whose single returned row is the Account vertex itself (Account/${accountId}).
-    .filter((e) => e._to !== e._from);
+  const edges: RetrievalPathEdgeT[] =
+    hasEdge == null
+      ? [] // account facet: vertex lookup, no edge to traverse to itself
+      : data
+          .map((d) => d.edge as TraversedEdge | undefined)
+          .filter((e): e is TraversedEdge => e != null)
+          .map((e) => ({
+            // REAL AQL-returned HAS_* edge id (e.g. "HAS_USAGE/<acct>_<leaf>") — never
+            // synthesized; no `structural:` marker, no uuid4/Math.random (Pitfall 5).
+            _id: e._id,
+            _from: e._from, // Account/${accountId} (captured verbatim)
+            _to: e._to, // leaf record _id (captured verbatim)
+            collection: hasEdge,
+            kind: 'traversed' as const,
+            label: hasEdge,
+          }));
 
   return {
     graph: 'structured',
     collection,
+    // Grounding anchors stay the leaf record _ids — unchanged from the flat scan.
     _ids: data.map((d) => d._id as string),
     query,
     edges,
@@ -111,22 +123,23 @@ function buildPath(
  * bind value; every collection/field name below is a string literal in the
  * template (never interpolated from input).
  */
-async function runFacet(
+export async function runFacet(
   accountId: string,
   facet: StructuredFacetT,
 ): Promise<StructuredResult> {
   switch (facet) {
     case 'usage': {
       const cursor = await db.query(aql`
-        FOR u IN UsageFact
-          FILTER u.account_id == ${accountId}
+        WITH Account, UsageFact
+        FOR u, edge IN 1..1 OUTBOUND ${`Account/${accountId}`} HAS_USAGE
           SORT u.period DESC
           LIMIT 12
           RETURN {
             _id: u._id, period: u.period, edition: u.edition,
             query_volume_m: u.query_volume_m, cluster_nodes: u.cluster_nodes,
             graphrag_enabled: u.graphrag_enabled,
-            smartgraphs_enabled: u.smartgraphs_enabled
+            smartgraphs_enabled: u.smartgraphs_enabled,
+            edge: { _id: edge._id, _from: edge._from, _to: edge._to }
           }
       `);
       const data = await cursor.all();
@@ -135,23 +148,24 @@ async function runFacet(
         retrievalPath: buildPath(
           'UsageFact',
           data,
-          'FOR u IN UsageFact FILTER u.account_id == @accountId SORT u.period DESC LIMIT 12',
-          accountId,
+          'FOR u IN 1..1 OUTBOUND Account/@accountId HAS_USAGE SORT u.period DESC LIMIT 12',
+          'HAS_USAGE',
         ),
       };
     }
 
     case 'contract': {
       const cursor = await db.query(aql`
-        FOR c IN Contract
-          FILTER c.account_id == ${accountId}
+        WITH Account, Contract
+        FOR c, edge IN 1..1 OUTBOUND ${`Account/${accountId}`} HAS_CONTRACT
           SORT c.renewal_date ASC
           LIMIT 12
           RETURN {
             _id: c._id, value_usd: c.value_usd, renewal_date: c.renewal_date,
             days_to_renewal: c.days_to_renewal, auto_renew: c.auto_renew,
             status: c.status, product_scope: c.product_scope,
-            signed_date: c.signed_date, end_date: c.end_date
+            signed_date: c.signed_date, end_date: c.end_date,
+            edge: { _id: edge._id, _from: edge._from, _to: edge._to }
           }
       `);
       const data = await cursor.all();
@@ -160,8 +174,8 @@ async function runFacet(
         retrievalPath: buildPath(
           'Contract',
           data,
-          'FOR c IN Contract FILTER c.account_id == @accountId SORT c.renewal_date ASC LIMIT 12',
-          accountId,
+          'FOR c IN 1..1 OUTBOUND Account/@accountId HAS_CONTRACT SORT c.renewal_date ASC LIMIT 12',
+          'HAS_CONTRACT',
         ),
       };
     }
@@ -170,14 +184,15 @@ async function runFacet(
       // Both the GREEN numeric (score/nps_score) AND the RED free-text
       // (verbatim_sentiment) — the green-vs-red split (Q12/Q2).
       const cursor = await db.query(aql`
-        FOR n IN NPS
-          FILTER n.account_id == ${accountId}
+        WITH Account, NPS
+        FOR n, edge IN 1..1 OUTBOUND ${`Account/${accountId}`} HAS_NPS
           SORT n.survey_date DESC
           LIMIT 30
           RETURN {
             _id: n._id, score: n.score, nps_score: n.nps_score,
             verbatim_sentiment: n.verbatim_sentiment,
-            survey_date: n.survey_date, survey_period: n.survey_period
+            survey_date: n.survey_date, survey_period: n.survey_period,
+            edge: { _id: edge._id, _from: edge._from, _to: edge._to }
           }
       `);
       const data = await cursor.all();
@@ -186,20 +201,21 @@ async function runFacet(
         retrievalPath: buildPath(
           'NPS',
           data,
-          'FOR n IN NPS FILTER n.account_id == @accountId SORT n.survey_date DESC LIMIT 30',
-          accountId,
+          'FOR n IN 1..1 OUTBOUND Account/@accountId HAS_NPS SORT n.survey_date DESC LIMIT 30',
+          'HAS_NPS',
         ),
       };
     }
 
     case 'contact': {
       const cursor = await db.query(aql`
-        FOR p IN Contact
-          FILTER p.account_id == ${accountId}
+        WITH Account, Contact
+        FOR p, edge IN 1..1 OUTBOUND ${`Account/${accountId}`} HAS_CONTACT
           LIMIT 30
           RETURN {
             _id: p._id, full_name: p.full_name, role: p.role,
-            title: p.title, email: p.email, active_from: p.active_from
+            title: p.title, email: p.email, active_from: p.active_from,
+            edge: { _id: edge._id, _from: edge._from, _to: edge._to }
           }
       `);
       const data = await cursor.all();
@@ -208,22 +224,23 @@ async function runFacet(
         retrievalPath: buildPath(
           'Contact',
           data,
-          'FOR p IN Contact FILTER p.account_id == @accountId LIMIT 30',
-          accountId,
+          'FOR p IN 1..1 OUTBOUND Account/@accountId HAS_CONTACT LIMIT 30',
+          'HAS_CONTACT',
         ),
       };
     }
 
     case 'opportunity': {
       const cursor = await db.query(aql`
-        FOR o IN Opportunity
-          FILTER o.account_id == ${accountId}
+        WITH Account, Opportunity
+        FOR o, edge IN 1..1 OUTBOUND ${`Account/${accountId}`} HAS_OPPORTUNITY
           SORT o.close_date DESC
           LIMIT 12
           RETURN {
             _id: o._id, amount_usd: o.amount_usd, stage: o.stage,
             opportunity_type: o.opportunity_type, product_scope: o.product_scope,
-            close_date: o.close_date, renewal_date: o.renewal_date
+            close_date: o.close_date, renewal_date: o.renewal_date,
+            edge: { _id: edge._id, _from: edge._from, _to: edge._to }
           }
       `);
       const data = await cursor.all();
@@ -232,8 +249,8 @@ async function runFacet(
         retrievalPath: buildPath(
           'Opportunity',
           data,
-          'FOR o IN Opportunity FILTER o.account_id == @accountId SORT o.close_date DESC LIMIT 12',
-          accountId,
+          'FOR o IN 1..1 OUTBOUND Account/@accountId HAS_OPPORTUNITY SORT o.close_date DESC LIMIT 12',
+          'HAS_OPPORTUNITY',
         ),
       };
     }
@@ -252,11 +269,12 @@ async function runFacet(
       const data = await cursor.all();
       return {
         data,
+        // account facet: single-vertex lookup — pass no HAS_* edge so buildPath
+        // emits NO traversed edge (no fabricated Account→Account self-traversal).
         retrievalPath: buildPath(
           'Account',
           data,
           'FOR a IN Account FILTER a.account_id == @accountId LIMIT 1',
-          accountId,
         ),
       };
     }
