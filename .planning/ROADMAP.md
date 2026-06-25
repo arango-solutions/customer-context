@@ -202,7 +202,7 @@ Plans:
 - [x] 14-02-PLAN.md — GRAPH-03b: live same_as pre-flight + single-AQL crossGraphJoin tool (hub→KG→MENTIONED_IN→PART_OF) + register in shared TOOLS (GRAPH-03)
 
 **Wave 2** *(blocked on 14-01 + 14-02)*
-- [ ] 14-03-PLAN.md — EXPL-01 core: D-04 clean doc/chunk labels + pure buildPipeline(retrievalPath) transform (conditional/honest stages + D-03 chunk→doc collapse) (EXPL-01)
+- [x] 14-03-PLAN.md — EXPL-01 core: D-04 clean doc/chunk labels + pure buildPipeline(retrievalPath) transform (conditional/honest stages + D-03 chunk→doc collapse) (EXPL-01)
 
 **Wave 3** *(blocked on 14-03)*
 - [ ] 14-04-PLAN.md — EXPL-01 UI: RetrievalPipeline stepped component (AQL-on-demand, spotlighted join) replacing GraphViz + page wiring + eval-gate GREEN + manual streaming smoke (EXPL-01 / SC-4)
@@ -300,7 +300,7 @@ Plans:
 | 11. Graph Viz + UI Refresh + Latency | 4/4 | Complete    | 2026-06-24 |
 | 12. Simulated CDC + What-Changed Diff | 3/3 | Complete | 2026-06-24 |
 | 13. Injection-Resistance + Adversarial Mode | 4/4 | Complete   | 2026-06-25 |
-| 14. Graph-Depth + Explainability | 2/4 | In Progress|  |
+| 14. Graph-Depth + Explainability | 3/4 | In Progress|  |
 | 15. GraphRAG via AutoGraph Communities | 0/TBD | Not started | - |
 | 16. Time-Travel (Temporal Graph) | 0/TBD | Not started | - |
 | 17. Agent Memory on ArangoDB | 0/TBD | Not started | - |
