@@ -8,7 +8,11 @@
     "opportunity_type": "new",
     "product_scope": "Enterprise",
     "contract_entity_id": "28413794-a510-5f8d-8d53-273cf5d74e10",
-    "renewal_date": "2022-01-14"
+    "renewal_date": "2022-01-14",
+    "is_won": true,
+    "is_open": false,
+    "forecast_category": "Closed",
+    "stage_detail": "New closed-won for Enterprise"
   },
   {
     "entity_id": "ed214b5c-c774-5080-88ba-40c69795d5b3",
@@ -19,7 +23,11 @@
     "opportunity_type": "renewal",
     "product_scope": "Enterprise",
     "contract_entity_id": "cfe5e1d2-a8fc-5713-b5fe-6213a78cbc21",
-    "renewal_date": "2023-01-14"
+    "renewal_date": "2023-01-14",
+    "is_won": true,
+    "is_open": false,
+    "forecast_category": "Closed",
+    "stage_detail": "Renewal closed-won for Enterprise"
   },
   {
     "entity_id": "cfef692f-500a-58f6-a72b-7d11614a4ea8",
@@ -30,7 +38,11 @@
     "opportunity_type": "renewal",
     "product_scope": "Enterprise",
     "contract_entity_id": "4bc39352-392e-5ccc-b081-d77a7cc544ee",
-    "renewal_date": "2024-01-14"
+    "renewal_date": "2024-01-14",
+    "is_won": true,
+    "is_open": false,
+    "forecast_category": "Closed",
+    "stage_detail": "Renewal closed-won for Enterprise"
   },
   {
     "entity_id": "2391ebc4-f77c-592b-9ec6-a0b2445a81f6",
@@ -41,7 +53,11 @@
     "opportunity_type": "renewal",
     "product_scope": "Enterprise",
     "contract_entity_id": "1665fbec-078d-5603-9efb-6197dce09a37",
-    "renewal_date": "2025-01-14"
+    "renewal_date": "2025-01-14",
+    "is_won": true,
+    "is_open": false,
+    "forecast_category": "Closed",
+    "stage_detail": "Renewal closed-won for Enterprise"
   },
   {
     "entity_id": "b4561f0c-7bb8-53a4-bd7f-46f9324d28fc",
@@ -52,7 +68,11 @@
     "opportunity_type": "expansion",
     "product_scope": "ArangoGraph",
     "contract_entity_id": null,
-    "renewal_date": null
+    "renewal_date": null,
+    "is_won": false,
+    "is_open": false,
+    "forecast_category": "Omitted",
+    "stage_detail": "Expansion did not close \u2014 ArangoGraph scope was declined"
   },
   {
     "entity_id": "1fdf30ed-cbe6-5dd1-b057-41fda4f7d9b6",
@@ -63,6 +83,10 @@
     "opportunity_type": "renewal",
     "product_scope": "Enterprise",
     "contract_entity_id": "47a06e4c-42ce-59ad-865c-cbeef04f1708",
-    "renewal_date": "2026-01-14"
+    "renewal_date": "2026-01-14",
+    "is_won": false,
+    "is_open": true,
+    "forecast_category": "Commit",
+    "stage_detail": "Renewal for Enterprise in active negotiation; outcome pending"
   }
 ]

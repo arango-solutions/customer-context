@@ -1,0 +1,16 @@
+<!-- module=helio_email account_id=c2de4d08-b3cf-5958-aae8-4ef84ebb81c9 entity_id=8be5f979-a678-50d5-a166-4c1db7542fd7 citable_url=https://arangodb.com/demo/helio/email/he_email_welcome_onboarding_2022q1 -->
+
+From: Alex Rivera
+To: Priya Nair
+Date: January 2022
+Subject: Welcome to Helio Retail
+
+Dear Priya Nair,
+
+I hope this message finds you well. We are excited to welcome you to Helio Retail and look forward to supporting you as you begin your journey with us.
+
+To ensure a smooth onboarding process, we have outlined key steps and resources that will help you get started. Our team is here to assist you every step of the way, so please do not hesitate to reach out with any questions or for further clarification on any aspect of the onboarding process.
+
+Best regards,
+Alex Rivera
+Alex Rivera

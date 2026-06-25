@@ -31,6 +31,12 @@ _NORTHWIND_EMAIL_PROHIBITED = [
     "scale limit", "GenAI", "GraphRAG", "upsell", "whitespace",
     "capacity ceiling", "renewal risk", "at risk", "escalation",
 ]
+# Helio noise-only prohibitions — EXCLUDE contraction/churn signal vocabulary
+# (downgrade/contraction/migration/declining/churn/deprioritization).
+_HELIO_EMAIL_PROHIBITED = [
+    "escalation", "competitor", "silent", "quota",
+    "disengaged", "unresolved", "unlogged", "commitment",
+]
 
 _DEFAULT_CSM = "Alex Rivera"
 _DEFAULT_AE = "Jordan Kim"
@@ -39,6 +45,8 @@ _DEFAULT_AE = "Jordan Kim"
 def _get_prohibited_terms(module: str) -> list[str]:
     if module.startswith("meridian"):
         return _MERIDIAN_EMAIL_PROHIBITED
+    if module.startswith("helio"):
+        return _HELIO_EMAIL_PROHIBITED
     return _NORTHWIND_EMAIL_PROHIBITED
 
 
@@ -82,31 +90,59 @@ def _derive_concern_description(doc: DocEvent, spine: AccountSpine) -> str:
     """Build concern description from doc metadata."""
     if "Q12" in doc.questions_served:
         return (
-            "recent operational concerns and negative feedback from the account team, "
-            "despite strong usage metrics — a contradiction requiring executive attention"
+            "recent operational concerns and pointedly negative feedback from the "
+            "engineering leadership team — service-reliability complaints and a frustrated "
+            "tone surfaced in the latest review — set against usage telemetry that has "
+            "grown steadily quarter over quarter; this contradiction between strong "
+            "product adoption and deteriorating partnership sentiment is what requires "
+            "executive attention before the relationship erodes further"
         )
     if "Q2" in doc.questions_served:
         return (
-            "renewal negotiations that have stalled due to unresolved service concerns "
-            "and pricing objections from the customer executive team"
+            "renewal negotiations on the ~$190K Enterprise contract that have stalled "
+            "because the customer's executive team has raised specific pricing objections "
+            "and a set of unresolved service concerns; the renewal is in active negotiation, "
+            "the CFO has withheld sign-off, and the account team needs a clear, itemized "
+            "view of the blockers and the proposed remediation before the renewal date slips"
         )
     if "Q9" in doc.questions_served:
         if doc.role == "signal":
             return (
-                "the champion contact's decreasing responsiveness and engagement over "
-                "recent months, with communication now routed through a less-engaged proxy"
+                "the primary champion's steadily decreasing responsiveness and engagement "
+                "over the last several quarters — meetings now run through a less-senior, "
+                "less-engaged proxy, response times have lengthened, and the relationship "
+                "depth that previously drove the account is visibly thinning, putting "
+                "continuity and renewal influence at risk"
             )
         else:
-            return "previous high engagement and active participation in product planning sessions"
+            return (
+                "the champion's previously high engagement and active, hands-on "
+                "participation in product-planning and roadmap sessions during the "
+                "healthy period of the relationship"
+            )
     if "Q8" in doc.questions_served:
         return (
-            "a specific feature delivery commitment made verbally to the customer "
-            "that has not yet been logged in the CRM or formally tracked"
+            "a specific feature-delivery commitment the account executive made verbally to "
+            "the customer that was never logged in the CRM or any formal tracking system — "
+            "the customer is now operating on the expectation that the feature ships on the "
+            "discussed timeline, while internally there is no recorded commitment to honor"
         )
     if "Q5" in doc.questions_served:
         return (
-            "the company's strategic intent to expand into AI/ML workloads using graph "
-            "capabilities, and the need to evaluate additional product options"
+            "the company's strategic intent to expand into AI/ML and GenAI workloads on top "
+            "of their graph data, the readiness to evaluate the GraphRAG suite, and the "
+            "cluster-scale headroom they will need — a concrete expansion signal that should "
+            "shape the upcoming renewal-and-upsell discussion"
+        )
+    if "Q13" in doc.questions_served:
+        return (
+            "the rationale for downgrading the plan amid declining usage, including the "
+            "team's intent to migrate away from the graph platform and deprioritize it"
+        )
+    if "Q14" in doc.questions_served:
+        return (
+            "a proposed remediation / save-plan to reverse the account contraction and "
+            "secure the at-risk renewal before it slips"
         )
     return "routine account management and partnership health"
 

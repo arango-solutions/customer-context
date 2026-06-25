@@ -10,25 +10,25 @@ doc_type: Quarterly Business Review Notes
 
 ## Executive Summary
 
-The recent Quarterly Business Review for Meridian Logistics highlights a concerning contradiction: while usage metrics are on a positive trajectory, significant operational concerns have been raised by team members. This discrepancy necessitates immediate attention to ensure the health of the partnership and address the underlying issues affecting customer sentiment.
+The recent Quarterly Business Review for Meridian Logistics revealed a significant contradiction between strong usage metrics and concerning feedback from the engineering leadership team. While telemetry indicates consistent growth in Snowflake usage, the sentiment from customer interactions has turned negative, necessitating immediate attention from executive leadership to reconcile these conflicting signals.
 
 ## Details
 
 ### Section 1
 
-During the Q3 review, it was noted that usage metrics have shown consistent growth quarter over quarter, indicating that the product is being utilized effectively. However, this positive trend is overshadowed by a decline in customer sentiment, as reflected in the negative NPS verbatim feedback received during Q3 and Q4. This divergence between usage and sentiment raises questions about the overall customer experience and satisfaction levels.
+During the Q3 Quarterly Business Review, the data presented showed a robust quarter-over-quarter increase in Snowflake usage, with the latest tracked query volume reaching 15.0 million per month. This growth suggests that product adoption is on the rise, indicating a positive trend in technical engagement. However, this positive usage data stands in stark contrast to the feedback received from multiple members of the engineering leadership team, who expressed operational and service-reliability concerns during the session.
 
 ### Section 2
 
-Multiple team members from Meridian Logistics have expressed operational concerns that could impact the long-term viability of the partnership. Despite the technical metrics remaining favorable, the feedback from the customer executive team regarding pricing and product fit suggests that there are critical areas that require further exploration and resolution. The current renewal opportunity is in active negotiation, and addressing these concerns is essential to moving forward successfully.
+The Net Promoter Score (NPS) for the most recent survey period reflected a score of 8, yet the accompanying verbatim comments were neutral, highlighting a disconnect between quantitative metrics and qualitative sentiment. This discrepancy raises questions about the overall health of the customer relationship, as the negative sentiment could undermine the positive usage statistics. It is crucial to address these concerns to ensure that the growth in usage does not mask underlying issues that could affect long-term partnership viability.
 
 ### Section 3
 
-Additionally, there are several open items in the success plan that remain unaddressed, which could contribute to the growing dissatisfaction among the customer team. It is imperative to prioritize these items and engage with Meridian Logistics to understand their specific needs and expectations. A proactive approach will be necessary to align our offerings with their operational requirements and restore confidence in the partnership.
+As the account team prepares for the current negotiation stage, it is essential to acknowledge the outstanding concerns raised by the customer executive team, including pricing objections and product-fit issues. The economic buyer's sign-off is a critical step in the process, and the team must come equipped with a detailed response to each objection. This proactive approach will help to clarify misunderstandings and reinforce the value proposition of the partnership.
 
 ## Action Items
 
-- Schedule a follow-up meeting with Meridian Logistics
-- Review and address open items in the success plan
-- Conduct a deep dive into customer feedback and sentiment
-- Engage with the customer executive team to discuss pricing and product fit concerns
+- Surface the contradiction to the executive sponsor
+- Prepare an itemized response to customer objections
+- Schedule follow-up discussions with engineering leadership
+- Monitor customer sentiment closely during negotiations

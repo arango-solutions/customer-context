@@ -52,9 +52,10 @@ def canonical_uuid(scope: str, name: str) -> str:
 
 NORTHWIND_ACCOUNT_ID: str = canonical_uuid("northwind", "northwind_analytics")
 MERIDIAN_ACCOUNT_ID: str = canonical_uuid("meridian", "meridian_logistics")
+HELIO_ACCOUNT_ID: str = canonical_uuid("helio", "helio_retail")
 
 # ---------------------------------------------------------------------------
-# Locked module names — 8 modules, one-way door (UPDATE-PIPELINE.md)
+# Locked module names — 12 modules (3 accounts x 4 sources), one-way door (UPDATE-PIPELINE.md)
 # ---------------------------------------------------------------------------
 
 MODULE_NAMES: list[str] = [
@@ -66,6 +67,10 @@ MODULE_NAMES: list[str] = [
     "meridian_email",
     "meridian_docs",
     "meridian_pdf",
+    "helio_slack",
+    "helio_email",
+    "helio_docs",
+    "helio_pdf",
 ]
 
 # ---------------------------------------------------------------------------

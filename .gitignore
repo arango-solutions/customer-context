@@ -1,7 +1,9 @@
 # Secrets — never commit
 .env
 .env.*
+# …but DO track the value-less templates (they carry NO secrets, only empty keys)
 !.env.example
+!.env.local.example
 
 # GSD planning + agent state — internal, not tracked
 .planning/
@@ -13,7 +15,7 @@ infra/
 # Customer documents — never commit to a shared repo
 *.pdf
 
-# Sensitive — internal/customer references (Zscaler, MetaCX, prod host, personal
+# Sensitive — internal/customer references (specific account names, prod host, personal
 # links, local paths). Untracked pending sanitization. Re-add CLEAN versions only.
 /CLAUDE.md
 /docs/research/
@@ -35,3 +37,4 @@ build/
 # AutoGraph service discovery (infra URLs/ids — never commit)
 service_discovery.json
 build_manifest.json
+.vercel

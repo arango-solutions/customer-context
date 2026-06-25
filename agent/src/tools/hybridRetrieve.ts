@@ -26,7 +26,12 @@ import { literal } from 'arangojs/aql';
 import { db } from '../db.js';
 import { embedQuery } from '../embed.js';
 import { fuseRRF } from '../rrf.js';
-import type { RetrievalPathFragmentT } from '../envelope.js';
+import {
+  sanitizeUntrustedContent,
+  UNTRUSTED_OPEN,
+  UNTRUSTED_CLOSE,
+} from '../sanitize.js';
+import type { RetrievalPathFragmentT, RetrievalPathEdgeT } from '../envelope.js';
 
 // Whitelisted collection / view names (module constants — never user input).
 const CHUNKS = 'customer360_Chunks';
@@ -34,13 +39,22 @@ const VIEW = 'customer360_chunks_search_view';
 const RELATIONS = 'customer360_Relations';
 const DOCUMENTS = 'customer360_Documents';
 
-/** One sourced chunk row: the chunk + its PART_OF Document anchor. */
+/** One sourced chunk row: the chunk + its PART_OF Document anchor.
+ *
+ * Phase 10 (10-02): `edge` carries the AQL-returned PART_OF edge document
+ * verbatim ({ _id, _from, _to }). The planner-read fields (chunk_id/content/
+ * account_id/citable_url/file_name) are UNCHANGED — additive only.
+ */
 export interface HybridChunk {
   chunk_id: string;
   content: string;
   account_id: string;
   citable_url?: string;
   file_name?: string;
+  /** The PART_OF edge doc (AQL-returned verbatim). Present only when the
+   * sourcing traversal returns ≥1 document. Drives the kind:'traversed' entries
+   * in retrievalPath.edges (SC-1, D-04). */
+  edge?: { _id: string; _from: string; _to: string };
 }
 
 export interface HybridRetrieveResult {
@@ -107,10 +121,14 @@ export async function runHybridRetrieve(args: {
     ? aql`FILTER doc.account_id == ${accountId}`
     : aql``;
 
+  // Phase 10 (10-02): add `, edge` second loop variable to capture the PART_OF
+  // edge document verbatim (_id/_from/_to). Pitfall 1: the single-variable form
+  // returns only the vertex. Pitfall 2: capture e._from/_to as-is (OUTBOUND
+  // direction: _from = chunk, _to = document).
   const srcCursor = await db.query(aql`
     WITH ${literal(DOCUMENTS)}, ${literal(CHUNKS)}
     FOR chunkId IN ${topK}
-      FOR doc IN 1..1 OUTBOUND chunkId ${literal(RELATIONS)}
+      FOR doc, edge IN 1..1 OUTBOUND chunkId ${literal(RELATIONS)}
         FILTER IS_SAME_COLLECTION(${DOCUMENTS}, doc)
         ${accountFilter}
         RETURN {
@@ -118,16 +136,63 @@ export async function runHybridRetrieve(args: {
           content: DOCUMENT(chunkId).content,
           account_id: doc.account_id,
           citable_url: doc.citable_url,
-          file_name: doc.file_name
+          file_name: doc.file_name,
+          edge: { _id: edge._id, _from: edge._from, _to: edge._to }
         }
   `);
-  const data = (await srcCursor.all()) as HybridChunk[];
+  const rawData = (await srcCursor.all()) as HybridChunk[];
+
+  // SEC-01 (D-01b) — UNTRUSTED-CONTENT HARDENING (the single chokepoint where
+  // chunk text crosses into the planner's context as tool output):
+  // wrap each chunk's `content` in <untrusted_document>...</untrusted_document>
+  // delimiters and neutralize delimiter-spoofing markers BEFORE the planner sees
+  // it. Done IN TYPESCRIPT at tool-return time — NEVER in the AQL RETURN (keeps
+  // the AQL bind-safe and the transform unit-testable) and NEVER persisted to the
+  // DB (Pitfall 6 — customer360_Chunks keeps raw content; faithfulness.ts reads
+  // DOCUMENT(_id) straight from the DB and is unaffected). The wrapped value is
+  // what the model reasons over so it cannot mistake document text for its own
+  // instructions; precedence is reinforced by PLANNER_SYSTEM_PROMPT (D-01a).
+  // INVARIANTS PRESERVED: chunk_id/account_id/citable_url/file_name/edge are
+  // untouched, so retrievalPath._ids (built from chunk_id below) is unchanged and
+  // the grounding contract + VIZ edges are unaffected.
+  const data: HybridChunk[] = rawData.map((d) => ({
+    ...d,
+    content: `${UNTRUSTED_OPEN}\n${sanitizeUntrustedContent(d.content)}\n${UNTRUSTED_CLOSE}`,
+  }));
+
+  // SC-1: Build kind:'traversed' PART_OF edges from the AQL-returned edge docs.
+  // Capture _from/_to verbatim from the edge document (Pitfall 2 — do not reconstruct).
+  const partOfEdges: RetrievalPathEdgeT[] = data
+    .filter((d) => d.edge != null)
+    .map((d) => ({
+      _id: d.edge!._id,
+      _from: d.edge!._from,
+      _to: d.edge!._to,
+      collection: RELATIONS,
+      kind: 'traversed' as const,
+      label: 'PART_OF',
+    }));
+
+  // D-05: Synthesize kind:'hybrid' edges from a fixed question anchor to each chunk.
+  // One edge per retrieved chunk; _id is deterministic (no random/uuid). No score
+  // fields (D-03). The anchor 'question/current' is the VIZ-02 entry point.
+  const QUESTION_ANCHOR = 'question/current';
+  const hybridEdges: RetrievalPathEdgeT[] = data.map((d) => ({
+    _id: `hybrid:${QUESTION_ANCHOR}:${d.chunk_id}`,
+    _from: QUESTION_ANCHOR,
+    _to: d.chunk_id,
+    collection: 'hybrid',
+    kind: 'hybrid' as const,
+    label: 'hybrid',
+  }));
 
   const retrievalPath: RetrievalPathFragmentT = {
     graph: 'unstructured',
     collection: CHUNKS,
     _ids: data.map((d) => d.chunk_id),
     query: 'vector+BM25+RRF over Chunks → PART_OF Document',
+    // SC-1: traversed PART_OF edges + D-05: hybrid question→chunk edges
+    edges: [...partOfEdges, ...hybridEdges],
   };
 
   return { data, retrievalPath };

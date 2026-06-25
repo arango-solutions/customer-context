@@ -7,7 +7,10 @@
     "role": "champion",
     "email": "j.okafor@meridianlogistics.com",
     "active_from": "2021-01-15",
-    "active_to": "2024-09-01"
+    "active_to": "2024-09-01",
+    "engagement_status": "disengaged",
+    "influence": "decision-maker",
+    "is_primary": true
   },
   {
     "entity_id": "135970e6-29ec-5bcb-8cd1-887973aa326d",
@@ -17,7 +20,10 @@
     "role": "user",
     "email": "t.brooks@meridianlogistics.com",
     "active_from": "2024-07-01",
-    "active_to": null
+    "active_to": null,
+    "engagement_status": "active",
+    "influence": "user",
+    "is_primary": false
   },
   {
     "entity_id": "ead03ac6-14ab-5dd9-8bf8-794c507ff628",
@@ -27,6 +33,9 @@
     "role": "economic_buyer",
     "email": "p.vance@meridianlogistics.com",
     "active_from": "2021-01-15",
-    "active_to": null
+    "active_to": null,
+    "engagement_status": "active",
+    "influence": "decision-maker",
+    "is_primary": false
   }
 ]

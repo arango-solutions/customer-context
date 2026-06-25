@@ -1,7 +1,7 @@
 <!-- module=meridian_slack account_id=9eff6d7b-7311-5525-be75-5b82a855ece7 entity_id=dd6fd13b-5545-530c-bb7a-28ba6fa5e92f citable_url=https://arangodb.com/demo/meridian/slack/me_slack_renewal_risk_2025q1 -->
 
-[January 2025] Alex Rivera: Meridian Logistics requires immediate attention regarding their account health and renewal.
+[January 2025] Alex Rivera: We need to address a concern regarding the Meridian Logistics renewal.
 
-[January 2025] Alex Rivera: The last contact with our champion, James Okafor, highlighted some concerns that need to be addressed promptly. We need to ensure that we are aligned with their expectations and that any issues are resolved to maintain a positive relationship moving forward.
+[January 2025] Alex Rivera: The negotiation for the upcoming Enterprise contract is currently stalled due to pricing objections and service concerns raised by the customer. Additionally, the CFO has not yet signed off on the renewal, which adds to the urgency of aligning on the specific blockers before the renewal date. Our champion, James Okafor, is aware of these issues, and we need to ensure the account team is fully aligned to move forward effectively.
 
-[January 2025] Alex Rivera: Let's discuss how we can proactively engage with James to address these concerns.
+[January 2025] Alex Rivera: Let's discuss how we can best support this situation and ensure we are prepared for the next steps.

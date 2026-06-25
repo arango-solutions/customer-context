@@ -4,5 +4,8 @@
   "workspaces": [
     "agent",
     "web"
-  ]
+  ],
+  "scripts": {
+    "vercel-build": "next build"
+  }
 }

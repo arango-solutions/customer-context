@@ -29,6 +29,9 @@ def generate_usage(spine: AccountSpine, output_dir: Path) -> None:
     ensure_output_dirs(output_dir, acct_key, ["snowflake"])
     snowflake_dir = output_dir / "structured" / acct_key / "snowflake"
 
+    # Peak volume across the whole series (for the is_peak flag) — deterministic.
+    peak_volume = max((u.query_volume_m for u in spine.usage), default=None)
+
     records = []
     previous_volume: Optional[float] = None
 
@@ -37,6 +40,24 @@ def generate_usage(spine: AccountSpine, output_dir: Path) -> None:
             growth_pct = None
         else:
             growth_pct = round((u.query_volume_m - previous_volume) / previous_volume * 100, 1)
+
+        # --- Deepening (DATA-05): grounded, deterministic descriptive fields
+        # derived from the existing series. No randomness, no new spine facts. ---
+
+        # Quarter-over-quarter trend label derived from growth_pct.
+        if growth_pct is None:
+            volume_trend = "baseline"
+        elif growth_pct > 2:
+            volume_trend = "rising"
+        elif growth_pct < -2:
+            volume_trend = "falling"
+        else:
+            volume_trend = "flat"
+
+        # Queries-per-node intensity (rounded) — a derived utilization proxy.
+        queries_per_node_m = (
+            round(u.query_volume_m / u.cluster_nodes, 2) if u.cluster_nodes else None
+        )
 
         records.append(
             {
@@ -49,6 +70,12 @@ def generate_usage(spine: AccountSpine, output_dir: Path) -> None:
                 "smartgraphs_enabled": u.smartgraphs_enabled,
                 "graphrag_enabled": u.graphrag_enabled,
                 "query_volume_growth_pct": growth_pct,
+                # --- deepened descriptive fields (DATA-05) ---
+                "volume_trend": volume_trend,
+                "queries_per_node_m": queries_per_node_m,
+                "is_peak_period": (
+                    peak_volume is not None and u.query_volume_m == peak_volume
+                ),
             }
         )
         previous_volume = u.query_volume_m

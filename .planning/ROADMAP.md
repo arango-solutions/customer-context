@@ -1,240 +1,340 @@
 # Roadmap: Customer 360 (Graph-Based Demo)
 
-## Overview
+A graph-based Customer 360 demo over 100%-synthetic data: a Next.js/Vercel dashboard with a free-form question box, backed by a custom planner+specialists agent that reasons across two ArangoDB graphs (hand-modeled structured + AutoGraph-built unstructured) and returns answers where every fact is traceable to its record, graph, and traversal.
 
-A reusable, internal graph-based Customer 360 demo over 100%-synthetic data for invented companies adopting ArangoDB's own products (Community → Enterprise → ArangoGraph → GenAI/GraphML): a free-form question box on a Next.js/Vercel dashboard, backed by a custom planner+specialists agent that reasons across two ArangoDB graphs — a hand-modeled **structured** graph (Salesforce/Snowflake/DocuSign) and an **unstructured** graph (Slack/Docs/email/PDF) built via the **deployed AutoGraph platform** (the architecture chosen at the Phase-1 sign-off gate — build-time KG construction; the agent queries the resulting `{project}_kg` collections with its own AQL) — and returns answers where every fact is traceable to the record, graph, and traversal it came from. The build is **horizontally layered** (research → data → graphs → bridge → agent → UI → eval). **Phase 1 is research-only**: it makes the architecture call on evidence, confirms the ArangoDB retrieval path is supported, locks the question set, and produces a research-grounded estimate for the rest — **no application code is written in Phase 1**. This is the **lean demo** scope: 6-question arc, 2 accounts, curated-AQL tools, citation cards. The journey ends with a hardened, eval-gated demo where a dual-graph-only question returns a correct, fully-sourced answer.
+## Milestones
 
-**Estimated total time to demo-ready:** **~5–6 weeks** (~4–5 if Phase 5 goes clean; single builder + AI assistance, working primarily sequentially) — the research-grounded **REVISED** estimate (see §Time Estimates and `revised-estimate.md`). This supersedes the prior PRELIMINARY 10–15 wk and the 2026-06-15 13–20 wk fully-custom numbers; the reduction is structural (lean scope + AutoGraph-hybrid via platform), not optimism. The residual long pole is Phase 5 (first-of-kind custom-agent build).
+- ✅ **v1.0 — Lean demo (SHIPPED 2026-06-22)** — Phases 1–7, 31 plans. Architecture research → synthetic data + linter → both graphs → canonical entity bridge → custom reasoning agent → Next.js/Vercel UI → grounding eval + demo hardening. 27/29 v1 requirements complete (AGENT-04 generated-AQL fallback and AGENT-06 Q11 timeline deferred to v2). Full detail: [milestones/v1.0-ROADMAP.md](./milestones/v1.0-ROADMAP.md) · requirements: [milestones/v1.0-REQUIREMENTS.md](./milestones/v1.0-REQUIREMENTS.md).
 
-## Phases
+- 🔄 **v2.0 — Live, Visible, Trustworthy (IN PROGRESS)** — Phases 8–18. Evolve the lean v1 demo into a product-grade showcase that updates live, shows the graph behind every answer, withstands a security audience, and proves its own correctness deterministically — on richer synthetic data. **Tail re-aim (2026-06-25):** Phases 14–18 pivot from "finish the app" to "make ArangoDB's core-DB + AI-platform capabilities undeniable and nameable to a Zscaler buyer" — per `DEMO-STRATEGY.md`.
 
-**Phase Numbering:**
+## v2.0 Phases
 
-- Integer phases (1, 2, 3): Planned milestone work
-- Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
-
-- [x] **Phase 1: Architecture Research + Question/Data Lock** - Research the architecture (AutoGraph-hybrid vs. fully-custom — neutral call), confirm the retrieval path, lock the ~10 questions, produce the real Phase 2–7 estimate; no code (~1–2 weeks) (completed 2026-06-16)
-- [x] **Phase 2: Synthetic Data + Integrity Linter** - Generate 2 coherent ArangoDB-domain accounts from a canonical event-spine + entity registry (6-question arc), gated by a linter (~1–1.5 weeks) (completed 2026-06-17)
-- [x] **Phase 3: Build Both Graphs (parallel)** - Hand-modeled structured graph + unstructured graph built via the AutoGraph platform (import→build→orchestrate to Layer-3 KG in the customer360 DB) + post-build account_id UPSERT, both idempotently reloadable (~1.5–2.5 weeks) (completed 2026-06-17)
-- [x] **Phase 4: Canonical Entity Layer** - The document-level cross-graph `same_as` bridge (`account_id`) that links the same entity across both graphs and shows in the trace (~0.5 weeks) (completed 2026-06-18 — 04-04 closed CR-01/CR-02: both demo-critical gates now use denominator 9, resolve via the same_as bridge path (not the KG stamp / raw mention join), proven by live-DB-free negative + positive tests; re-verification PASSED 3/3, see 04-VERIFICATION.md)
-- [x] **Phase 5: Custom Reasoning Agent** - Planner + specialists, ~6 curated AQL tools (generated-AQL fallback deferred to v2), claim-level sourcing, refusal path (~1.5–2.5 weeks) (completed 2026-06-18 — standalone TS ToolLoopAgent on OpenAI (D-06, no Anthropic key); 3 per-capability specialists + entityLookup; pure-code grounding/refusal gate; live 6-question eval 7/7 incl. Q12 reconciliation + out-of-scope refusal; 58 tests green; verification PASSED 4/4. Surfaced+fixed an upstream Phase-4 bridge gap — the 2 demo-critical Contracts were never linked (KG-driven build); added a structured-anchor step, rebuilt the live bridge, demo-critical now 9/9.)
-- [ ] **Phase 6: Next.js/Vercel UI + Sourcing Display** - Free-form box, streamed reasoning, claim-level provenance, citation cards (React Flow traversal viz deferred to v2) (~1 week)
-- [ ] **Phase 7: Grounding/Eval + Demo Hardening** - Light faithfulness eval over the 6 locked questions, pre-warm, backup path, adversarial rehearsal (~0.5–1 week)
+- [x] **Phase 8: Deterministic Eval Harness** — Eliminate the ~5% stochastic flake; build a trustworthy green/red gate runnable before any demo (completed 2026-06-22)
+- [x] **Phase 9: Data Depth & 3rd Account** — Add a 3rd synthetic account + deepen existing docs; linter-gated, building the data foundation v2 features depend on (completed 2026-06-23)
+- [x] **Phase 10: Answer-Provenance Edge Enrichment** — Enrich `hybridRetrieve` + `bridgeResolve` to return traversed edges; add `edges[]` to `RetrievalPathFragment` (completed 2026-06-23)
+- [x] **Phase 11: Graph Viz + UI Refresh + Latency** — React Flow cross-graph subgraph render, ArangoDB-brand UI refresh, confidence score, and latency pass (completed 2026-06-24)
+- [x] **Phase 12: Simulated CDC + What-Changed Diff** — File-watch CDC, live update trigger, and before/after diff of changed claims/citations (completed 2026-06-24)
+- [x] **Phase 13: Injection-Resistance + Adversarial Mode** — Harden the agent against prompt injection from docs; add audience-facing "try-to-break-it" mode (completed 2026-06-25)
+- [ ] **Phase 14: Graph-Depth + Explainability** — Real multi-hop structured traversal + single cross-graph join across `same_as`, then reveal the AQL with one-engine labels and the join as hero (GRAPH-03, EXPL-01)
+- [ ] **Phase 15: GraphRAG via AutoGraph Communities** — Hierarchical global↔local retrieval over the built-but-unqueried Leiden community layer; names the GenAI platform (RAG-01)
+- [ ] **Phase 16: Time-Travel (Temporal Graph)** — Effective-dated edges + `@asOf` traversal on Northwind; "as-of renewal" / "2023→2025 evolution" as a versioned graph traversal, honestly framed (TEMP-01)
+- [ ] **Phase 17: Agent Memory on ArangoDB** — Answers/entities/past-questions persisted as a graph; multi-turn follow-ups powered by graph-resident memory ("agentic brain on Arango") (MEM-01, subsumes AGENT-08)
+- [ ] **Phase 18: Presenter Control Panel + CDC Reframe** — Presets (wiring every capability moment) + reset + CDC trigger; CDC banner/talk-track reframed to name one-engine propagation (DEMO-01, CDC-04)
+- [ ] **Demo Assets track** *(parallel, non-code)* — Talk track, maps-to-your-data one-pager, competitive one-liner, capability-naming notes (ASSET-01)
 
 ## Phase Details
 
-### Phase 1: Architecture Research + Question/Data Lock
+### Phase 8: Deterministic Eval Harness
 
-**Goal**: De-risk the entire build through research — not code. Make the unstructured-graph architecture call on evidence, confirm the ArangoDB retrieval path is supported, lock the question set that defines all downstream schema and curated AQL, and produce the research-grounded estimate for Phases 2–7. No application code is written in this phase.
-**Depends on**: Nothing (first phase)
-**Requirements**: ARCH-01, ARCH-02, ARCH-03, QMAP-01, QMAP-02
+**Goal**: The eval suite is trustworthy and deterministic — a single command proves the demo works before any live run, without spurious failures from LLM stochasticity or transient infra.
+**Depends on**: Phase 7 (faithfulness.ts, questions.eval.test.ts, adversarial.ts already exist — this phase hardenes and extends them)
+**Requirements**: EVAL-03, EVAL-04
 **Success Criteria** (what must be TRUE):
 
-  1. A deep, evidenced architecture decision matrix comparing **AutoGraph-hybrid** vs. a **fully-custom graph + agent** (chunk→embed→entity-extraction) is filled in and scored across traceability, updatability, grounding, operational cost/complexity, build effort, and time-to-demo, with a signed-off recommendation made **neutrally on the evidence** (no assumed winner) — ARCH-01.
-  2. Research determines the unstructured-graph approach (AutoGraph vs. fully-custom chunk→embed→extract) with documented evidence on traceability (claim-level sourcing from the graph), update behavior, and operational cost/complexity — the basis for the ARCH-01 recommendation — ARCH-02.
-  3. The available ArangoDB environment is confirmed (a capability check, not a build) to support the required vector + BM25 retrieval path (3.12.9+ or a documented embed-then-index fallback) — ARCH-03.
-  4. The ~10 canonical questions (Q1–Q10) + the Q12 reconciliation moment are locked, each verified to FAIL if either graph is removed — QMAP-01.
-  5. Each locked question is mapped to the specific source systems and records required to answer it — QMAP-02.
-  6. A REVISED, research-grounded time estimate for Phases 2–7 is produced (the "real estimate"), replacing the preliminary numbers and reflecting the chosen architecture's actual build cost.
+  1. The residual planner flake is bounded and gate-classified — `temperature:0` + N=3 majority-vote judge substantially reduce the ~5% stochastic flake, and the gate's bounded 1-retry auto-recovers a transient single-run flake (→ GREEN) while a confirmed two-run regression exits RED. Back-to-back identical results hold in the common case; full elimination is not achievable on the Responses API (ignores `seed`), so an honest RED on a genuine residual-variance cluster is correct, not spurious.
+  2. A single command runs the full locked + adversarial question set and prints a clear pass/fail summary with per-question faithfulness scores, refusal-correctness outcomes, and a grounding verdict.
+  3. A genuine regression (a question that should pass actually failing) produces a red exit code — the gate is honest, not a rubber stamp.
+  4. The eval gate is the confirmed pre-demo command: run it, see green, demo with confidence.
+  5. The answer envelope emits a deterministic `groundingScore` (and/or `faithfulnessScore`) field from the eval path, so the UI can surface it as a visible per-answer trust signal in Phase 11 (UI-06) without recomputing. *(Scope tweak, 2026-06-22 — feeds UI-06.)*
 
-**Plans**: 5 plansPlans:
+**Plans**: 1 plan
+Plans:
+
+- [x] 08-01-PLAN.md — Planner determinism (temperature:0) + groundingScore field + enforceGrounding injection + eval-gate.ts pre-demo command
+
+**Risk**: Medium-low — the eval infrastructure exists (07-01 shipped faithfulness.ts + majority vote). The work is closing the residual ~5% flake, extending the adversarial set, and wiring a clean summary reporter. The open risk is that stabilizing the planner (not just the judge) is needed — an under-citing planner run will still dip trend questions. Keep the gate honest rather than loosening the floor.
+
+### Phase 9: Data Depth & 3rd Account
+
+**Goal**: The synthetic data is richer, more coherent, and covers a 3rd account — giving the answer visualizations more to show, TEMP-01 a deeper multi-year history to traverse, and the question set a new account arc.
+**Depends on**: Phase 2 (canonical event-spine + entity registry + linter infrastructure); Phase 8 (eval gate must stay green after data changes — run as verification)
+**Requirements**: DATA-04, DATA-05
+**Success Criteria** (what must be TRUE):
+
+  1. A 3rd synthetic account exists with a distinct ArangoDB-product-ladder story (e.g. a different expansion or churn arc), generated from the same canonical event-spine + entity registry with shared `entity_id` namespace.
+  2. All new data passes the existing referential-integrity / timeline-coherence linter — no orphaned FKs, no timeline violations — before ingest.
+  3. At least one new question arc is defined and answerable end-to-end from the 3rd account's data (structured + unstructured sides).
+  4. Existing accounts' documents are deepened (more realistic prose, richer records) — answers citing them are more impressive — without introducing linter regressions.
+  5. The eval gate (Phase 8) stays green after loading the new data — existing answers are not corrupted.**Plans**: 3 plans
+
 **Wave 1**
 
-- [x] 01-01-PLAN.md — Wave 0: scaffold docs/research/ + obtain live ArangoDB credentials (ARCH-03 gate)
-- [x] 01-02-PLAN.md — Wave 1: throwaway ArangoDB capability probe → arango-capability-check.md (ARCH-03)
-- [x] 01-03-PLAN.md — Wave 1: lock 12 questions + data map + dual-graph proofs + account sketches (QMAP-01/02)
+- [x] 09-01-PLAN.md — Account C (Helio Retail) churn-arc spine + new C questions + near-miss guard (DATA-04)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [x] 01-04-PLAN.md — Wave 2: weighted decision matrix + recommendation with flip-conditions (ARCH-01/02)
+- [x] 09-02-PLAN.md — Broad deepening of Northwind + Meridian across all 8 modules (DATA-05)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [x] 01-05-PLAN.md — Wave 3: revised Phase 2–7 estimate + index + D-03 user sign-off gate
+- [x] 09-03-PLAN.md — Full regen + full linter sweep + KG rebuild + eval-gate GREEN (SC-1..SC-5)
 
-**Risk**: HIGHEST-LEVERAGE / HIGH UNKNOWN — but resolved by research, not a spike. The most expensive pivot lives here: whether the unstructured side is built via AutoGraph or a fully-custom chunk/embed/extract pipeline, decided on traceability, update behavior, and operational cost. Also flagged for deeper research: AutoGraph `{proj}_kg` schema / `incremental` semantics, a custom-pipeline alternative's effort and grounding fidelity, ArangoDB vector-index behavior on the live env, AI SDK 6 / Claude model-id pins, and the serverless Vercel→ArangoDB connection pattern. **Note:** Phase 1 produced the research-grounded REVISED Phase 2–7 estimate (~5–6 wk lean) that replaced the original preliminary numbers — see §Time Estimates.
+**Risk**: Medium — LLM prose coherence across a 3rd account is first-principles work (same risk class as Phase 2). Mitigated by reusing the existing spine + linter + generators as templates. The linter is the hard gate; coherence regressions found late are a full regen.
 
-### Phase 2: Synthetic Data + Integrity Linter
+### Phase 10: Answer-Provenance Edge Enrichment
 
-**Goal**: Produce two distinct, internally-airtight synthetic accounts whose multi-year, ArangoDB-product-ladder stories make the 6 locked questions answerable and impressive — with shared canonical entity IDs baked in from the start.
-**Depends on**: Phase 1 (questions + data mapping drive what the data must support)
-**Requirements**: DATA-01, DATA-02, DATA-03
+**Goal**: Every tool that walks a real graph edge returns that edge — the agent's `retrievalPath` carries the actual traversed edges (`_id`, `_from`, `_to`, collection), not just endpoint node IDs, enabling the React Flow viz to render what actually happened.
+**Depends on**: Phase 5 (hybridRetrieve, bridgeResolve, structuredQuery, RetrievalPathFragment — the source to enrich)
+**Requirements**: VIZ-01
 **Success Criteria** (what must be TRUE):
 
-  1. Two differentiated accounts exist — one healthy/expanding, one mixed (the Q12 account) — each with a believable multi-year ArangoDB-product-ladder (Community→Enterprise→ArangoGraph→GenAI) story — DATA-01.
-  2. All 7 sources (Salesforce, Snowflake, DocuSign, Slack, Google Docs, email, PDF) are generated from a single canonical event-spine + master entity registry sharing one `entity_id` namespace — DATA-02.
-  3. An automated referential-integrity + timeline-coherence linter passes before ingest: every foreign key resolves, no event references a future event, contract dates bound the usage/comms timelines, monetary amounts agree across sources — DATA-03.
-  4. Each locked question from Phase 1 has the underlying records present to answer it across both the structured and unstructured sides.
+  1. `hybridRetrieve` returns the `PART_OF` edge (Chunk→Document) it traversed — `{_id, _from, _to, collection}` — alongside the endpoint node IDs.
+  2. `bridgeResolve` returns the `same_as` edge (hub→leaf) it traversed in the same format.
+  3. `RetrievalPathFragment` in `envelope.ts` gains an `edges[]` field; the Zod schema is updated; tsc is clean.
+  4. The structured cluster path is represented as an account-anchored induced subgraph (drawn as structural via `account_id`), clearly distinguished in the fragment from traversed edges — never fabricated as a traversal that did not run.
+  5. The eval gate (Phase 8) stays green — edge enrichment is additive and does not regress answer quality or grounding.
 
-**Plans**: 5 plans
+**Plans**: 3 plans
+**Wave 1**
 
-**Wave 1** *(no dependencies)*
-
-- [x] 02-01-PLAN.md — Wave 1: linter scaffold (8 test stubs + pytest.ini + conftest) — Nyquist Wave 0 (DATA-02, DATA-03)
-
-**Wave 2** *(blocked on spine sign-off — D-01 checkpoint)*
-
-- [x] 02-02-PLAN.md — Wave 2: canonical event-spine + entity registry (both accounts) + user redline checkpoint (DATA-01, DATA-02)
-
-**Wave 3** *(blocked on D-01 approval)*
-
-- [x] 02-03-PLAN.md — Wave 3: structured data generators (CRM/Snowflake/DocuSign → JSON) + structural linter checks (DATA-01, DATA-02)
-- [x] 02-04-PLAN.md — Wave 3: unstructured generators (Slack/Email/Docs/PDF) + LLM prose pipeline + manifest.json (DATA-01, DATA-02)
-
-**Wave 4** *(blocked on Wave 3 completion)*
-
-- [x] 02-05-PLAN.md — Wave 4: generate.py entrypoint + near-miss guard (full linter suite GREEN = Phase 3 hard gate) (DATA-01, DATA-02, DATA-03)
-
-**Risk**: HIGH UNKNOWN. Earliest-binding risk and first-principles work (LOW–MEDIUM confidence). The LLM-for-prose / code-for-facts discipline and the linter rules are design-heavy; incoherent data found late is a full redo of this phase. Worth a focused design pass before generating at volume.
-
-### Phase 3: Build Both Graphs (parallel)
-
-**Goal**: Stand up both ArangoDB graphs from the linted synthetic data — the hand-modeled structured graph and the unstructured graph built via the **deployed AutoGraph platform** (import → build → orchestrate to a Layer-3 KG in the `customer360` DB), then stamp the cross-graph join key via a post-build `account_id` UPSERT — each idempotently reloadable so data can be updated without a full rebuild.
-**Depends on**: Phase 2 (linted data + entity registry); the Phase 1 sign-off gate locked the AutoGraph-hybrid (platform) build method
-**Requirements**: GRAPH-01, GRAPH-02, GRAPH-03
-**Success Criteria** (what must be TRUE):
-
-  1. The structured graph (Account, Opportunity, Contract, UsageFact, Contact, Product …) is modeled and loaded into ArangoDB from the synthetic Salesforce/Snowflake/DocuSign data — GRAPH-01.
-  2. The unstructured graph (Documents/Chunks/Entities/Communities/Relations) is built into ArangoDB **via the deployed AutoGraph platform** (import → build → strategize → orchestrate to the Layer-3 KG), with a post-build AQL UPSERT stamping `account_id`/`entity_id` onto the built collections (keyed on `file_name`/`citable_url`, since AutoGraph drops other custom import metadata) — from the synthetic Slack/Docs/email/PDF — GRAPH-02.
-  3. Both graphs reload idempotently — structured via AQL UPSERT keyed on source IDs, unstructured via AutoGraph `incremental:true` append plus a re-run of the post-build `account_id` UPSERT — so a data update does not require a destructive full rebuild, and a re-run does not corrupt a previously-correct answer — GRAPH-03.
-  4. Our own AQL (vector + traversal) returns attributable results from the unstructured graph good enough to support claim-level sourcing.
-
-**Plans**: 5 plans
-
-**Wave 1** *(no dependencies — parallel)*
-
-- [x] 03-01-PLAN.md — Wave 1: verification harness scaffold (verify_graphs.py + verify_coref_eval.py) + pre-flight dim/auth checks (GRAPH-01, GRAPH-02, GRAPH-03)
-- [x] 03-02-PLAN.md — Wave 1: D-05 coref-hard doc generation + manifest update (GRAPH-02)
-
-**Wave 2** *(blocked on Wave 1 completion — parallel with each other)*
-
-- [x] 03-03-PLAN.md — Wave 2: structured graph DDL + UPSERT load + idempotency proof (GRAPH-01, GRAPH-03)
-- [x] 03-04-PLAN.md — Wave 2: AutoGraph unstructured KG build via REST + A1/A2/OBT-1 settlement (GRAPH-02, GRAPH-03)
-
-**Wave 3** *(blocked on Wave 2 completion — both graphs required)*
-
-- [x] 03-05-PLAN.md — Wave 3: post-build account_id UPSERT + D-04 thin-proof AQL probes + D-05 coref eval (GRAPH-02, GRAPH-03)
-
-**Risk**: LOWER — the AutoGraph platform handles the well-documented build flow (chunking/embedding/extraction/Leiden/loading); the custom work is running the import→build→orchestrate flow, hand-modeling the structured graph, and the post-build `account_id` UPSERT. The two builds parallelize. Choosing the platform (vs. the rejected fully-custom arm) is what removed the +2–3 wk pipeline build that drove the prior estimate.
-
-> **Update pipeline (GRAPH-03) — design ready:** the document-update → graph-update flow (module-scoped vs partition-scoped re-ingest; EDIT/ADD/DELETE lanes; the two open build-time tests) is fully worked out in `.planning/spikes/001-autograph-kg-claim-sourcing/UPDATE-PIPELINE.md`. The verified `{proj}_kg` schema + field gotchas (`file_name` not `filename`, text in `content`, `PART_OF`/`MENTIONED_IN` traversal, 512-dim vectors) are in that spike's README.
-
-### Phase 4: Canonical Entity Layer
-
-**Goal**: Build the cross-graph bridge — a canonical entity layer that deterministically links the same account/person/contract across both graphs and surfaces that link as a first-class traceability artifact.
-**Depends on**: Phase 3 (needs node `_id`s from BOTH graphs — the genuine dependency gate)
-**Requirements**: ENT-01, ENT-02
-**Success Criteria** (what must be TRUE):
-
-  1. A `canonical_entities` collection plus `same_as` edges link each structured-graph node and unstructured-graph node for the same real-world entity, built offline from the shared IDs (embedding-assist only inside the offline build, never on the hot path) — ENT-01.
-  2. Cross-graph entity links are queryable by AQL and appear in the retrieval path, so the bridge is visible (e.g., "joined Salesforce/Account/365 ↔ KG/Entities/acme_corp via `same_as`") — ENT-02.
-  3. No entity resolves to two different canonical IDs, and every entity appearing in both graphs has exactly one resolution edge (validated as part of the data-integrity checks).
-
-**Plans**: 4 plans (2 original + 2 gap-closure)
-
-**Wave 1** *(no dependencies)*
-
-- [x] 04-01-PLAN.md — Wave 1: build_entity_bridge.py — alias-dict + embedding-residual + DDL + hub/edge UPSERT + entity_id stamp (ENT-01, per D-01/D-02/D-03/D-04/D-06)
+- [x] 10-01-PLAN.md — Edge data-model contract (RetrievalPathEdge + edges[]) + mergeRetrievalPaths edge union + D-04 guard / Wave 0 pure tests
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [x] 04-02-PLAN.md — Wave 2: verify_entity_bridge.py (D-04 integrity gate + ENT-02 trace probe) + extend verify_coref_eval.py (D-05 100% demo-critical gate) (ENT-01, ENT-02, per D-04/D-05)
+- [x] 10-02-PLAN.md — Real-traversal edge capture: hybridRetrieve PART_OF + D-05 hybrid edges, bridgeResolve same_as (live-guarded honesty tests)
+- [x] 10-03-PLAN.md — structuredQuery synthesized structural edges (D-02) + SC-5 returnedIds isolation + eval-gate additivity proof
 
-**Gap closure** *(after re-verification)*
-
-- [x] 04-03-PLAN.md — Gap closure: builder-side conflict detection (ValueError before DB write) + verify_coref_eval exit-code/label consistency (D-04/D-05)
-- [x] 04-04-PLAN.md — Gap closure: fix the false-guarantee demo-critical gate — denominator=9 in both gates (CR-01), resolution-path join key (CR-02), hard-fail on uncovered ids, shared DEMO_CRITICAL_IDS source (IN-03) + negative test (ENT-01, ENT-02, per D-05)
-
-**Risk**: MEDIUM. The keystone dependency for nearly every dual-graph answer, but de-risked by baking shared IDs into the generator (Phase 2) — this converts hard real-world ER into deterministic linkage. The gate is timing: it cannot start until both graphs have IDs.
-
-### Phase 5: Custom Reasoning Agent
-
-**Goal**: Build the custom planner + specialists agent that decomposes a question, dispatches structured- and unstructured-graph retrieval across the entity bridge, synthesizes a combined claim-level-sourced answer, and refuses gracefully when out of scope.
-**Depends on**: Phase 4 (both graphs + the cross-graph bridge)
-**Requirements**: AGENT-01, AGENT-02, AGENT-03, AGENT-05, AGENT-07 (AGENT-04 generated-AQL fallback and AGENT-06 Q11 timeline are deferred to v2 — see note below)
-**Success Criteria** (what must be TRUE):
-
-  1. The planner decomposes a question, routes sub-tasks to structured/unstructured/resolver specialist tools, and synthesizes a combined answer that visibly draws on both graphs — AGENT-01, AGENT-02.
-  2. ~6 curated, parameterized AQL tools deterministically cover the 6 locked question patterns (the demo backbone) — AGENT-03. *(Lean scope: the validated generated-AQL fallback, AGENT-04, is deferred to v2.)*
-  3. The agent performs the Q12 cross-graph reconciliation ("usage green but sentiment red") — the signature moment — AGENT-05.
-  4. The agent gracefully refuses or signals uncertainty for out-of-scope/unanswerable questions instead of guessing, with claim-level grounding driving the decision — AGENT-07.
-  *(AGENT-06 — the Q11 ordered timeline — is out of the lean 6-question arc and deferred to v2.)*
-
-**Plans**: 4 plans (3 waves)
-
-**Wave 0** *(infra/DDL/env/spikes — gates the phase)*
-
-- [x] 05-01-PLAN.md — TS package scaffold + Zod envelope contract (D-03a) + db singleton + Chunks BM25 view DDL + arangojs read spike + hybrid RRF sourced-retrieval spike + ANTHROPIC_API_KEY checkpoint (AGENT-01, AGENT-03)
-
-**Wave 1** *(parallel — the 3 curated-AQL specialists; no file overlap)*
-
-- [x] 05-02-PLAN.md — structuredQuery (named-graph AQL per facet) + bridgeResolve (same_as bridge, ported from probe_trace) (AGENT-03)
-- [x] 05-03-PLAN.md — hybridRetrieve (vector+BM25+RRF over Chunks, PART_OF-sourced) + pure-TS RRF fusion + 512-dim embedding (AGENT-03)
-
-**Wave 2** *(blocked on Wave 1 — planner composition + grounding)*
-
-- [x] 05-04-PLAN.md — ToolLoopAgent planner + Q12 reconciliation (D-05) + code-level grounding/refusal gate (D-02) + askQuestion()/CLI (D-01) + 6-locked-question eval (AGENT-01, AGENT-02, AGENT-05, AGENT-07)
-
-**Risk**: HIGH UNKNOWN. First-time custom-agent build (PROJECT.md). The curated-vs-generated split, the claim-level grounding check, AQL-safety gate, and planner trace assembly all warrant pattern research during planning. This is the headline-differentiator phase and a likely long pole.
-
-### Phase 6: Next.js/Vercel UI + Sourcing Display
-
-**Goal**: Deliver the free-form question box on a Next.js/Vercel dashboard that renders streamed reasoning and a claim-level, click-to-source retrieval-path view (citation cards) with no dead air at live-demo latency. *(Lean scope: the React Flow cross-graph traversal visualization is deferred to v2; citation cards carry the sourcing in v1.)*
-**Depends on**: Phase 5 (the `/api/ask` → `{answer, trace}` contract; the UI shell can start earlier against a mocked endpoint)
-**Requirements**: SRC-01, SRC-02, SRC-03, SRC-04, UI-01, UI-02, UI-03
-**Success Criteria** (what must be TRUE):
-
-  1. A Next.js/Vercel dashboard presents a free-form natural-language question box (with guided example questions) — UI-01.
-  2. Every fact in an answer carries source attribution (graph, collection, record id), and the answer exposes the full retrieval path (graph → records → traversal → AQL) — SRC-01, SRC-02, UI-02.
-  3. A user can click a claim to view the underlying source record/thread inline, and the planner's reasoning steps are visible — SRC-03, SRC-04.
-  4. Responses stream with no dead air and acceptable live-demo latency, with graceful error/timeout handling and a global-scope keep-alive ArangoDB client on the serverless path — UI-03.
-
-**Plans**: TBD
+**Risk**: Low — the v1 ROADMAP backlog note (Phase 999.1 technical spine section) already specifies the exact RETURN-clause change needed in two tools and the `edges[]` addition to `RetrievalPathFragment`. Work is mechanical with a clear honesty constraint (no invented traversals for structured data).
 **UI hint**: yes
-**Risk**: LOWER. Established patterns (Next.js 15 + AI SDK UI streaming + shadcn citation cards; React Flow deferred to v2). Main carry-over risks are serverless↔ArangoDB connection handling (validate on a real Vercel deploy) and mapping claim-level citations cleanly into the UI.
 
-### Phase 7: Grounding/Eval + Demo Hardening
+### Phase 11: Graph Viz + UI Refresh + Latency
 
-**Goal**: Make the live demo trustworthy and unbreakable — prove every answer is grounded against the locked question set, then harden the live path so it survives the room.
-**Depends on**: Phase 6 (full end-to-end answer + UI to evaluate and rehearse)
-**Requirements**: EVAL-01, EVAL-02
+**Goal**: The demo looks polished and brand-aligned, answers feel fast, a confidence score is visible per answer, and the React Flow cross-graph subgraph renders the actual nodes and edges that produced each answer.
+**Depends on**: Phase 10 (edges[] in retrievalPath — required for React Flow to render honest traversals); Phase 8 (eval gate stays green through UI changes)
+**Requirements**: VIZ-02, UI-04, PERF-01, UI-06
 **Success Criteria** (what must be TRUE):
 
-  1. An output-validation gate decomposes each answer into atomic claims and verifies each is entailed by the retrieved records, run as a light regression set over the 6 locked questions (+ adversarial/refusal variants) and passing before the demo — EVAL-01.
-  2. Demo hardening is complete: serverless/DB pre-warm routine, a recorded/scripted backup path, and adversarial + concurrent rehearsal on the real Vercel deploy — EVAL-02.
-  3. The Q12 reconciliation moment and at least one graceful-refusal moment are rehearsed and reliable.
+  1. A React Flow panel renders the actual nodes and edges from the grounded `retrievalPath` — two visual clusters (structured, unstructured) joined by the real `same_as` bridge edge — using distinct visual styles for traversed (`PART_OF`/`same_as`), structural (`account_id`), and hybrid-retrieval (vector+BM25) edges; node count capped to cited records.
+  2. The viz is fully general and data-driven: it renders correctly for ANY question purely from the runtime `retrievalPath`, with no per-question hardcoding or template.
+  3. The dashboard is refreshed to an ArangoDB-brand-aligned visual design (typography, color, layout, citation cards, viz panel) without regressing v1's streamed reasoning + claim-level provenance.
+  4. A live confidence/grounding score is surfaced per answer — tied to the faithfulness eval metric — as a visible trust signal in the UI.
+  5. Answer latency is noticeably improved vs. v1 (~20–40s): first-token arrives faster (parallel tool calls and/or pre-warm) with no loss of grounding.
+  6. The eval gate (Phase 8) stays green — no regressions on streamed answers or claim citations.
+
+**Plans**: 4 plans
+Plans:
+
+**Wave 1** *(parallel — no shared files)*
+- [x] 11-01-PLAN.md — Install React Flow/dagre in web/ + repair broken fixtures + pure buildGraph.ts/layout.ts honesty+data-driven core (VIZ-02 SC-1/SC-2)
+- [x] 11-04-PLAN.md — PERF-01 latency: baseline + ArangoDB pre-warm; eval gate GREEN; streaming smoke (PERF-01 SC-5)
+
+**Wave 2** *(blocked on 11-01)*
+- [x] 11-02-PLAN.md — GraphViz React Flow components + TrustChip (qualitative-only; faithfulnessScore absent) + AnswerBody claim-list rewrite (VIZ-02/UI-06/UI-04 D-12)
+
+**Wave 3** *(blocked on 11-01 + 11-02)*
+- [x] 11-03-PLAN.md — arango.ai brand-token swap + Graph/Path toggle in rail + page wiring + streaming smoke checkpoint (UI-04/VIZ-02/UI-06 SC-3/SC-6)
+
+**Risk**: Medium — React Flow layout for arbitrary graph shapes requires design work (pick KG granularity, handle large traversals gracefully). Honesty bar is strict: viz must never fabricate edges. UI refresh + PERF-01 are well-understood work. PLANNING FINDINGS: (1) `faithfulnessScore` is NOT on the runtime envelope — UI-06 leads qualitative (groundingScore + refusal) and DEFERS the numeric reveal (a data change, out of this presentation-only phase). (2) The web test suite is currently RED (Phase-8 `groundingScore` never backfilled into web fixtures) — Plan 11-01 repairs it as a prerequisite. (3) ArangoDB rebranded to arango.ai (#007339) — the brand token swap is a real value change. (4) The eval gate is non-streaming only — D-12 claim-list + PERF-01 loop changes carry a mandatory streaming smoke-test.
+**UI hint**: yes
+
+### Phase 12: Simulated CDC + What-Changed Diff
+
+**Goal**: A live update moment exists in the demo — a synthetic source file changes, the delta propagates through the existing idempotent pipeline into both graphs, and re-asking a question shows which claims/citations changed.
+**Depends on**: Phase 3 (idempotent UPSERT + AutoGraph incremental + account_id re-stamp — the update pipeline); Phase 11 (viz + UI are in place so the "what changed" diff can be shown impressively); Phase 8 (eval gate confirms no corruption)
+**Requirements**: CDC-01, CDC-02, CDC-03
+**Success Criteria** (what must be TRUE):
+
+  1. A change to a synthetic source file (under `data_gen/` output) is detected, and the delta propagates into BOTH graphs via the existing idempotent pipeline — structured UPSERT, unstructured AutoGraph `incremental` + post-build account_id re-stamp — with no destructive full rebuild.
+  2. A UI or API trigger initiates the update as a live demo moment; re-asking a question after the trigger reflects the updated data.
+  3. A re-ask after the update does not corrupt a previously-correct answer — the same question before and after the update returns consistent facts from the data that was not changed.
+  4. A "what-changed" diff shows which specific claims or citations in an answer changed as a result of the update (before/after), grounded in the actual updated records.
+
+**Plans**: 3 plans
+
+**Wave 1** *(gates the phase — resolves the D-03 STATE blocker)*
+- [ ] 12-01-PLAN.md — Build + LIVE-validate the incremental ADD lane (zero-churn tiny-module variant) + presenter reset; proves no full rebuild, no corruption, D-03 resolved (CDC-01)
+
+**Wave 2** *(blocked on 12-01)*
+- [ ] 12-02-PLAN.md — "Simulate update" trigger route (fixed scenario, fire-and-return-202, async) + status poll; security threat model on the only new attack surface (CDC-02)
+
+**Wave 3** *(blocked on 12-02)*
+- [ ] 12-03-PLAN.md — Grounded client-side what-changed diff + WhatChangedBanner + AnswerBody highlights + useAsk per-question cache + page wiring; eval-gate GREEN before/after (CDC-02, CDC-03)
+
+**Risk**: Medium — the idempotent pipeline (load_structured.py, build_unstructured.py AutoGraph incremental, stamp_account_id.py) already exists and was designed for this. The new work is the file-watch CDC layer, the UI/API trigger, and the before/after diff logic. The diff (CDC-03) is the highest-design-effort piece: it requires storing the pre-update answer envelope and comparing grounded citations. **Planning decision required up front (scope tweak, 2026-06-22):** pick the envelope-storage approach before building CDC-03 — in-memory session vs. a lightweight ArangoDB collection (no answer-envelope persistence exists in v1). Decide at `/gsd-plan-phase 12`.
+
+### Phase 13: Injection-Resistance + Adversarial Mode
+
+**Goal**: The agent ignores adversarial instructions embedded in customer documents, and the demo can include a live audience moment where someone tries to break it and watches it refuse cleanly.
+
+> **SEC-02 hidden for demo (2026-06-25):** A preview smoke showed an off-script attack getting *answered* — the live path enforces `_id`-grounding only (semantic faithfulness is eval-only, not live). Judged overkill for a presenter-driven demo, so the "try-to-break-it" UI is hidden behind `ADVERSARIAL_MODE_ENABLED=false` (`web/app/page.tsx`). **SEC-01 hardening + `enforceGrounding` stay always-on.** Flip the flag to restore. See REQUIREMENTS.md §SEC-02 and [[live-path-id-grounding-only]].
+**Depends on**: Phase 7 (enforceGrounding pure-code gate + adversarial.ts — the foundation); Phase 11 (the UI mode for SEC-02 needs the refreshed UI shell); Phase 8 (eval gate covers adversarial refusal correctness)
+**Requirements**: SEC-01, SEC-02
+**Success Criteria** (what must be TRUE):
+
+  1. Adversarial instructions embedded in a synthetic document (prompt injection via the unstructured graph) do not alter the agent's answer, change the tools it calls, or cause it to leak; the grounding/refusal gate holds.
+  2. A curated injection payload can be added to a synthetic doc and the agent demonstrably ignores it — verifiable by a test, not just assertion.
+  3. A "try-to-break-it" UI mode lets a presenter submit injection / out-of-scope / PII questions and watch the system refuse cleanly (refused:true, zero fabricated citations, clean structured message) — an interactive audience-facing trust demonstration.
+  4. Legitimate questions continue to answer correctly through the same path — SEC-01 hardening does not regress grounded answers.
+
+**Plans**: 4 plans
+
+**Wave 1** *(parallel — no shared files: agent-side vs data-side)*
+- [x] 13-01-PLAN.md — SEC-01 D-01 defense-in-depth: shared sanitizeUntrustedContent + content-wrap in runHybridRetrieve + DATA-not-instructions section in PLANNER_SYSTEM_PROMPT (shared-factory; stream.ts/grounding.ts untouched) — DONE 2026-06-25 (9c947b0, e06fed0)
+- [x] 13-02-PLAN.md — SEC-01 D-03 planted-payload corpus: 3-4 injection payloads in ONE allowlisted meridian_slack doc + manifest + LIVE-KG ingest + hybrid-probe retrievability gate
+
+**Wave 2** *(13-03 blocked on 13-01+13-02; 13-04 blocked on 13-01)*
+- [x] 13-03-PLAN.md — SEC-01 deterministic eval: 2 direct-question injection cases + doc-injection live case (pure-code invariants, never the stochastic judge) + eval-gate GREEN no-regression (SC-1/SC-2/SC-4)
+- [x] 13-04-PLAN.md — SEC-02 D-02/D-04 adversarial UI: labeled toggle/banner + AttackChips + free-form, presentation-only `adversarial` flag threaded to /api/ask, client-side attack-type label in RefusalPanel (adversarial-only) + manual streaming smoke (SC-3)
+
+**Risk**: Medium — Phase 7's faithfulness.ts already strips injection markers from evidence (CR-01 fix in 07-01 SUMMARY). PLANNING FINDINGS: (1) injection resistance is STRUCTURAL — the read-only 4-tool surface + pure-code enforceGrounding backstop already make a confident-wrong/exfil answer impossible; D-01 prompt+sanitizer are defense-in-depth on top, never a replacement (enforceGrounding NOT loosened). (2) The #1 "looks done but isn't" trap: a planted file in data_gen/output/ is NOT retrievable until ingested+embedded into the LIVE KG — 13-02 gates on a hybrid-probe retrievability check, not a file on disk. (3) Use the allowlisted module `meridian_slack` (the existing meridian_slack_escalation module already fails test_module_names_valid). (4) SEC-01 asserted via deterministic pure-code invariants only (the ~5% stochastic judge is never used). (5) The eval gate is non-streaming only — the SEC-02 live path carries a MANDATORY manual streaming smoke ([[agent-loop-shared-factory]]). (6) The attack-type label is client-side only — no field added to the locked Envelope/SynthEnvelopeSchema.
+**UI hint**: yes
+
+> **Tail re-aim (2026-06-25):** Phases 14–18 were restructured (was: 14 Temporal, 15 Analyst Polish + Control Panel) after a capability scout found the demo *under-uses* ArangoDB. The structured graph has 7 vertex + 7 edge collections but `structuredQuery` did flat `FILTER account_id ==` scans (zero traversal); the cross-graph "join" lived in LLM prose, not AQL; and AutoGraph's Leiden `Communities` layer was built but never queried. The new tail closes these gaps and makes each capability nameable. Sequenced by sell-value-per-effort. See `DEMO-STRATEGY.md`.
+
+### Phase 14: Graph-Depth + Explainability
+
+**Goal**: We stop querying our graph database like SQL and start showing it doing graph work — the structured retrieval becomes a real multi-hop named-graph traversal, the structured↔unstructured join becomes a single AQL query across the `same_as` bridge, and the UI reveals the actual AQL behind every answer with retrieval-mode labels and the cross-graph join as the hero. The "no black box — one database, one query language" proof.
+**Depends on**: Phase 5 (curated AQL tools — the surface to deepen); Phase 10 (edge-honesty contract — no fabricated traversals); Phase 11 (viz + UI shell to host the AQL reveal); Phase 8 (eval gate stays green through retrieval changes)
+**Requirements**: GRAPH-03, EXPL-01
+**Success Criteria** (what must be TRUE):
+
+  1. `structuredQuery` traverses the existing structured edges (`Account → HAS_CONTRACT → Contract → HAS_USAGE → UsageFact`, `→ HAS_OPPORTUNITY → Opportunity`, `→ HAS_CONTACT → Contact`) via a real named-graph traversal — not six flat per-collection `FILTER account_id ==` scans — returning the same grounded records (honesty bar: no fabricated edges).
+  2. The structured↔unstructured join is executed as a single AQL query traversing the `same_as` bridge (hub → KG entity → mentions → chunks/documents), not stitched in agent TypeScript.
+  3. The UI reveals each retrieval step's actual AQL ("show me the query") from `retrievalPath.query`, labels each step by retrieval mode (vector / BM25 / graph traversal), and spotlights the cross-graph join — fully data-driven, no per-question hardcoding.
+  4. The eval gate (Phase 8) stays green and the streaming path is smoke-tested ([[agent-loop-shared-factory]]) — the deepened retrieval does not regress grounding.
 
 **Plans**: TBD
-**Risk**: MEDIUM. Last line of defense against the defined failure mode (a confident wrong answer in front of the audience). PROJECT.md makes eval-before-demo a hard constraint — treated as a gated phase, not a checkbox. Lower technical unknown than Phases 1/2/5 but high consequence.
+**Risk**: Low–Med — the edges already exist and are populated (`load_structured.py`, 7 edge collections; `verify_graphs.py` asserts non-empty), so the traversal rewrite is mechanical; the single cross-graph join query is the only genuinely new AQL. Honesty constraint is strict (same grounded records, no invented traversals). Retrieval-path change rides the eval-gate + streaming-smoke discipline.
+**UI hint**: yes
+
+### Phase 15: GraphRAG via AutoGraph Communities
+
+**Goal**: Exercise the half of the AI platform we currently pay for and ignore — AutoGraph's Leiden community layer + summaries — so a "what are the themes across Meridian?" question does hierarchical global→local retrieval (community summary → drill to chunks) instead of uniform flat vector+BM25. Names ArangoDB's GenAI platform as what built the knowledge graph.
+**Depends on**: Phase 3 / build pipeline (AutoGraph builds `customer360_Communities` + `customer360_rags`); Phase 14 (AQL-reveal surface to show the hierarchical retrieval); Phase 8 (eval gate)
+**Requirements**: RAG-01
+**Success Criteria** (what must be TRUE):
+
+  1. A retrieval mode queries the `customer360_Communities` layer + community summaries for global/thematic questions and drills into chunks for local specifics — the community layer is no longer built-but-unqueried.
+  2. The hierarchical retrieval is visible in the AQL reveal + viz (community → chunk), and the talk track names ArangoDB's GenAI platform / AutoGraph.
+  3. Community summaries exist (generated at build time if absent) and are grounded — citations still trace to real records.
+  4. The eval gate stays green; legitimate questions still answer correctly through the existing flat path where appropriate.
+
+**Plans**: TBD
+**Risk**: Med–High — may require generating community summaries at build time and a routing decision (when to go global vs. local). The grounding bar applies to summary-derived claims. Keep the flat hybrid path as the default so this is additive.
+
+### Phase 16: Time-Travel (Temporal Graph)
+
+**Goal**: "Show me the Northwind account graph as it was at renewal" — and watch the traversal re-resolve when we flip the date. Implemented as ArangoDB's documented time-travel modeling pattern (effective-dated edges + `@asOf` traversal in plain AQL), framed honestly as a pattern the platform makes clean, not a native time machine.
+**Depends on**: Phase 9 (multi-year Northwind history); Phase 14 (the traversal + AQL-reveal surface the `@asOf` filter rides on); Phase 8 (eval gate covers a temporal question)
+**Requirements**: TEMP-01
+**Success Criteria** (what must be TRUE):
+
+  1. The relevant Northwind structured edges carry `valid_from`/`valid_to` (effective-dated), derived from the dates already on the connected records; curated tools accept an optional `@asOf` bind parameter (default "now" — existing behavior unchanged when absent).
+  2. The agent answers "how did Northwind evolve 2023→2025" and "what did it look like at renewal" as a versioned graph traversal — every cited record is valid within the stated window; the `valid_from <= @asOf < valid_to` filter is visible in the revealed AQL.
+  3. Temporal claims are individually grounded — the eval gate flags claims citing out-of-window records — and is extended with at least one temporal question that stays green.
+  4. The pitch is honest: positioned as effective-dated modeling on one engine (not native bitemporality), parity-acknowledged vs. Neo4j, differentiated on "temporal + traversal + hybrid + cross-graph join, one AQL."
+
+**Plans**: TBD
+**Risk**: High (relative to the tail) — the heaviest remaining item: synthetic-data coherence. The validity intervals across Account/Contract/Usage/Slack/email must line up so the as-of snapshot tells a consistent story (Phase-9-class generation effort, not engine effort). *(Opportunistic add at plan time: compute trends in AQL via COLLECT/WINDOW and cite the engine's number — a cheap grounding win on the known trend-claim faithfulness gap; not committed, flag during /gsd-plan-phase.)*
+
+### Phase 17: Agent Memory on ArangoDB
+
+**Goal**: Make ArangoDB the agent's brain, not just its retriever — persist each grounded answer + the entities/records it touched as a graph, embed past questions for related-Q&A recall, and power multi-turn follow-ups from that graph-resident memory. The "agentic brain on Arango" moment: write-path + vector + graph for agent state, one engine.
+**Depends on**: Phase 14 (graph-resident entities to link memory into); Phase 11 (UI shell for multi-turn); Phase 8 (eval gate covers a multi-turn scenario)
+**Requirements**: MEM-01 (subsumes AGENT-08), MEM-02 (conversation-history UI, revives 999.3)
+**Success Criteria** (what must be TRUE):
+
+  1. The agent writes state into ArangoDB — each answer envelope + the entities/records it cited stored as graph nodes; past questions embedded for retrieval — demonstrating the DB as the agent's backing store (the agent is no longer fully stateless).
+  2. Multi-turn follow-ups ("why?", "show me the contract", "compare to the other account") retain context across turns, each turn independently grounded (citations trace to real records, never to prior turns).
+  3. Related-Q&A / memory retrieval is a graph+vector query over the persisted memory, visible in the AQL reveal.
+  4. A conversation-history UI surface (MEM-02) lists past questions/answers — read back out of ArangoDB — so a presenter tracks the arc and revisits prior answers; doubles as a platform-visibility moment ("this history comes from the graph").
+  5. The eval gate covers at least one multi-turn scenario and stays green; the per-turn grounding invariant holds (no prior-turn ungrounded content leaks into a later grounded answer).
+
+**Plans**: TBD
+**Risk**: Med–High — new write-path on a previously read-only agent (the read-only credibility property must be preserved for *source* data; memory is a separate, agent-owned namespace). Scope risk: keep memory bounded and the per-turn grounding invariant strict. Revives AGENT-08 as a platform capability.
+**UI hint**: yes
+
+### Phase 18: Presenter Control Panel + CDC Reframe
+
+**Goal**: The demo is fully presenter-ready and the live-update moment finally *names ArangoDB* — a control panel gives one-click access to every capability moment (traversal, cross-graph join, GraphRAG, time-travel, memory) plus reset and the CDC trigger; the what-changed moment is reframed so the buyer attributes the propagation to one-engine consistency.
+**Depends on**: Phases 14–17 (the moments the presets wire up); Phase 12 (the built CDC pipeline + trigger to reframe); Phase 11 (UI shell)
+**Requirements**: DEMO-01, CDC-04
+**Success Criteria** (what must be TRUE):
+
+  1. A control panel provides one-click access to ≥6 preset scenarios spanning the capability moments, a state reset to a clean start, and the CDC update trigger.
+  2. A presenter can run the full demo arc — pick a preset, reveal the AQL, flip the time-travel date, trigger an update, ask a follow-up, see the diff — without touching the keyboard beyond those interactions.
+  3. The CDC what-changed banner + talk track name ArangoDB's role: one source change updates the structured graph, re-embedded vectors, and the BM25 view in one store — describing only what the pipeline genuinely does (no implied real-time WAL streaming).
+  4. The eval gate stays green and the streaming path is smoke-tested.
+
+**Plans**: TBD
+**Risk**: Low–Med — mostly a UI build on existing primitives (Phase 12 trigger, Phase 13 toggle/banner pattern). Placed last (per discussion 2026-06-25) so presets wire every capability moment in one clean build rather than being reworked as moments land. CDC-04 is presentation-only.
+**UI hint**: yes
+
+### Demo Assets track *(parallel, non-code — ASSET-01)*
+
+**Goal**: Make the sales narrative a first-class deliverable, not an afterthought — runs alongside Phases 14–18.
+**Requirements**: ASSET-01
+**Deliverables**: a talk track sequencing the aha moments across the 3-account arc (Northwind expansion / Meridian hidden-risk / Helio churn); a "maps to your Salesforce / Slack / contracts" one-pager that bridges demo → POC; a "3 systems + glue vs. one engine" competitive one-liner; capability-naming notes (ArangoDB GenAI platform, a platform-security slide for the Zscaler audience — RBAC / encryption / audit / SSO, ArangoGraph managed cloud, multi-model umbrella).
+**Risk**: Low — non-code; highest strategic leverage per `DEMO-STRATEGY.md §6.4`. Should track the capability moments as they land so the talk track stays accurate.
 
 ## Progress
 
-**Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
-
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Architecture Research + Question/Data Lock | 5/5 | Complete    | 2026-06-16 |
-| 2. Synthetic Data + Integrity Linter | 5/5 | Complete    | 2026-06-17 |
-| 3. Build Both Graphs (parallel) | 5/5 | Complete    | 2026-06-17 |
-| 4. Canonical Entity Layer | 4/4 | Complete   | 2026-06-18 |
-| 5. Custom Reasoning Agent | 4/4 | Complete   | 2026-06-18 |
-| 6. Next.js/Vercel UI + Sourcing Display | 1/5 | In Progress|  |
-| 7. Grounding/Eval + Demo Hardening | 0/TBD | Not started | - |
+| 8. Deterministic Eval Harness | 1/1 | Complete   | 2026-06-22 |
+| 9. Data Depth & 3rd Account | 3/3 | Complete   | 2026-06-23 |
+| 10. Answer-Provenance Edge Enrichment | 3/3 | Complete    | 2026-06-23 |
+| 11. Graph Viz + UI Refresh + Latency | 4/4 | Complete    | 2026-06-24 |
+| 12. Simulated CDC + What-Changed Diff | 3/3 | Complete | 2026-06-24 |
+| 13. Injection-Resistance + Adversarial Mode | 4/4 | Complete   | 2026-06-25 |
+| 14. Graph-Depth + Explainability | 0/TBD | Not started | - |
+| 15. GraphRAG via AutoGraph Communities | 0/TBD | Not started | - |
+| 16. Time-Travel (Temporal Graph) | 0/TBD | Not started | - |
+| 17. Agent Memory on ArangoDB | 0/TBD | Not started | - |
+| 18. Presenter Control Panel + CDC Reframe | 0/TBD | Not started | - |
+| Demo Assets track (parallel, non-code) | 0/TBD | Not started | - |
 
-## Time Estimates (research-grounded REVISED — lean demo)
+---
 
-Single builder + AI assistance, working primarily **sequentially** (Phase 6 UI can overlap Phase 5 against a mock endpoint). This is the research-grounded **REVISED** estimate produced as a Phase 1 deliverable (`revised-estimate.md`, authoritative); it **supersedes** the prior PRELIMINARY 10–15 wk and the 2026-06-15 13–20 wk fully-custom numbers. The reduction to **~5–6 weeks** is structural — lean scope (6 questions, 2 accounts, curated-AQL only, citation cards) plus AutoGraph-hybrid via the deployed platform (which removes the custom-pipeline build) — not optimism.
+## Backlog
 
-| Phase | Estimate | Status | Confidence | Notes |
-|-------|----------|--------|------------|-------|
-| 1. Architecture Research + Question/Data Lock | ~1–2 weeks | Complete | Medium | Research-only, no code. Resolved the architecture call (AutoGraph-hybrid via platform) and produced this revised estimate. |
-| 2. Synthetic Data + Integrity Linter | ~1–1.5 weeks | REVISED | Medium | 2 accounts, 6 questions, ArangoDB-product domain, shallower multi-year stories; disciplined LLM-for-prose / code-for-facts split. |
-| 3. Build Both Graphs (parallel) | ~1.5–2.5 weeks | REVISED | Medium | Deployed AutoGraph platform handles chunking/embedding/extraction/Leiden/loading; custom work = run the import→build→orchestrate flow + hand-model the structured graph + post-build `account_id` UPSERT. |
-| 4. Canonical Entity Layer | ~0.5 weeks | REVISED | Medium–High | Document-level deterministic join (`account_id`) + shared `entity_id`; no fuzzy ER. Keystone dependency gate. |
-| 5. Custom Reasoning Agent | ~1.5–2.5 weeks | REVISED | Medium — residual risk: first custom-agent build | ~6 curated AQL tools (NO generated-AQL fallback), planner + specialists, Q12 reconciliation, graceful refusal. The residual long pole. |
-| 6. Next.js/Vercel UI + Sourcing Display | ~1 week | REVISED | Medium–High | AI SDK UI streaming + shadcn citation cards (React Flow deferred). Can scaffold against a mock during Phase 5. |
-| 7. Grounding/Eval + Demo Hardening | ~0.5–1 week | REVISED | Medium | Light eval over the 6 locked questions + adversarial/refusal rehearsal. Gated, non-negotiable. |
-| **Total to demo-ready** | **~5–6 weeks** (~4–5 if Phase 5 goes clean) | **REVISED** | — | Supersedes the 13–20-week fully-custom estimate. Reduction is structural (scope + architecture). |
+### Phase 999.1: Cross-graph subgraph visualization ~~(BACKLOG)~~ — **PROMOTED to v2.0 as Phase 11 (VIZ-01/VIZ-02)**
 
-**Riskiest / most-unknown phase:** Phase 5 (first-of-kind custom-agent build) — the planner orchestration, Q12 cross-graph reconciliation, and claim-level sourcing are the residual variance; the ~6 curated AQL tools are a firm work item. ~4 weeks is a stretch, not the expectation; iteration on the Q12 reconciliation likely lands the task nearer 5–6.
+**Original backlog entry preserved for history:**
+
+**Goal:** Render the actual sub-graph — nodes + edges across BOTH graphs — that produced each answer, as a React Flow viz beside the citation cards (the deferred v2 differentiator: "the strongest possible expression of the core value").
+**Requirements:** VIZ-01, VIZ-02 (promoted — see Phase 10 + Phase 11 above)
+**Plans:** Promoted — deep-plan via `/gsd-plan-phase 10` and `/gsd-plan-phase 11`
+
+**LOCKED requirement (user, 2026-06-19):** fully general / data-driven — must render for ANY question (incl. free-form, beyond the 6 locked) purely from the runtime `retrievalPath`. **Never hardcoded per question**, no per-question templates/layouts.
+
+**Promotion note (2026-06-22):** VIZ-01 (edge enrichment) is Phase 10; VIZ-02 (React Flow render) is bundled into Phase 11 with the UI refresh and latency pass. The honesty bar, verified technical spine, and LOCKED requirement above are carried into Phase 10 + Phase 11 success criteria verbatim.
+
+**Verified technical spine** (agent/src inspection, 2026-06-19):
+
+- `RetrievalPathFragment` = `{ graph, collection, _ids, query }` (agent/src/envelope.ts) — node `_ids` + AQL string only; **no edges persisted** anywhere today.
+- Tools differ: `hybridRetrieve` traverses Chunk-`PART_OF`->Document; `bridgeResolve` traverses `same_as` (hub->leaf) — both walk real edges but return only endpoint `_ids`. `structuredQuery` is flat `FILTER account_id ==` collection scans — **no traversal**.
+- Approach (hybrid, both inherently general): (1) **enrich** `hybridRetrieve` + `bridgeResolve` to also RETURN the traversed edge (`e._id/_from/_to` + edge collection) and add `edges[]` to `RetrievalPathFragment` — faithful to what the agent walked; (2) structured cluster = account-anchored star / induced subgraph from whatever `_ids` came back, keyed on `account_id`, drawn as **structural** (NOT a traversal that never ran).
+- Cross-graph link rendered = the real `same_as` bridge edge. Render: React Flow (`@xyflow/react`), two clusters joined by the bridge.
+- **Honesty bar** (no-confident-wrong-answer): build strictly from the grounded `retrievalPath` the answer cites — never a decorative re-query. Distinct visual styles for traversed (`PART_OF`/`same_as`) vs. structural (`account_id`) vs. hybrid-retrieval (vector+BM25) edges. Cap node count to cited records; pick KG granularity (Document→Chunk→Entity, hide community internals) for legibility.
+- **Effort:** low-to-moderate; no schema/architecture change (tiny RETURN-clause edge enrichment in 2 tools + the React Flow layout/curation pass).
+
+### Phase 999.2: Inline per-claim citation markers in answer surface (BACKLOG)
+
+**Goal:** Render inline numbered markers (superscripts ¹²³) in the streamed answer prose, each tying a specific claim/sentence to its supporting citation(s) — the literal "per-fact citation linking to `_id`" differentiator from CLAUDE.md. Surfaced during Phase 10 review (2026-06-23): a buyer cannot currently tell which claim each citation refers to.
+**Requirements:** UI-04 (Phase 11) — FOLDED IN via CONTEXT D-12.
+**Plans:** Folded into Phase 11 (Plan 11-02 rewrites `AnswerBody` as a numbered claim list per D-12 — sidesteps fuzzy claim→prose-span mapping by rendering the answer AS the claim list).
+
+**Context (data already exists — this is a rendering gap, not a data gap):**
+- `env.claims[]` (`ClaimSchema = { text, citations[] }`, decision D-03) already decomposes the answer into discrete factual claims, each carrying its supporting ArangoDB `_id`(s). Everything needed to draw markers is in the envelope.
+- The UI (`web/app/page.tsx`) renders answer prose + clickable source cards (`onOpenSource(citations)`) but NO inline markers. Phase 11 wording says only "citation cards," which is ambiguous about inline markers — make it explicit.
+- **Design decision required (not just CSS):** claims are a *decomposition*, so claim text is not guaranteed to be a verbatim substring of the prose answer. Phase 11 must choose between (a) mapping each claim to a span in the prose, or (b) rendering the answer AS the numbered claim list.
+
+Plans:
+- [x] TBD (promote with /gsd-review-backlog when ready, or fold into Phase 11 UI-04) (completed 2026-06-24)
+
+### Phase 999.3: Conversation history in demo UI (BACKLOG)
+
+> **Update 2026-06-25:** The *multi-turn* half of this (AGENT-08) was un-demoted and folded into **Phase 17 (Agent Memory on ArangoDB / MEM-01)** — reframed as a platform capability (graph-resident agent memory) rather than UI polish. What remains in backlog is the optional *history list* UI affordance; revisit only if it serves a specific demo moment.
+
+**Goal:** The demo should keep and display past questions/answers — a history list and/or multi-turn conversation — so a buyer can revisit prior questions during a live demo. Surfaced during Phase 10 review (2026-06-23).
+**Requirements:** TBD
+**Plans:** 0 plans
+
+**Context / architectural implication:**
+- The app is currently a single-shot question box: `page.tsx` owns one answer surface and retains no answer-synthesis state across questions.
+- Supporting history means accommodating a *list* of past grounded envelopes while preserving the terminal-gated grounding model (the persistent answer is only the terminal-gated grounded envelope — transient progress is never an answer). Plan the state model so history does not regress the no-confident-wrong-answer bar.
+
+Plans:
+- [ ] TBD (promote with /gsd-review-backlog when ready)

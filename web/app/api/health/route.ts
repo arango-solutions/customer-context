@@ -22,6 +22,7 @@ export function GET() {
     citations: [],
     retrievalPath: [],
     reasoningTrace: [],
+    groundingScore: 1,
   });
   return Response.json({ agentImport: 'ok', reconciliation: ok });
 }

@@ -231,7 +231,7 @@ def main() -> int:
             acp.create_project(
                 db_name,
                 GENAI_PROJECT_NAME,
-                description="Customer 360 — Zscaler demo (customer360)",
+                description="Customer 360 demo (customer360)",
                 project_type="autograph",
             )
             print(f"[OK] project {db_name}/{GENAI_PROJECT_NAME} created")

@@ -41,6 +41,7 @@ from faker import Faker
 from data_gen.spine.entity_registry import MODULE_NAMES, GLOBAL_SEED
 from data_gen.spine.spine_northwind import NORTHWIND_SPINE
 from data_gen.spine.spine_meridian import MERIDIAN_SPINE
+from data_gen.spine.spine_helio import HELIO_SPINE
 
 from data_gen.generators.crm_generator import generate_crm
 from data_gen.generators.usage_generator import generate_usage
@@ -59,7 +60,7 @@ _OUTPUT_DIR = _REPO_ROOT / "data_gen" / "output"
 _CACHE_DIR = _REPO_ROOT / "data_gen" / "llm" / "cache"
 _MANIFEST_PATH = _OUTPUT_DIR / "manifest.json"
 
-_SPINES = [NORTHWIND_SPINE, MERIDIAN_SPINE]
+_SPINES = [NORTHWIND_SPINE, MERIDIAN_SPINE, HELIO_SPINE]
 
 
 # ---------------------------------------------------------------------------

@@ -42,11 +42,18 @@ _NORTHWIND_PDF_PROHIBITED = [
     "scale limit", "GenAI intent", "GraphRAG", "whitespace", "at risk",
     "escalation", "capacity ceiling",
 ]
+# Helio noise-only prohibitions — EXCLUDE contraction/churn signal vocabulary
+# (downgrade/contraction/migration/declining/churn/deprioritization).
+_HELIO_PDF_PROHIBITED = [
+    "red annotation", "escalation", "competitor", "disengaged", "unresolved",
+]
 
 
 def _get_prohibited_terms(module: str) -> list[str]:
     if module.startswith("meridian"):
         return _MERIDIAN_PDF_PROHIBITED
+    if module.startswith("helio"):
+        return _HELIO_PDF_PROHIBITED
     return _NORTHWIND_PDF_PROHIBITED
 
 
@@ -67,14 +74,26 @@ def _derive_event_summary(doc: DocEvent, spine: AccountSpine) -> str:
     """Signal PDF event summary."""
     if "Q12" in doc.questions_served:
         return (
-            "EBR deck revealing a risk slide: partnership health is at risk "
-            "despite strong usage growth — the contradiction between green metrics "
-            "and red partnership signals requires executive review"
+            "EBR deck risk slide: partnership health is at risk despite strong, "
+            "quarter-over-quarter usage growth — the contradiction between green adoption "
+            "metrics and red relationship signals (service complaints, frustrated "
+            "engineering leadership) requires executive review and a reconciliation plan"
         )
     if "Q8" in doc.questions_served:
         return (
-            "EBR next-steps slide referencing a specific feature delivery commitment "
-            "that was verbally made to the customer but not logged in formal tracking systems"
+            "EBR next-steps slide referencing a specific feature-delivery commitment that "
+            "was verbally made to the customer on a discussed timeline but never logged in "
+            "the CRM or formal tracking, leaving an expectation gap to close"
+        )
+    if "Q13" in doc.questions_served:
+        return (
+            "EBR churn-risk slide summarizing the account contraction: declining usage, "
+            "a plan downgrade, and a migration-away discussion that put the renewal at risk"
+        )
+    if "Q14" in doc.questions_served:
+        return (
+            "EBR remediation slide outlining the save-plan to reverse the contraction "
+            "and secure the at-risk renewal"
         )
     return "Account business review highlighting key metrics and partnership status"
 
@@ -84,14 +103,31 @@ def _derive_key_facts(doc: DocEvent, spine: AccountSpine) -> list[str]:
     facts = []
     if "Q12" in doc.questions_served:
         facts.append("Usage growth: consistent positive trend across all tracked periods")
+        latest_usage = spine.usage[-1] if spine.usage else None
+        if latest_usage is not None:
+            facts.append(
+                f"Latest telemetry: {latest_usage.query_volume_m}M queries/mo on "
+                f"{latest_usage.cluster_nodes} nodes"
+            )
         facts.append("NPS verbatim: negative sentiment expressed in recent survey comments")
-        facts.append("Partnership health: at risk — operational concerns unaddressed")
+        facts.append("Partnership health: at risk - operational concerns unaddressed")
+        facts.append("Contradiction: green metrics vs. red relationship signals")
         facts.append("Recommendation: immediate executive outreach and account review")
     if "Q8" in doc.questions_served:
         facts.append("Feature delivery commitment referenced in customer meeting")
         facts.append("Commitment status: not formally logged in CRM")
         facts.append("Customer expectation: feature delivery as discussed verbally")
+        facts.append("Risk: unlogged promise is invisible to delivery and renewal planning")
         facts.append("Action required: formalize commitment tracking immediately")
+    if "Q13" in doc.questions_served:
+        facts.append("Usage trend: sustained decline from the prior adoption peak")
+        facts.append("Contract: downgraded to a lower tier with reduced annual value")
+        facts.append("Account stance: deprioritization and migration-away discussion underway")
+        facts.append("Renewal: at risk - contraction driving churn exposure")
+    if "Q14" in doc.questions_served:
+        facts.append("Remediation: save-plan opened to reverse the contraction")
+        facts.append("Focus: declining-usage drivers and stakeholder re-engagement")
+        facts.append("Goal: secure the at-risk renewal before it slips")
     if not facts:
         facts = ["Performance metrics: on track", "Account status: healthy"]
     return facts
@@ -204,6 +240,10 @@ def _write_signal_pdf(
     if "Q8" in doc.questions_served:
         pdf.set_font("Helvetica", "B", 11)
         pdf.multi_cell(_PAGE_WIDTH_MM, 8, "Note: Feature commitment made verbally - not logged in CRM")
+        pdf.set_font("Helvetica", "", 11)
+    if "Q13" in doc.questions_served:
+        pdf.set_font("Helvetica", "B", 11)
+        pdf.multi_cell(_PAGE_WIDTH_MM, 8, "Churn risk: declining usage and plan downgrade - renewal at risk")
         pdf.set_font("Helvetica", "", 11)
 
     # Write to file

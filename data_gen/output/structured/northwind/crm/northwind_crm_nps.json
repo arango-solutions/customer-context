@@ -6,7 +6,10 @@
     "nps_score": 8,
     "verbatim_sentiment": "positive",
     "survey_date": "2022-03-31",
-    "survey_period": "2022-Q1"
+    "survey_period": "2022-Q1",
+    "score_band": "passive",
+    "sentiment_aligned": true,
+    "survey_year": 2022
   },
   {
     "entity_id": "a058ac2d-a197-551a-a274-c75fbcc69d3c",
@@ -15,7 +18,10 @@
     "nps_score": 9,
     "verbatim_sentiment": "positive",
     "survey_date": "2022-06-30",
-    "survey_period": "2022-Q2"
+    "survey_period": "2022-Q2",
+    "score_band": "promoter",
+    "sentiment_aligned": true,
+    "survey_year": 2022
   },
   {
     "entity_id": "76959821-038e-52eb-9a1c-04940ea6a5e0",
@@ -24,7 +30,10 @@
     "nps_score": 8,
     "verbatim_sentiment": "positive",
     "survey_date": "2022-09-30",
-    "survey_period": "2022-Q3"
+    "survey_period": "2022-Q3",
+    "score_band": "passive",
+    "sentiment_aligned": true,
+    "survey_year": 2022
   },
   {
     "entity_id": "f9b9fba7-e893-5891-976a-493fc526f26f",
@@ -33,7 +42,10 @@
     "nps_score": 9,
     "verbatim_sentiment": "positive",
     "survey_date": "2022-12-31",
-    "survey_period": "2022-Q4"
+    "survey_period": "2022-Q4",
+    "score_band": "promoter",
+    "sentiment_aligned": true,
+    "survey_year": 2022
   },
   {
     "entity_id": "0ccf33d2-9ddf-56e9-9208-42d03f32d5de",
@@ -42,7 +54,10 @@
     "nps_score": 9,
     "verbatim_sentiment": "positive",
     "survey_date": "2023-03-31",
-    "survey_period": "2023-Q1"
+    "survey_period": "2023-Q1",
+    "score_band": "promoter",
+    "sentiment_aligned": true,
+    "survey_year": 2023
   },
   {
     "entity_id": "bb7aa961-b365-5abc-bc08-e2e0eccd4783",
@@ -51,7 +66,10 @@
     "nps_score": 8,
     "verbatim_sentiment": "positive",
     "survey_date": "2023-06-30",
-    "survey_period": "2023-Q2"
+    "survey_period": "2023-Q2",
+    "score_band": "passive",
+    "sentiment_aligned": true,
+    "survey_year": 2023
   },
   {
     "entity_id": "fd67bf87-b213-55b3-9085-c86c7524613d",
@@ -60,7 +78,10 @@
     "nps_score": 9,
     "verbatim_sentiment": "positive",
     "survey_date": "2023-09-30",
-    "survey_period": "2023-Q3"
+    "survey_period": "2023-Q3",
+    "score_band": "promoter",
+    "sentiment_aligned": true,
+    "survey_year": 2023
   },
   {
     "entity_id": "31913469-2b3a-591a-b514-79d19abf5a7a",
@@ -69,7 +90,10 @@
     "nps_score": 9,
     "verbatim_sentiment": "positive",
     "survey_date": "2023-12-31",
-    "survey_period": "2023-Q4"
+    "survey_period": "2023-Q4",
+    "score_band": "promoter",
+    "sentiment_aligned": true,
+    "survey_year": 2023
   },
   {
     "entity_id": "2ae634c5-a57f-5964-a0b5-06dc644dce86",
@@ -78,7 +102,10 @@
     "nps_score": 9,
     "verbatim_sentiment": "positive",
     "survey_date": "2024-03-31",
-    "survey_period": "2024-Q1"
+    "survey_period": "2024-Q1",
+    "score_band": "promoter",
+    "sentiment_aligned": true,
+    "survey_year": 2024
   },
   {
     "entity_id": "00665390-cd2c-543f-9683-6a7d9d794aa5",
@@ -87,7 +114,10 @@
     "nps_score": 8,
     "verbatim_sentiment": "positive",
     "survey_date": "2024-06-30",
-    "survey_period": "2024-Q2"
+    "survey_period": "2024-Q2",
+    "score_band": "passive",
+    "sentiment_aligned": true,
+    "survey_year": 2024
   },
   {
     "entity_id": "a7de8a0e-0ccd-59be-8a4f-f671e69cd364",
@@ -96,7 +126,10 @@
     "nps_score": 9,
     "verbatim_sentiment": "positive",
     "survey_date": "2024-09-30",
-    "survey_period": "2024-Q3"
+    "survey_period": "2024-Q3",
+    "score_band": "promoter",
+    "sentiment_aligned": true,
+    "survey_year": 2024
   },
   {
     "entity_id": "613aa3ad-a8c2-5402-b8d3-79122f20e747",
@@ -105,7 +138,10 @@
     "nps_score": 9,
     "verbatim_sentiment": "positive",
     "survey_date": "2024-12-31",
-    "survey_period": "2024-Q4"
+    "survey_period": "2024-Q4",
+    "score_band": "promoter",
+    "sentiment_aligned": true,
+    "survey_year": 2024
   },
   {
     "entity_id": "b0dbfa5c-dd22-599a-a972-da63edef6bd5",
@@ -114,7 +150,10 @@
     "nps_score": 9,
     "verbatim_sentiment": "positive",
     "survey_date": "2025-03-31",
-    "survey_period": "2025-Q1"
+    "survey_period": "2025-Q1",
+    "score_band": "promoter",
+    "sentiment_aligned": true,
+    "survey_year": 2025
   },
   {
     "entity_id": "53d113dc-efd8-500e-9fdb-515d34548be6",
@@ -123,6 +162,9 @@
     "nps_score": 8,
     "verbatim_sentiment": "positive",
     "survey_date": "2025-06-30",
-    "survey_period": "2025-Q2"
+    "survey_period": "2025-Q2",
+    "score_band": "passive",
+    "sentiment_aligned": true,
+    "survey_year": 2025
   }
 ]

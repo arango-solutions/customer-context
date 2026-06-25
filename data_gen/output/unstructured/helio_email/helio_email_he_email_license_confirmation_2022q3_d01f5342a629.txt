@@ -1,0 +1,16 @@
+<!-- module=helio_email account_id=c2de4d08-b3cf-5958-aae8-4ef84ebb81c9 entity_id=c7fbd5d7-207a-5260-8cdc-a3db6a390146 citable_url=https://arangodb.com/demo/helio/email/he_email_license_confirmation_2022q3 -->
+
+From: Alex Rivera
+To: Priya Nair
+Date: August 2022
+Subject: Contract Renewal Confirmation and Next Steps
+
+Dear Priya,
+
+I hope this message finds you well. I am writing to confirm the renewal of our contract with Helio Retail and to outline the next steps in the process. We appreciate your continued partnership and are excited to move forward together.
+
+As we proceed with the renewal, please let me know if there are any specific details or adjustments you would like to discuss. I am here to assist you and ensure a smooth transition into the new contract period.
+
+Best regards,
+Alex Rivera
+Alex Rivera

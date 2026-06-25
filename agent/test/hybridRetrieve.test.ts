@@ -8,6 +8,11 @@
 // unit suite still runs without a cluster.
 //
 // Also a pure (env-free) assertion that the Zod inputSchema bounds k to 1..20.
+//
+// Phase 10 (10-02) additions:
+//  - (live-guarded) edges[] contains ≥1 kind:'traversed' PART_OF edge (SC-1)
+//  - (live-guarded) all traversed edge _ids are in the AQL-returned edge._id set (D-04)
+//  - (live-guarded) edges[] contains kind:'hybrid' edges, one per chunk, no score field
 
 import { describe, it, expect } from 'vitest';
 import {
@@ -17,6 +22,7 @@ import {
 } from '../src/tools/hybridRetrieve.js';
 import { loadEnv } from '../src/db.js';
 import { hasLiveDb, hasOpenAi, MERIDIAN_ACCOUNT_ID } from './fixtures.js';
+import { traversedEdgesAreGrounded } from '../src/retrievalPath.js';
 
 // Load .env (override:true) at module scope, BEFORE the skip-guard is evaluated,
 // so ARANGO_* + OPENAI_API_KEY come from .env, never a stale shell value (D-06).
@@ -109,4 +115,84 @@ describe.skipIf(!canRun)('hybridRetrieve — live vector+BM25+RRF over Chunks', 
     }
     expect(out.retrievalPath.graph).toBe('unstructured');
   });
+});
+
+// Phase 10 (10-02): edge provenance assertions (live-guarded, SC-1 + D-04 + D-05)
+describe.skipIf(!canRun)('hybridRetrieve — edge provenance (SC-1, D-04, D-05)', () => {
+  it(
+    'edges[] contains ≥1 kind:traversed PART_OF edge with _from/_to from the AQL edge doc',
+    async () => {
+      const out = await runTool({
+        queryText: 'partnership health escalation ops burden sentiment renewal risk',
+        accountId: MERIDIAN_ACCOUNT_ID,
+        k: 6,
+      });
+
+      const traversed = out.retrievalPath.edges.filter((e) => e.kind === 'traversed');
+      expect(traversed.length).toBeGreaterThan(0);
+
+      // Every traversed edge must have label:'PART_OF' and collection === RELATIONS constant
+      for (const e of traversed) {
+        expect(e.label).toBe('PART_OF');
+        expect(e.collection).toBe('customer360_Relations');
+        expect(typeof e._from).toBe('string');
+        expect(typeof e._to).toBe('string');
+        expect(e._id).not.toBeNull();
+      }
+    },
+    30_000,
+  );
+
+  it(
+    'D-04: every traversed edge _id is in the AQL-returned edge._id set (no fabrication)',
+    async () => {
+      const out = await runTool({
+        queryText: 'partnership health escalation ops burden sentiment renewal risk',
+        accountId: MERIDIAN_ACCOUNT_ID,
+        k: 6,
+      });
+
+      // Ground truth: the edge _id values the AQL RETURN included on each data row.
+      // This is the only honest source for the traversed-edge set (D-04).
+      const returnedEdgeIds = new Set(
+        (out.data as Array<{ edge?: { _id: string } }>)
+          .map((d) => d.edge?._id)
+          .filter((id): id is string => id != null),
+      );
+
+      // traversedEdgesAreGrounded must return true: every traversed edge is in the set.
+      expect(traversedEdgesAreGrounded(out.retrievalPath, returnedEdgeIds)).toBe(true);
+    },
+    30_000,
+  );
+
+  it(
+    'D-05: edges[] contains kind:hybrid edges (one per chunk), no score field, _to is a real chunk_id',
+    async () => {
+      const out = await runTool({
+        queryText: 'usage adoption renewal',
+        k: 4,
+      });
+
+      const hybrid = out.retrievalPath.edges.filter((e) => e.kind === 'hybrid');
+      expect(hybrid.length).toBeGreaterThan(0);
+
+      // There should be one hybrid edge per chunk in the data
+      expect(hybrid.length).toBe(out.data.length);
+
+      for (const e of hybrid) {
+        expect(e.label).toBe('hybrid');
+        // _from is the fixed question anchor
+        expect(e._from).toBe('question/current');
+        // _to must be a chunk_id present in retrievalPath._ids
+        expect(out.retrievalPath._ids).toContain(e._to);
+        // D-03: NO score fields on hybrid edges
+        expect((e as Record<string, unknown>).score).toBeUndefined();
+        expect((e as Record<string, unknown>).vectorScore).toBeUndefined();
+        expect((e as Record<string, unknown>).bm25Score).toBeUndefined();
+        expect((e as Record<string, unknown>).rrfScore).toBeUndefined();
+      }
+    },
+    30_000,
+  );
 });

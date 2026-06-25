@@ -8,7 +8,11 @@
     "opportunity_type": "new",
     "product_scope": "Community",
     "contract_entity_id": "2f6e4458-4d01-50b2-8f82-78533382f844",
-    "renewal_date": "2021-02-28"
+    "renewal_date": "2021-02-28",
+    "is_won": true,
+    "is_open": false,
+    "forecast_category": "Closed",
+    "stage_detail": "New closed-won for Community"
   },
   {
     "entity_id": "8bafa6fe-9ade-52a2-8249-e8d3aede84e5",
@@ -19,7 +23,11 @@
     "opportunity_type": "expansion",
     "product_scope": "Enterprise",
     "contract_entity_id": "c65fbe81-f074-56ed-acf1-df70f3833822",
-    "renewal_date": "2022-02-28"
+    "renewal_date": "2022-02-28",
+    "is_won": true,
+    "is_open": false,
+    "forecast_category": "Closed",
+    "stage_detail": "Expansion closed-won for Enterprise"
   },
   {
     "entity_id": "ab9e492c-095c-59a5-bfd4-1bcad97dabfc",
@@ -30,7 +38,11 @@
     "opportunity_type": "expansion",
     "product_scope": "Enterprise",
     "contract_entity_id": "f7a0769c-4acb-5da9-8d5a-ad45601c6fa4",
-    "renewal_date": "2023-02-28"
+    "renewal_date": "2023-02-28",
+    "is_won": true,
+    "is_open": false,
+    "forecast_category": "Closed",
+    "stage_detail": "Expansion closed-won for Enterprise"
   },
   {
     "entity_id": "ba094aff-d9f7-50b1-9049-ab3335b46c2d",
@@ -41,7 +53,11 @@
     "opportunity_type": "expansion",
     "product_scope": "ArangoGraph",
     "contract_entity_id": "bfbc464c-6dbf-5872-b2e1-52ed2df3bc8f",
-    "renewal_date": "2024-05-31"
+    "renewal_date": "2024-05-31",
+    "is_won": true,
+    "is_open": false,
+    "forecast_category": "Closed",
+    "stage_detail": "Expansion closed-won for ArangoGraph"
   },
   {
     "entity_id": "ac6d73e7-1bcb-5514-ac11-51ee54cbf8ae",
@@ -52,6 +68,10 @@
     "opportunity_type": "renewal",
     "product_scope": "ArangoGraph",
     "contract_entity_id": null,
-    "renewal_date": null
+    "renewal_date": null,
+    "is_won": false,
+    "is_open": true,
+    "forecast_category": "Best Case",
+    "stage_detail": "Renewal for ArangoGraph in active proposal; outcome pending"
   }
 ]

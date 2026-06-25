@@ -1,0 +1,38 @@
+# CLI deploy uploads the repo root (so web/ + agent/ are both present and the
+# workspace install + prebuild agent compile work). Only web/ and agent/ are
+# needed to build the Next app — exclude everything else.
+#
+# IMPORTANT: project-area excludes are ANCHORED with a leading "/" so they match
+# ONLY the repo-root dir, never a same-named dir under web/ (e.g. web/lib/, which
+# holds the shadcn cn() helper at @/lib/utils). An unanchored "lib" would wrongly
+# exclude web/lib and break the build.
+
+.git
+/.planning
+/.vercel
+.env
+.env.*
+
+# Internal / non-build project areas (repo-root only)
+/infra
+/docs
+/data_gen
+/scripts
+/lib
+/tests
+/CLAUDE.md
+/DEMO-STRATEGY.md
+/scratchpad
+/DEPLOY.md
+/UPDATE.md
+/service_discovery.json
+/build_manifest.json
+*.pdf
+
+# Build outputs / deps (regenerated on Vercel) — match at any depth
+node_modules
+.next
+dist
+.venv
+__pycache__
+.DS_Store

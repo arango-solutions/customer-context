@@ -1,7 +1,7 @@
 <!-- module=meridian_slack account_id=9eff6d7b-7311-5525-be75-5b82a855ece7 entity_id=5b9a7140-ea4a-5ecc-8aed-be0421b2fa9d citable_url=https://arangodb.com/demo/meridian/slack/me_slack_champion_quiet_2024q4 -->
 
-[November 2024] Alex Rivera: We need to address a concern regarding Meridian Logistics.
+[November 2024] Alex Rivera: We need to address a concern regarding Meridian Logistics' engagement.
 
-[November 2024] Alex Rivera: There has been a noticeable decline in engagement from our champion, James Okafor. Additionally, we are facing challenges with the transition of contacts within the account, which may be impacting our communication and support efforts.
+[November 2024] Alex Rivera: The primary technical champion, James Okafor, has been notably less active in recent quarters. Communication has shifted to a less-senior Engineering Manager, which has resulted in fewer action items and slower response times compared to previous years. This change could impact our ability to effectively support their needs and drive progress.
 
-[November 2024] Alex Rivera: Let's discuss potential strategies to improve engagement and facilitate a smoother contact transition.
+[November 2024] Alex Rivera: Let's discuss strategies to re-engage with James and improve our communication flow.

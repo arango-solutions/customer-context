@@ -11,6 +11,14 @@
       "Enterprise",
       "ArangoGraph"
     ],
-    "deployment_date": "2020-03-01"
+    "deployment_date": "2020-03-01",
+    "industry": "Data Analytics & Business Intelligence",
+    "region": "North America",
+    "csm_owner": "Alex Rivera",
+    "current_product_tier": "ArangoGraph",
+    "current_acv_usd": 220000,
+    "health_band": "healthy",
+    "account_trajectory": "expanding",
+    "primary_champion": "Sarah Chen"
   }
 ]

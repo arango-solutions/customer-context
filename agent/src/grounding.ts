@@ -15,7 +15,7 @@
 // is code, it is PROVIDER-INDEPENDENT: the D-06 OpenAI swap does not touch this file
 // and would not touch it for any future provider swap.
 
-import type { Envelope, Citation } from './envelope.js';
+import { EnvelopeSchema, type Envelope, type Citation, type PreGroundingEnvelope } from './envelope.js';
 
 /** A citation is grounded iff its _id is in the set the tools actually returned. */
 function isGrounded(citation: Citation, returnedIds: Set<string>): boolean {
@@ -40,9 +40,21 @@ function isGrounded(citation: Citation, returnedIds: Set<string>): boolean {
  * Pure over (envelope, returnedIds): no model call, no I/O. Provider-independent.
  */
 export function enforceGrounding(
-  envelope: Envelope,
+  envelope: PreGroundingEnvelope,
   returnedIds: Set<string>,
 ): Envelope {
+  // Compute groundingScore at the top, before any branching: deterministic pure-code ratio
+  // of grounded citations (no LLM call).
+  // CHECKER WARNING 2: a refused/zero-citation envelope scores 1.0 (vacuously grounded —
+  // no fabricated citations). Phase 11 UI-06 MUST use the `refused` flag to distinguish
+  // "refused=true, groundingScore=1.0" from "refused=false, groundingScore=1.0 (fully grounded)"
+  // before displaying the score, or it will read as "100% grounded" on a refusal.
+  const groundedCitations = envelope.citations.filter((c) => isGrounded(c, returnedIds));
+  const groundingScore =
+    envelope.citations.length === 0
+      ? 1.0
+      : groundedCitations.length / envelope.citations.length;
+
   // Citations the model proposed that the tools never actually returned.
   const ungrounded = envelope.citations.filter((c) => !isGrounded(c, returnedIds));
 
@@ -54,16 +66,7 @@ export function enforceGrounding(
       cl.citations.some((c) => !isGrounded(c, returnedIds)),
   );
 
-  // Fully grounded — every claim sourced, every citation real. Trust it.
-  if (ungrounded.length === 0 && unsupportedClaims.length === 0) {
-    return envelope;
-  }
-
-  // Otherwise refuse, keeping only what was genuinely sourced.
-  const groundedCitations = envelope.citations.filter((c) =>
-    isGrounded(c, returnedIds),
-  );
-
+  // The set of genuinely-grounded claims (≥1 real, tool-returned citation each).
   const groundedClaims = envelope.claims
     .map((cl) => ({
       text: cl.text,
@@ -71,7 +74,45 @@ export function enforceGrounding(
     }))
     .filter((cl) => cl.citations.length > 0);
 
-  return {
+  // DEFENSE-IN-DEPTH (CR-01 Layer 2): a NON-refused envelope that grounds NOTHING —
+  // zero grounded claims AND zero grounded citations — is the degenerate
+  // confident-but-unsourced shape this system exists to stop (e.g. the planner emitted
+  // its plan-preamble as the final answer with zero tool calls). The vacuous
+  // groundingScore=1.0 (no citations to fail) and empty unsupportedClaims/ungrounded
+  // sets would otherwise let it pass the "fully grounded" branch below UNCHANGED with
+  // refused:false. Force it to a refusal here, BEFORE the passthrough.
+  //
+  // This intentionally does NOT touch:
+  //   (a) legitimately grounded answers — they have ≥1 grounded claim/citation, so this
+  //       condition is false and they fall through to the passthrough unchanged;
+  //   (b) existing EXPLICIT refusals (refused === true) — e.g. the NoObjectGenerated
+  //       moderation decline, which carries claims:[]/citations:[] by design and must
+  //       remain a passthrough refusal with the vacuous groundingScore=1.0.
+  if (
+    envelope.refused === false &&
+    groundedCitations.length === 0 &&
+    groundedClaims.length === 0
+  ) {
+    return EnvelopeSchema.parse({
+      answer:
+        'I cannot answer this question: no supporting records were retrieved to ground ' +
+        'an answer in. Returning a refusal rather than a confident but unsourced answer.',
+      refused: true,
+      claims: [],
+      citations: [],
+      retrievalPath: envelope.retrievalPath,
+      reasoningTrace: envelope.reasoningTrace,
+      groundingScore,
+    });
+  }
+
+  // Fully grounded — every claim sourced, every citation real. Trust it.
+  if (ungrounded.length === 0 && unsupportedClaims.length === 0) {
+    return EnvelopeSchema.parse({ ...envelope, groundingScore });
+  }
+
+  // Otherwise refuse, keeping only what was genuinely sourced (groundedClaims computed above).
+  return EnvelopeSchema.parse({
     answer:
       'I cannot confidently answer this question: the records needed to support ' +
       'one or more of the claims were not found in the retrieved data. Only the ' +
@@ -82,7 +123,8 @@ export function enforceGrounding(
     citations: groundedCitations,
     retrievalPath: envelope.retrievalPath,
     reasoningTrace: envelope.reasoningTrace,
-  };
+    groundingScore,
+  });
 }
 
 /**
