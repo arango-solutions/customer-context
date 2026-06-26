@@ -4,9 +4,11 @@
 // (via `setInput`) — they do NOT auto-submit. Free-form natural language is the premise
 // (PROJECT.md / D-discretion): the chip is a starter the user can edit before asking.
 //
-// The 6 chips are the VERBATIM locked eval prompts (agent/test/questions.eval.test.ts).
-// The Q12 chip is FIRST and visually FEATURED (an accent focus ring) — it is the
-// showcase: structured usage looks green, unstructured sentiment is red.
+// Six chips are the VERBATIM locked eval prompts (agent/test/questions.eval.test.ts);
+// one additional 'JOIN' chip is a demo-only starter (not an eval prompt) phrased to make
+// the planner invoke crossGraphJoin so the EXPL-01 pipeline spotlights the cross-graph
+// join as the hero (Phase 14). The Q12 chip is FIRST and visually FEATURED (an accent
+// focus ring) — the showcase: structured usage looks green, unstructured sentiment is red.
 //
 // Each chip shows a short label; clicking inserts the full prompt text into the box.
 
@@ -25,8 +27,9 @@ export interface ExamplePrompt {
 }
 
 /**
- * The 6 locked example prompts, VERBATIM from agent/test/questions.eval.test.ts.
- * Q12 is first and featured (the dual-graph centerpiece).
+ * Seven example prompts: Q12 (first, featured) + the JOIN demo chip (second) + the five
+ * other locked eval prompts. The six Q* entries are VERBATIM from
+ * agent/test/questions.eval.test.ts; JOIN is a demo-only starter (Phase 14, EXPL-01).
  */
 export const EXAMPLE_PROMPTS: ReadonlyArray<ExamplePrompt> = [
   {
@@ -38,6 +41,18 @@ export const EXAMPLE_PROMPTS: ReadonlyArray<ExamplePrompt> = [
       'but are they ACTUALLY happy? Compare the structured usage/NPS-score signal against ' +
       'the sentiment in their Slack escalations, QBR notes, exec emails, and NPS verbatim ' +
       'comments, and tell me explicitly if there is a contradiction.',
+  },
+  {
+    // Demo-only chip (NOT a locked eval prompt): phrased to make the planner invoke
+    // crossGraphJoin so the EXPL-01 pipeline spotlights the structured↔unstructured
+    // same_as join as the hero. Validated live: fires crossGraphJoin (same_as fragment,
+    // ~40 traversed edges), grounded (groundingScore 1), ~29s. Non-featured (Q12 holds
+    // the accent ring) but placed second so it is immediately visible.
+    id: 'JOIN',
+    label: 'Show the cross-graph join',
+    prompt:
+      'Show me the cross-graph join for Meridian Logistics: trace from their account to ' +
+      'the documents that mention them as one connected graph traversal across both graphs.',
   },
   {
     id: 'Q2',
