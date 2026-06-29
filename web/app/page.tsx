@@ -36,6 +36,7 @@ import { RefusalPanel } from '@/components/RefusalPanel';
 import { TrustChip } from '@/components/TrustChip';
 import { WhatChangedBanner } from '@/components/WhatChangedBanner';
 import { RetrievalPipeline } from '@/components/RetrievalPipeline';
+import { GraphViz } from '@/components/GraphViz';
 import { SourcingRail, type SourcingRailHandle } from '@/components/SourcingRail';
 import { ErrorState, TimeoutState } from '@/components/ResponseStates';
 import { Button } from '@/components/ui/button';
@@ -311,6 +312,24 @@ export default function Home() {
                         How this answer was retrieved
                       </h2>
                       <RetrievalPipeline
+                        retrievalPath={envelope.retrievalPath}
+                        citations={envelope.citations}
+                        onOpenSource={(citations) =>
+                          railRef.current?.openSource(citations)
+                        }
+                      />
+                    </section>
+                    {/* Phase 14 follow-up: the d3-force cross-graph VISUAL is kept
+                        ALONGSIDE the stepped pipeline (user request). The pipeline is
+                        the capability/AQL explainability flow; the graph shows the
+                        actual traversed nodes/edges across both graphs — now REAL
+                        traversals (HAS_* + same_as join), not the old synthesized
+                        edges. Same props + same rail-owned SourceDrawer on node click. */}
+                    <section aria-label="Cross-graph visualization" className="mt-4">
+                      <h2 className="mb-2 text-lg font-semibold text-foreground">
+                        Cross-graph traversal
+                      </h2>
+                      <GraphViz
                         retrievalPath={envelope.retrievalPath}
                         citations={envelope.citations}
                         onOpenSource={(citations) =>

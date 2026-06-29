@@ -43,16 +43,20 @@ export const EXAMPLE_PROMPTS: ReadonlyArray<ExamplePrompt> = [
       'comments, and tell me explicitly if there is a contradiction.',
   },
   {
-    // Demo-only chip (NOT a locked eval prompt): phrased to make the planner invoke
-    // crossGraphJoin so the EXPL-01 pipeline spotlights the structured↔unstructured
-    // same_as join as the hero. Validated live: fires crossGraphJoin (same_as fragment,
-    // ~40 traversed edges), grounded (groundingScore 1), ~29s. Non-featured (Q12 holds
-    // the accent ring) but placed second so it is immediately visible.
+    // Demo-only chip (NOT a locked eval prompt): phrased to pull BOTH sides so the
+    // cross-graph picture is balanced — structured records (Account→HAS_*→Contract/
+    // UsageFact) on the LEFT band AND the unstructured docs reached via the crossGraphJoin
+    // same_as traversal on the RIGHT band, with the canonical hub in the CENTER. This
+    // makes (a) the EXPL-01 pipeline spotlight the same_as join AND (b) the d3 GraphViz
+    // show structured + unstructured nodes (an earlier "trace to the documents" wording
+    // pulled only the doc side, so the graph looked unstructured-only). Validated live:
+    // fragments = Contract(5)+UsageFact(12) structured + same_as(40) join; groundingScore
+    // 1, 14 citations, ~37s. Non-featured (Q12 holds the accent ring), placed second.
     id: 'JOIN',
     label: 'Show the cross-graph join',
     prompt:
-      'Show me the cross-graph join for Meridian Logistics: trace from their account to ' +
-      'the documents that mention them as one connected graph traversal across both graphs.',
+      'For Meridian Logistics, show the full cross-graph picture: their structured records ' +
+      '(contract and usage) AND the documents that mention them, connected across both graphs.',
   },
   {
     id: 'Q2',

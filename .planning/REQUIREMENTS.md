@@ -53,9 +53,12 @@ Each maps to a roadmap phase (assigned by the roadmapper). Grouped by the 8 conf
 - [ ] **GRAPH-03**: The structured retrieval performs **real named-graph traversal** over the existing structured edge collections — an Account-anchored **star**, one hop per facet (`Account → HAS_CONTRACT → Contract`, `→ HAS_USAGE → UsageFact`, `→ HAS_NPS → NPS`, `→ HAS_CONTACT → Contact`, `→ HAS_OPPORTUNITY → Opportunity`; star, not a chain — verified against `load_structured.py`) instead of flat `FILTER account_id ==` collection scans; AND the structured↔unstructured join is executed as a **single AQL query traversing the `same_as` bridge** (hub → KG entity → mentions → chunks/documents), not stitched together in agent TypeScript. Honesty bar (carried from VIZ-01/Phase 10): returns the same grounded records, no fabricated edges/traversals.
 - [ ] **EXPL-01**: Each retrieval step's **actual AQL is revealed in the UI** ("show me the query" — the `retrievalPath.query` already carries it), each step **labeled by retrieval mode** (vector / BM25 / graph traversal), with the **cross-graph join spotlighted** as the centerpiece — the "no black box, one database, one query language" proof. Fully data-driven (no per-question hardcoding, per VIZ-02).
 
-### Area 10 — GraphRAG / AI-Services Depth
+### Area 10 — Full GraphRAG / AI-Services Depth
 
-- [ ] **RAG-01**: The agent exercises **AutoGraph's Leiden community layer** (`customer360_Communities`) + community summaries for **hierarchical global↔local retrieval** (themes across an account → drill into chunks), rather than uniform flat vector+BM25 over chunks — turning the GenAI-platform structure that is currently *built-but-never-queried* into a visible capability. Names ArangoDB's GenAI platform / AutoGraph as what constructed the knowledge graph.
+> The agent uses **7% of the AutoGraph KG** today (only `PART_OF`); 611 entities, 42 communities (w/ embedded summaries), and 1,941 typed edges are built-but-unqueried (live-verified, `docs/research/autograph-kg-retrieval-surface.md`). This area lights up the rest.
+
+- [ ] **RAG-01**: **Entity-anchored local expansion** — after hybrid retrieval lands chunks, the agent traverses the entity graph (`chunk →MENTIONED_IN(INBOUND)→ entity →RELATED_TO→ neighbors →MENTIONED_IN→ chunks`) to surface connected evidence the vector/BM25 pass missed — the "graph beats vector" GraphRAG differentiator, visible as a real `kind:'traversed'` expansion in the AQL reveal. Entities account-scoped via traversal to `Document.account_id` (no re-stamp). (611 vector-indexed entities, 975 `MENTIONED_IN` + 261 `RELATED_TO` edges, all unqueried today.)
+- [ ] **RAG-02**: **Community / global retrieval** — the agent semantic-searches `customer360_Communities.embedding`, reads the **already-existing** `report_string` summary for thematic questions ("what are the risks across Meridian?"), then drills `Community ←IN_COMMUNITY← Entity →MENTIONED_IN→ Chunk` to source specifics. Names ArangoDB's GenAI platform / AutoGraph as what built the KG. **Grounding policy (LOCKED):** a community summary is LLM-synthesized — cite it as *provenance* (real stored `_id`) but require a drilled-down source chunk to back any specific claim; a synthesis is never the sole source for a fact. *(De-risked 2026-06-25 — 42 summaries already generated + embedded; scope is query + routing + grounding, not data gen.)*
 
 ### Area 11 — Agent Memory on ArangoDB ("agentic brain on Arango")
 
@@ -114,6 +117,7 @@ Phase mapping assigned by the roadmapper (2026-06-22). Continues phase numbering
 | GRAPH-03 | Phase 14 | Pending |
 | EXPL-01 | Phase 14 | Pending |
 | RAG-01 | Phase 15 | Pending |
+| RAG-02 | Phase 15 | Pending |
 | TEMP-01 | Phase 16 | Pending |
 | MEM-01 | Phase 17 | Pending |
 | MEM-02 | Phase 17 | Pending |
