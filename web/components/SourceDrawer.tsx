@@ -115,6 +115,43 @@ export function SourceDrawer({
                 <p className="text-sm text-muted-foreground">{c.traversal}</p>
               ) : null}
 
+              {/* Key fields (display-only enrichment for a clicked viz node). */}
+              {c.fields && c.fields.length > 0 ? (
+                <dl className="flex flex-col gap-1 text-sm">
+                  {c.fields.map((field, fi) => (
+                    <div key={`${field.label}-${fi}`} className="flex gap-2">
+                      <dt className="min-w-[110px] shrink-0 font-medium text-muted-foreground">
+                        {field.label}
+                      </dt>
+                      <dd className="text-foreground break-words">
+                        {/^https?:\/\//.test(field.value) ? (
+                          <a
+                            href={field.value}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary underline underline-offset-2 break-all"
+                          >
+                            {field.value}
+                          </a>
+                        ) : (
+                          field.value
+                        )}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+              ) : null}
+
+              {/* Long-form content — the actual chunk text / entity description / NPS verbatim. */}
+              {c.text ? (
+                <div className="flex flex-col gap-1">
+                  <span className="text-sm font-semibold text-foreground">Content</span>
+                  <p className="max-h-72 overflow-y-auto whitespace-pre-wrap rounded-md bg-muted p-3 text-sm leading-relaxed text-foreground">
+                    {c.text}
+                  </p>
+                </div>
+              ) : null}
+
               {/* Exact AQL — copy-enabled mono block (the differentiator). */}
               <div className="flex flex-col gap-1">
                 <div className="flex items-center justify-between">

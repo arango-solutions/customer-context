@@ -55,6 +55,7 @@ function makeEnvelope(claims: Claim[]): Envelope {
     citations: claims.flatMap((c) => c.citations),
     retrievalPath: [],
     reasoningTrace: [],
+    groundingScore: 1.0,
   };
 }
 

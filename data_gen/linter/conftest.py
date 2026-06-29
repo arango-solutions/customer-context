@@ -22,9 +22,13 @@ MODULE_NAMES = [
     "meridian_email",
     "meridian_docs",
     "meridian_pdf",
+    "helio_slack",
+    "helio_email",
+    "helio_docs",
+    "helio_pdf",
 ]
 
-QUESTION_IDS = ["Q7", "Q2", "Q12", "Q9", "Q5", "Q8"]
+QUESTION_IDS = ["Q7", "Q2", "Q12", "Q9", "Q5", "Q8", "Q13", "Q14", "Q15"]
 
 # Repo root is the directory that contains data_gen/
 REPO_ROOT = Path(__file__).parent.parent.parent

@@ -32,6 +32,14 @@ _NORTHWIND_SLACK_PROHIBITED = [
     "scale limit", "GenAI", "GraphRAG", "upsell", "whitespace",
     "capacity", "renewal risk", "at risk", "escalation",
 ]
+# Helio noise-only prohibitions: EXCLUDE the contraction/churn signal vocabulary
+# (downgrade/contraction/migration/declining/churn/deprioritization) so that helio
+# signal docs keep their lexicon. Without a real helio branch, helio_slack would
+# fall through to _NORTHWIND_SLACK_PROHIBITED and strip Helio's churn signal terms.
+_HELIO_SLACK_PROHIBITED = [
+    "escalation", "competitor", "silent", "quota",
+    "red flag", "disengaged", "unresolved",
+]
 
 # Default CSM name used when no contact is available
 _DEFAULT_CSM = "Alex Rivera"
@@ -41,6 +49,8 @@ def _get_prohibited_terms(module: str, doc: DocEvent) -> list[str]:
     """Return prohibited_terms for this doc's module."""
     if module == "meridian_slack":
         return _MERIDIAN_SLACK_PROHIBITED
+    if module == "helio_slack":
+        return _HELIO_SLACK_PROHIBITED
     return _NORTHWIND_SLACK_PROHIBITED
 
 
@@ -89,15 +99,50 @@ def _build_facts_for_noise(spine: AccountSpine, doc: DocEvent, topic: str) -> di
 def _derive_concern_topic(doc: DocEvent) -> str:
     """Derive a concern topic description from the DocEvent metadata."""
     if "Q12" in doc.questions_served:
-        return "operational concerns and partnership health issues requiring escalation"
+        return (
+            "operational concerns and partnership health flagged by the engineering "
+            "leadership team during the latest QBR — service-reliability complaints and "
+            "a frustrated tone from the Director of Engineering that sit in sharp tension "
+            "with the consistently green, quarter-over-quarter-growing usage metrics, a "
+            "contradiction the CSM is escalating for executive review"
+        )
     if "Q2" in doc.questions_served:
-        return "renewal risk and account health requiring immediate attention"
+        return (
+            "renewal risk on the upcoming Enterprise contract: the ~$190K renewal is "
+            "stalled in negotiation while the customer raises pricing objections and "
+            "unresolved service concerns, and the CFO has not yet signed off — the CSM "
+            "wants the account team aligned on the specific blockers before the renewal date"
+        )
     if "Q9" in doc.questions_served:
-        return "champion engagement decline and contact transition challenges"
+        return (
+            "a decline in champion engagement: the primary technical champion (Director of "
+            "Engineering) has gone notably quiet over recent quarters, with outreach now "
+            "routed through a less-senior Engineering Manager proxy who has less context, "
+            "fewer action items per meeting, and slower response times than in prior years"
+        )
     if "Q5" in doc.questions_served:
-        return "scale limitations and GenAI platform adoption readiness"
+        return (
+            "ArangoGraph cluster scale limits as monthly query volume approaches the "
+            "current node ceiling, and the team's stated readiness to evaluate the GenAI / "
+            "GraphRAG suite — a clear expansion-whitespace signal the CSM wants to convert "
+            "into the upcoming renewal-and-upsell conversation"
+        )
     if "Q8" in doc.questions_served:
-        return "feature delivery commitments and expectation management"
+        return (
+            "a specific feature-delivery commitment the account executive made verbally to "
+            "the customer that was never logged in the CRM, creating an expectation-management "
+            "gap between what the customer believes was promised and what is formally tracked"
+        )
+    if "Q13" in doc.questions_served:
+        return (
+            "declining usage and a plan downgrade, with the team discussing a "
+            "migration-away from the graph platform and the contraction in adoption"
+        )
+    if "Q14" in doc.questions_served:
+        return (
+            "a remediation / save-plan to halt the account contraction and "
+            "re-engage the team before the at-risk renewal"
+        )
     return "account update requiring follow-up"
 
 

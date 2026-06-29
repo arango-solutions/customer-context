@@ -7,7 +7,10 @@
     "role": "champion",
     "email": "sarah.chen@northwindanalytics.com",
     "active_from": "2020-03-01",
-    "active_to": null
+    "active_to": null,
+    "engagement_status": "active",
+    "influence": "decision-maker",
+    "is_primary": true
   },
   {
     "entity_id": "0b5c0005-9e04-5d41-8cb4-abbe369f0e4f",
@@ -17,6 +20,9 @@
     "role": "economic_buyer",
     "email": "m.torres@northwindanalytics.com",
     "active_from": "2020-03-01",
-    "active_to": null
+    "active_to": null,
+    "engagement_status": "active",
+    "influence": "decision-maker",
+    "is_primary": false
   }
 ]

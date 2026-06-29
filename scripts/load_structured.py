@@ -43,31 +43,37 @@ load_dotenv(_REPO_ROOT / ".env", override=True)
 
 STRUCTURED_DIR = _REPO_ROOT / "data_gen" / "output" / "structured"
 
-# 12 input files — 6 entity types × 2 accounts (northwind + meridian)
+# 18 input files — 6 entity types × 3 accounts (northwind + meridian + helio)
 SOURCE_FILES: dict[str, list[str]] = {
     "Account": [
         "northwind/crm/northwind_crm_accounts.json",
         "meridian/crm/meridian_crm_accounts.json",
+        "helio/crm/helio_crm_accounts.json",
     ],
     "Contact": [
         "northwind/crm/northwind_crm_contacts.json",
         "meridian/crm/meridian_crm_contacts.json",
+        "helio/crm/helio_crm_contacts.json",
     ],
     "Opportunity": [
         "northwind/crm/northwind_crm_opportunities.json",
         "meridian/crm/meridian_crm_opportunities.json",
+        "helio/crm/helio_crm_opportunities.json",
     ],
     "NPS": [
         "northwind/crm/northwind_crm_nps.json",
         "meridian/crm/meridian_crm_nps.json",
+        "helio/crm/helio_crm_nps.json",
     ],
     "UsageFact": [
         "northwind/snowflake/northwind_snowflake_usage_metrics.json",
         "meridian/snowflake/meridian_snowflake_usage_metrics.json",
+        "helio/snowflake/helio_snowflake_usage_metrics.json",
     ],
     "Contract": [
         "northwind/docusign/northwind_docusign_contracts.json",
         "meridian/docusign/meridian_docusign_contracts.json",
+        "helio/docusign/helio_docusign_contracts.json",
     ],
 }
 

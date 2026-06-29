@@ -4,5 +4,5 @@
     "noEmit": true,
     "rootDir": ".."
   },
-  "include": ["rehearse.ts"]
+  "include": ["rehearse.ts", "eval-gate.ts"]
 }

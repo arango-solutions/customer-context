@@ -1,0 +1,15 @@
+<!-- module=helio_email account_id=c2de4d08-b3cf-5958-aae8-4ef84ebb81c9 entity_id=ac8b604b-2fef-5961-85c9-e6fc80614dbe citable_url=https://arangodb.com/demo/helio/email/he_email_downgrade_rationale_2024q1 -->
+
+From: Alex Rivera
+To: Priya Nair
+Date: February 2024
+Subject: Concerns Regarding Account Plan Downgrade
+
+Dear Priya,
+
+I hope this message finds you well. I wanted to address the recent decision to downgrade the Helio Retail account plan, particularly in light of the declining usage we have observed. It is important for us to understand the rationale behind this change, especially as it relates to our ongoing commitment to providing value to your team.
+
+Additionally, I would like to discuss the team's intent to migrate away from the graph platform and the implications this may have on our partnership. It is crucial for us to align on the future direction and ensure that we are meeting your needs effectively. I suggest we schedule a meeting to explore these concerns further and discuss potential next steps.
+
+Best regards,
+Alex Rivera

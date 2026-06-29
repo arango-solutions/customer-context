@@ -9,6 +9,14 @@
     "products_contracted": [
       "Enterprise"
     ],
-    "deployment_date": "2021-01-15"
+    "deployment_date": "2021-01-15",
+    "industry": "Logistics & Supply Chain",
+    "region": "EMEA",
+    "csm_owner": "Alex Rivera",
+    "current_product_tier": "Enterprise",
+    "current_acv_usd": 190000,
+    "health_band": "watch",
+    "account_trajectory": "expanding",
+    "primary_champion": null
   }
 ]

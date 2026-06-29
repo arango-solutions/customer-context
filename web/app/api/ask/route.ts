@@ -28,8 +28,13 @@ export const runtime = 'nodejs';
 export const maxDuration = 60;
 
 // Trimmed, non-empty, length-capped free-form question (Security V5 / T-06-05).
+// SEC-02: `adversarial` is a PRESENTATION-ONLY flag the UI sets in "try-to-break-it"
+// mode. It is accepted here so a flag-carrying body does not 400, but it is NEVER
+// forwarded to the agent — the agent path is mode-agnostic and defense (plan 13-01 +
+// enforceGrounding) is unconditional (threat T-13-14: "defense off" footgun avoided).
 const AskBodySchema = z.object({
   question: z.string().trim().min(1).max(2000),
+  adversarial: z.boolean().optional().default(false),
 });
 
 export async function POST(req: Request): Promise<Response> {

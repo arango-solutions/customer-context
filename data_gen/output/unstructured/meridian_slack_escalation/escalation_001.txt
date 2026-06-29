@@ -1,0 +1,23 @@
+<!-- module=meridian_slack_escalation account_id=9eff6d7b-7311-5525-be75-5b82a855ece7 entity_id=633f43bd-5cbd-579e-9105-2ded0f2e7c76 citable_url=https://arangodb.com/demo/meridian/slack/me_slack_escalation_renewal_risk_2025q2 -->
+
+[April 2025] #meridian-logistics-csm — Internal CS escalation thread
+
+Alex Rivera (CSM): Flagging this as a formal escalation ahead of the Q2 renewal window. Despite strong usage numbers — Meridian is running 14 active ArangoGraph clusters and query volumes are up 22% year-over-year — the sentiment signals coming out of this account are deeply concerning.
+
+James Okafor has not responded to my last three outreach attempts over the past six weeks. His EA confirmed he is still at the company, but I am being told he is "tied up with a reorganization." That is a significant red flag given that James has historically been our most engaged advocate inside Meridian. When a champion goes quiet mid-renewal cycle, that usually means internal pressure we are not seeing.
+
+Taylor Brooks (Engineering Manager): Corroborating this. I had a brief call with one of the junior devs on the Meridian data platform team last week. He mentioned offhand that leadership is "re-evaluating tooling costs across the stack." He would not say more. Combine that with the Q3 NPS verbatim we already have on file — James scored us a 6 and flagged the pricing-to-value ratio as his main concern — and I think we are looking at a real churn risk that the usage data is actively masking.
+
+Patricia Vance (AE): This is not a surprise. The CFO sign-off on the renewal has been outstanding since January. I have reached out to procurement twice and both times I have been redirected to a "vendor rationalization committee" that apparently did not exist six months ago. In my experience, a procurement detour combined with a quiet champion and a new cost-optimization narrative means the deal is at risk. Usage being green is actually making this harder to escalate internally — the dashboards look fine, so leadership here is not treating it as urgent.
+
+Alex Rivera: Summarizing the risk picture for the account team:
+- USAGE: Green. 14 active clusters, +22% QoQ query volume. Objectively strong.
+- SENTIMENT: Red. NPS 6 in Q3 2024. Champion disengaged. Engineering team privately discussing tooling cost review.
+- RENEWAL: At risk. CFO sign-off outstanding since January. Procurement detour to "vendor rationalization committee." No timeline commitment from Meridian side.
+- CHAMPION STATUS: James Okafor — silent for 6+ weeks. Taylor Brooks partially engaged but not a decision-maker.
+
+Recommendation: Escalate to AE director + VP of CS this week. Request an executive sponsor call with Meridian's COO (Patricia has a prior relationship). Do NOT rely on usage metrics to reassure leadership — this is the exact pattern we saw with the two churn events last fiscal year where usage stayed green until contract termination.
+
+Taylor Brooks: Agreed. The usage-green / sentiment-red split is the whole story here. If we go into the renewal conversation leading with "your usage is great," we are going to get blindsided when they come back with a 30% price reduction ask or a notice to exit. We need executive alignment on both sides before the end of Q2.
+
+Alex Rivera: Thread pinned. Escalation filed. Will update when the exec sponsor call is confirmed.

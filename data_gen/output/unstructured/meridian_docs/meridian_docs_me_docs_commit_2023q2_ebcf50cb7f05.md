@@ -10,25 +10,25 @@ doc_type: Meeting Notes
 
 ## Executive Summary
 
-This document captures a significant verbal commitment made by the account executive regarding the delivery timeline of a specific feature for Meridian Logistics. The absence of this commitment in the formal CRM system raises concerns about tracking and accountability, as the customer expects delivery based on this verbal assurance.
+During a recent meeting with Meridian Logistics, a verbal commitment was made regarding the delivery of a specific feature. This commitment was not documented in the CRM or any formal tracking system, creating a potential expectation gap for the customer. Immediate action is required to align internal records with the customer's expectations to ensure clarity and accountability moving forward.
 
 ## Details
 
 ### Section 1
 
-During a recent meeting with Meridian Logistics, a verbal commitment was made by the account executive concerning the timeline for delivering a specific feature. This commitment is crucial as it directly impacts the customer's expectations and satisfaction with our services. However, it is important to note that this commitment was not documented in the CRM system, which could lead to potential misunderstandings or misalignments in future communications.
+In May 2023, a meeting was held with Meridian Logistics where a significant verbal commitment was made by the account executive regarding the delivery of a specific feature. This commitment was discussed in detail, including the expected timeline for delivery. However, it was noted that this commitment was not recorded in the CRM or any formal tracking system, which poses a challenge for both internal teams and the customer.
 
 ### Section 2
 
-The lack of formal logging in the CRM means that there is no official record of the commitment, which could pose challenges in managing customer expectations. Customers rely on documented commitments to plan their operations, and without this entry, there is a risk of miscommunication. It is essential to ensure that all verbal commitments are captured in our tracking systems to maintain transparency and accountability.
+The absence of a documented commitment creates a disconnect between what the customer expects and what is officially tracked within the organization. As the customer anticipates delivery based on this verbal agreement, the lack of formal documentation could lead to misunderstandings or unmet expectations in the future. This situation highlights the importance of maintaining accurate records to support customer relationships and service delivery.
 
 ### Section 3
 
-Moving forward, it is vital to address this gap in documentation practices. Establishing a protocol for logging verbal commitments will help prevent similar situations in the future and enhance our relationship with Meridian Logistics. By ensuring that all commitments are formally recorded, we can provide better service and uphold our reputation as a reliable partner.
+To mitigate the risk associated with this oversight, it is crucial to formalize the commitment in the CRM as soon as possible. This should include details such as the owner of the commitment, the scope of the feature, and the discussed timeline for delivery. By doing so, the organization can ensure that all teams are aligned and that the customer's expectations are met, thereby fostering a stronger relationship with Meridian Logistics. Immediate action will help prevent any potential issues during the renewal process and enhance overall customer satisfaction.
 
 ## Action Items
 
-- Log the verbal commitment in the CRM system
-- Communicate the commitment details to the customer
-- Establish a protocol for documenting verbal commitments
-- Review current tracking practices for customer commitments
+- Formalize the commitment in the CRM
+- Include owner, scope, and timeline
+- Communicate the update to relevant teams
+- Monitor customer expectations closely

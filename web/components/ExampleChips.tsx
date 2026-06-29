@@ -4,9 +4,11 @@
 // (via `setInput`) — they do NOT auto-submit. Free-form natural language is the premise
 // (PROJECT.md / D-discretion): the chip is a starter the user can edit before asking.
 //
-// The 6 chips are the VERBATIM locked eval prompts (agent/test/questions.eval.test.ts).
-// The Q12 chip is FIRST and visually FEATURED (an accent focus ring) — it is the
-// showcase: structured usage looks green, unstructured sentiment is red.
+// Six chips are the VERBATIM locked eval prompts (agent/test/questions.eval.test.ts);
+// one additional 'JOIN' chip is a demo-only starter (not an eval prompt) phrased to make
+// the planner invoke crossGraphJoin so the EXPL-01 pipeline spotlights the cross-graph
+// join as the hero (Phase 14). The Q12 chip is FIRST and visually FEATURED (an accent
+// focus ring) — the showcase: structured usage looks green, unstructured sentiment is red.
 //
 // Each chip shows a short label; clicking inserts the full prompt text into the box.
 
@@ -25,8 +27,9 @@ export interface ExamplePrompt {
 }
 
 /**
- * The 6 locked example prompts, VERBATIM from agent/test/questions.eval.test.ts.
- * Q12 is first and featured (the dual-graph centerpiece).
+ * Seven example prompts: Q12 (first, featured) + the JOIN demo chip (second) + the five
+ * other locked eval prompts. The six Q* entries are VERBATIM from
+ * agent/test/questions.eval.test.ts; JOIN is a demo-only starter (Phase 14, EXPL-01).
  */
 export const EXAMPLE_PROMPTS: ReadonlyArray<ExamplePrompt> = [
   {
@@ -38,6 +41,22 @@ export const EXAMPLE_PROMPTS: ReadonlyArray<ExamplePrompt> = [
       'but are they ACTUALLY happy? Compare the structured usage/NPS-score signal against ' +
       'the sentiment in their Slack escalations, QBR notes, exec emails, and NPS verbatim ' +
       'comments, and tell me explicitly if there is a contradiction.',
+  },
+  {
+    // Demo-only chip (NOT a locked eval prompt): phrased to pull BOTH sides so the
+    // cross-graph picture is balanced — structured records (Account→HAS_*→Contract/
+    // UsageFact) on the LEFT band AND the unstructured docs reached via the crossGraphJoin
+    // same_as traversal on the RIGHT band, with the canonical hub in the CENTER. This
+    // makes (a) the EXPL-01 pipeline spotlight the same_as join AND (b) the d3 GraphViz
+    // show structured + unstructured nodes (an earlier "trace to the documents" wording
+    // pulled only the doc side, so the graph looked unstructured-only). Validated live:
+    // fragments = Contract(5)+UsageFact(12) structured + same_as(40) join; groundingScore
+    // 1, 14 citations, ~37s. Non-featured (Q12 holds the accent ring), placed second.
+    id: 'JOIN',
+    label: 'Show the cross-graph join',
+    prompt:
+      'For Meridian Logistics, show the full cross-graph picture: their structured records ' +
+      '(contract and usage) AND the documents that mention them, connected across both graphs.',
   },
   {
     id: 'Q2',

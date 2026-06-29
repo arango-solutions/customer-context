@@ -3,12 +3,16 @@
 // The persistent right-hand rail (D-02, UI-SPEC). Composes, top to bottom:
 //   1. ReasoningTimeline  (live six-phase stepper + reasoningTrace)  — SRC-04
 //   2. CitationCard per envelope citation                            — SRC-01/02
-//   3. RetrievalPathByGraph (grouped structured/unstructured)        — SRC-02
+//   3. RetrievalPathByGraph — the textual per-graph retrieval path   — SRC-02
 //
-// The rail OWNS the shared SourceDrawer open-state: a CitationCard body click and a
-// claim superscript click (via the `openSource` ref the parent forwards to AnswerBody)
-// open the SAME drawer. The parent wires AnswerBody's `onOpenSource` to this rail's
-// imperative `openSource` handle.
+// Phase 11 D3 pivot: the cross-graph VISUAL (GraphViz, d3-force) moved OUT of the
+// rail and now renders full-width UNDER the answer in the main column (always
+// visible, not behind a toggle). The rail keeps the textual Path breakdown.
+//
+// The rail OWNS the shared SourceDrawer open-state: a CitationCard body click, a
+// claim superscript click (via the `openSource` ref the parent forwards to AnswerBody),
+// AND a GraphViz node click (the parent wires GraphViz onOpenSource → this handle)
+// all open the SAME drawer.
 //
 // Sticky on scroll per the layout spec.
 
@@ -44,9 +48,35 @@ export const SourcingRail = React.forwardRef<
     Citation[] | null
   >(null);
 
-  const openSource = React.useCallback((citations: Citation[]) => {
-    setDrawerCitations(citations);
-  }, []);
+  // _id → { fields, text } merged across every retrieval-path fragment. nodeLabels.ts
+  // (server, post-grounding) builds this for every node id the path references — chunk
+  // CONTENT for unstructured, the actual returned record FIELDS for structured. Citations
+  // emitted on the answer carry only _id + aql, so we join the detail in here when the
+  // drawer opens (the GraphViz node-click path already enriches; this gives the SAME
+  // payoff to citation-card + claim-superscript clicks). Display-only; never touches grounding.
+  const nodeDetailsById = React.useMemo(() => {
+    const map = new Map<string, { fields?: Citation['fields']; text?: string }>();
+    for (const frag of envelope.retrievalPath ?? []) {
+      if (!frag.nodeDetails) continue;
+      for (const [id, detail] of Object.entries(frag.nodeDetails)) {
+        if (!map.has(id)) map.set(id, detail);
+      }
+    }
+    return map;
+  }, [envelope.retrievalPath]);
+
+  const openSource = React.useCallback(
+    (citations: Citation[]) => {
+      // Prefer detail already on the citation (viz node-click path); else join from nodeDetails.
+      const enriched = citations.map((c) => {
+        if (c.text || (c.fields && c.fields.length > 0)) return c;
+        const detail = nodeDetailsById.get(c._id);
+        return detail ? { ...c, fields: detail.fields, text: detail.text } : c;
+      });
+      setDrawerCitations(enriched);
+    },
+    [nodeDetailsById],
+  );
 
   React.useImperativeHandle(ref, () => ({ openSource }), [openSource]);
 
@@ -83,10 +113,12 @@ export const SourcingRail = React.forwardRef<
         <h2 className="mb-2 text-lg font-semibold text-foreground">
           Retrieval path
         </h2>
+        {/* The textual per-graph path. The cross-graph VISUAL now lives under the
+            answer in the main column (Phase 11 D3 pivot) — not behind a toggle. */}
         <RetrievalPathByGraph retrievalPath={envelope.retrievalPath} />
       </section>
 
-      {/* Rail-owned drawer, shared by cards and claim superscripts. */}
+      {/* Rail-owned drawer, shared by cards, claim superscripts, AND viz node clicks. */}
       <SourceDrawer
         open={drawerCitations !== null}
         citations={drawerCitations ?? []}

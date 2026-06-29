@@ -1,18 +1,28 @@
 // web/components/AnswerBody.tsx
 //
-// Center-stage clean prose with numbered superscript citation markers (UI-02, D-03).
-// The synthesized `answer` is rendered as prose, then one `ClaimSuperscript` `[n]`
-// marker per `claims[]` entry (in order) is appended — each opens the SourceDrawer
-// scoped to `claims[n].citations`.
+// Cohesive answer + sourced "Supporting facts" (2026-06-25). The PRIMARY read is the
+// cohesive narrative `envelope.answer`; BELOW it, the decomposed `envelope.claims[]`
+// render as a de-emphasized "Supporting facts" <ol>, each <li> = one claim's `text` +
+// a `ClaimSuperscript` opening the shared drawer (RESEARCH Pattern 5).
 //
-// CARDINAL RULE (T-06-09): this renders ONLY the grounded envelope's `answer` +
-// `claims`. The reasoning timeline (progress text) is NEVER rendered here as a claim.
+// DESIGN RATIONALE: D-12 originally rendered claims[] AS the answer (a numbered list)
+// to guarantee per-fact sourcing, since claim text is NOT a verbatim substring of
+// `answer`. That read as fragmented. This version restores the cohesive answer as the
+// lead while KEEPING every claim click-to-source below it — coherent to read, still
+// "every fact traceable" (UI-SPEC Answer Rendering).
+//
+// CARDINAL RULE (T-06-09): this renders ONLY the grounded envelope's `claims`.
+// envelope.answer and envelope.claims DATA are read-only — rendering change only.
 // A refused envelope is handled by RefusalPanel, not here.
+// Faithfulness/grounding eval reads this data; they stay green (UI concern only).
 //
-// Drawer open-state can be OWNED here (standalone use) OR LIFTED to a parent
-// (SourcingRail) so a card click and a claim superscript open the SAME drawer. When
-// `onOpenSource` is provided, this component delegates; otherwise it owns a local
-// drawer.
+// KEPT VERBATIM:
+//  - ClaimSuperscript (44px hit area + aria-label "View sources for claim {n}")
+//  - The onOpenSource-delegate-vs-local-drawer prop contract
+//  - 'use client' boundary
+//
+// REPLACED: the old `<p>{envelope.answer}</p>` + trailing markers block
+// with RESEARCH Pattern 5 `<ol>` mapping claims[] to <li>s.
 
 'use client';
 
@@ -55,10 +65,22 @@ export interface AnswerBodyProps {
    * the shared drawer). If omitted, AnswerBody owns a local SourceDrawer.
    */
   onOpenSource?: (citations: Citation[]) => void;
+  /**
+   * CDC-03 (additive, render-only): zero-based indices of claims that are NEW/changed
+   * vs. the prior answer (from the client-side diff). Matching <li>s get a brand-token
+   * highlight. Does NOT touch envelope.claims/answer DATA (CARDINAL RULE — eval reads them).
+   */
+  changedClaimIndices?: number[];
   className?: string;
 }
 
-export function AnswerBody({ envelope, onOpenSource, className }: AnswerBodyProps) {
+export function AnswerBody({
+  envelope,
+  onOpenSource,
+  changedClaimIndices,
+  className,
+}: AnswerBodyProps) {
+  const changed = new Set(changedClaimIndices ?? []);
   const [localCitations, setLocalCitations] = React.useState<Citation[] | null>(
     null,
   );
@@ -73,20 +95,45 @@ export function AnswerBody({ envelope, onOpenSource, className }: AnswerBodyProp
   };
 
   return (
-    <div className={cn('flex flex-col gap-4', className)}>
-      <div className="max-w-[720px] text-base leading-relaxed text-foreground">
-        {/* The grounded prose, verbatim. */}
-        <p className="whitespace-pre-wrap">{envelope.answer}</p>
+    <div className={cn('flex flex-col gap-5', className)}>
+      {/*
+       * PRIMARY — the cohesive narrative answer (envelope.answer). Leads the read so
+       * the response is a coherent answer, not a list of fragments (2026-06-25 — reverses
+       * D-12's claim-list-as-answer). DATA untouched: eval still reads answer + claims.
+       */}
+      <p className="whitespace-pre-wrap text-base leading-relaxed text-foreground">
+        {envelope.answer}
+      </p>
 
-        {/* Numbered claim markers — one per claim, in order. Provenance is one click
-            away; the prose itself stays uncluttered (D-03). */}
-        <p className="mt-2 flex flex-wrap items-center gap-0 text-sm text-muted-foreground">
-          <span className="mr-1">Claims:</span>
-          {envelope.claims.map((_, i) => (
-            <ClaimSuperscript key={i} index={i} onActivate={() => activate(i)} />
-          ))}
-        </p>
-      </div>
+      {/*
+       * SECONDARY — per-fact sourcing. Every claim stays click-to-source (traceability,
+       * the core value), but now SUPPORTS the cohesive answer above instead of replacing
+       * it. Rendered as a de-emphasized "Supporting facts" <ol> (the existing claim list +
+       * ClaimSuperscript behavior is preserved verbatim).
+       */}
+      {envelope.claims.length > 0 ? (
+        <div className="flex flex-col gap-2 border-t border-border pt-3">
+          <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Supporting facts
+          </span>
+          <ol className="flex flex-col gap-2 list-decimal pl-6">
+            {envelope.claims.map((claim, i) => (
+              <li
+                key={i}
+                data-changed={changed.has(i) ? 'true' : undefined}
+                className={cn(
+                  'text-sm leading-relaxed text-muted-foreground',
+                  // CDC-03: brand-token highlight on new/changed claims (render-only).
+                  changed.has(i) && 'rounded bg-primary/10 px-2 py-1 -mx-2',
+                )}
+              >
+                {claim.text}
+                <ClaimSuperscript index={i} onActivate={() => activate(i)} />
+              </li>
+            ))}
+          </ol>
+        </div>
+      ) : null}
 
       {/* Locally-owned drawer (only when no parent owns it). */}
       {onOpenSource ? null : (

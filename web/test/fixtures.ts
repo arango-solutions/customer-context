@@ -14,6 +14,10 @@
 // REFUSED_ENVELOPE is the honest-refusal case: refused:true with the structured
 // refusal answer text and only the partial citations that WERE grounded.
 //
+// EDGES_ENVELOPE (Phase 11) — extends GROUNDED_ENVELOPE with an explicit edges[]
+// array exercising all three edge kinds (traversed, structural, hybrid) so the
+// buildGraph.test.ts unit tests have a concrete fixture to assert against.
+//
 // account_ids are the real demo Account._key values from agent/test/fixtures.ts.
 
 import type { Envelope } from 'customer360-agent';
@@ -164,6 +168,7 @@ const groundedEnvelope: Envelope = {
         'structuredQuery(account_id=' +
         MERIDIAN_ACCOUNT_ID +
         ', metrics=[query_volume, nps_score])',
+      edges: [],
     },
     {
       graph: 'unstructured',
@@ -177,6 +182,7 @@ const groundedEnvelope: Envelope = {
         'hybridRetrieve(account_id=' +
         MERIDIAN_ACCOUNT_ID +
         ', q="renewal risk sentiment escalation", k=8, fusion=rrf)',
+      edges: [],
     },
   ],
   reasoningTrace: [
@@ -192,6 +198,9 @@ const groundedEnvelope: Envelope = {
       'usage is migration-driven, not satisfaction-driven.',
     'Composing the grounded answer: every claim is backed by a tool-returned _id.',
   ],
+  // Phase 8: enforceGrounding always injects groundingScore before returning.
+  // Refusal envelopes set groundingScore: 1.0 (per agent.ts).
+  groundingScore: 1,
 };
 
 /** The Q12 grounded, dual-graph envelope — contract-validated at module load. */
@@ -244,6 +253,7 @@ const refusedEnvelope: Envelope = {
       collection: 'Contract',
       _ids: [`Contract/${NORTHWIND_ACCOUNT_ID}-2025-enterprise`],
       query: 'structuredQuery(account_id=' + NORTHWIND_ACCOUNT_ID + ', entity=contract)',
+      edges: [],
     },
   ],
   reasoningTrace: [
@@ -254,7 +264,117 @@ const refusedEnvelope: Envelope = {
     'Grounding gate: the unsupported claim was pruned; only the grounded contract fact ' +
       'is returned. Refusing rather than fabricating.',
   ],
+  // Phase 8: refusal envelopes set groundingScore: 1.0 (per agent.ts honesty contract).
+  groundingScore: 1,
 };
 
 /** The honest-refusal envelope — contract-validated at module load. */
 export const REFUSED_ENVELOPE: Envelope = EnvelopeSchema.parse(refusedEnvelope);
+
+/**
+ * EDGES_ENVELOPE (Phase 11, Plan 01) — a grounded dual-graph envelope with an
+ * explicit edges[] array exercising ALL three edge kinds so buildGraph.test.ts
+ * can assert the honesty invariant (structural/hybrid never solid) and edge-id
+ * dedup without a live DB or canvas.
+ *
+ * Edges included:
+ *  - traversed PART_OF  : Chunk → Document (real _id)
+ *  - traversed same_as  : the cross-graph bridge (real _id)
+ *  - structural account : synthesized account anchor (_id: null)
+ *  - hybrid             : question/current → chunk (_from: 'question/current', _id: null)
+ */
+const edgesEnvelope: Envelope = {
+  answer:
+    'Meridian Logistics query volume increased 38% QoQ — usage is green while ' +
+    'internal escalations signal renewal risk.',
+  refused: false,
+  claims: [
+    {
+      text: 'Query volume up 38% QoQ.',
+      citations: [
+        {
+          graph: 'structured',
+          collection: 'UsageMetric',
+          _id: `UsageMetric/${MERIDIAN_ACCOUNT_ID}-2026Q2-queryvol`,
+          aql: 'FOR u IN UsageMetric FILTER u.account_id == @acct RETURN u',
+          traversal: 'Account -HAS_USAGE-> UsageMetric',
+        },
+      ],
+    },
+  ],
+  citations: [
+    {
+      graph: 'structured',
+      collection: 'UsageMetric',
+      _id: `UsageMetric/${MERIDIAN_ACCOUNT_ID}-2026Q2-queryvol`,
+      aql: 'FOR u IN UsageMetric FILTER u.account_id == @acct RETURN u',
+      traversal: 'Account -HAS_USAGE-> UsageMetric',
+    },
+  ],
+  retrievalPath: [
+    {
+      graph: 'structured',
+      collection: 'UsageMetric',
+      _ids: [`UsageMetric/${MERIDIAN_ACCOUNT_ID}-2026Q2-queryvol`],
+      query: 'structuredQuery(account_id=' + MERIDIAN_ACCOUNT_ID + ', metrics=[query_volume])',
+      edges: [
+        // traversed PART_OF — real edge with a non-null _id (real DB traversal)
+        {
+          _id: 'customer360_Relations/rel_part_of_001',
+          _from: 'Chunk/slack-meridian-incident-2026-05-19-0007',
+          _to: 'Document/doc-slack-meridian-escalations',
+          collection: 'customer360_Relations',
+          kind: 'traversed',
+          label: 'PART_OF',
+        },
+        // traversed same_as — cross-graph bridge edge (real _id)
+        {
+          _id: 'customer360_Bridge/bridge_meridian_001',
+          _from: `Account/${MERIDIAN_ACCOUNT_ID}`,
+          _to: `Document/doc-meridian-account`,
+          collection: 'customer360_Bridge',
+          kind: 'traversed',
+          label: 'same_as',
+        },
+        // structural account edge — synthesized account anchor, _id is null
+        // (never a real DB traversal — honesty invariant: must be drawn dashed, not solid)
+        {
+          _id: null,
+          _from: `Account/${MERIDIAN_ACCOUNT_ID}`,
+          _to: `UsageMetric/${MERIDIAN_ACCOUNT_ID}-2026Q2-queryvol`,
+          collection: 'account',
+          kind: 'structural',
+          label: 'account',
+        },
+        // hybrid — question anchor → retrieved chunk, synthesized match edge, _id null
+        // (represents vector+BM25 retrieval — must be drawn dotted, not solid)
+        {
+          _id: null,
+          _from: 'question/current',
+          _to: 'Chunk/slack-meridian-incident-2026-05-19-0007',
+          collection: 'hybrid',
+          kind: 'hybrid',
+          label: 'hybrid',
+        },
+      ],
+    },
+    {
+      graph: 'unstructured',
+      collection: 'Chunk',
+      _ids: ['Chunk/slack-meridian-incident-2026-05-19-0007'],
+      query:
+        'hybridRetrieve(account_id=' +
+        MERIDIAN_ACCOUNT_ID +
+        ', q="renewal risk escalation", k=5, fusion=rrf)',
+      edges: [],
+    },
+  ],
+  reasoningTrace: [
+    'Planning: edges-envelope fixture for buildGraph unit tests.',
+    'All three edge kinds (traversed, structural, hybrid) represented.',
+  ],
+  groundingScore: 1,
+};
+
+/** Edges-bearing envelope for buildGraph unit tests (Phase 11, Plan 01). */
+export const EDGES_ENVELOPE: Envelope = EnvelopeSchema.parse(edgesEnvelope);

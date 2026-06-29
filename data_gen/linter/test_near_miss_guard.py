@@ -77,6 +77,11 @@ QUESTION_TEXTS = {
         "What commitments were made to Meridian Logistics outside of the formal contract — "
         "are there any unlogged service promises that were not recorded in CRM or DocuSign?"
     ),
+    "Q13": (
+        "Helio Retail usage is declining and they downgraded their plan — is this account "
+        "churning, what is driving the contraction, and is the team discussing a "
+        "migration-away that puts the renewal at risk?"
+    ),
 }
 
 
@@ -300,3 +305,21 @@ def test_near_miss_guard_q8(load_manifest, load_unstructured_files):
     meridian_modules = ["meridian_slack", "meridian_email", "meridian_docs", "meridian_pdf"]
     docs = _load_unstructured_docs(load_unstructured_files, modules=meridian_modules)
     _assert_signal_top1(QUESTION_TEXTS["Q8"], docs, load_manifest)
+
+
+def test_near_miss_guard_q13(load_manifest, load_unstructured_files):
+    """
+    Near-miss guard for Q13: Helio Retail churn / contraction (dual-graph flagship).
+
+    Corpus is scoped to Helio modules only — the contraction signal (declining
+    usage, plan downgrade, migration-away discussion) lives entirely in Helio's
+    unstructured data. The near-miss distractors are Helio's own healthy-period
+    docs (the 2022 rise / 2023 peak), so the guard proves the contraction signal
+    docs out-rank the same-account positive-outcome docs under RRF.
+
+    Top-1 retrieval must be a Helio signal doc, not a near-miss.
+    """
+    _require_api_key()
+    helio_modules = ["helio_slack", "helio_email", "helio_docs", "helio_pdf"]
+    docs = _load_unstructured_docs(load_unstructured_files, modules=helio_modules)
+    _assert_signal_top1(QUESTION_TEXTS["Q13"], docs, load_manifest)

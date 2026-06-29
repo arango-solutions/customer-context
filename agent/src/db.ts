@@ -144,6 +144,41 @@ export async function withDbRetry<T>(op: () => Promise<T>, label = 'db.query'): 
 }
 
 /**
+ * PERF-01 cold-start pre-warm: issue a trivial RETURN 1 AQL so the first real tool
+ * query skips TCP setup + basic-auth handshake latency (the Vercel Fluid Compute
+ * cold-socket cost withDbRetry already papers over at the retry level).
+ *
+ * Guarded so that a missing cluster (unit tests, CI without ARANGO_ENDPOINT) is a
+ * silent no-op — never throws. The async result is intentionally discarded; this is a
+ * fire-and-forget warm-up, not a gating check.
+ *
+ * GROUNDING-NEUTRAL: touches no answer data, no collection, no graph. Pure latency.
+ */
+export async function prewarmDb(): Promise<void> {
+  try {
+    const db = getDbSingleton();
+    const arangojs = await import('arangojs');
+    await db.query(arangojs.aql`RETURN 1`);
+  } catch {
+    // Silently swallow — missing cluster (unit tests / CI) or connection error at
+    // module init must never crash the module. The first real query will establish
+    // the connection through the normal withDbRetry path if pre-warm failed.
+  }
+}
+
+// Fire pre-warm as a module-load side-effect (fire-and-forget). This starts the TCP
+// handshake and auth before the first /api/ask request arrives, so cold-start latency
+// is paid upfront rather than on the first user query.
+// Guard: if ARANGO_ENDPOINT is absent (unit test environments without the cluster),
+// prewarmDb() catches and swallows the error above — no module-load failure.
+if (process.env.ARANGO_ENDPOINT) {
+  prewarmDb().catch(() => {
+    // swallow — identical guard to the prewarmDb catch above; double-guarded so
+    // any unhandled rejection from this fire-and-forget never surfaces in logs.
+  });
+}
+
+/**
  * Backwards/forwards-compatible named export used by the specialists in Waves 1-2.
  * It is a getter-backed proxy so `db.query(...)` works while construction stays lazy.
  * `query` is wrapped with withDbRetry so every specialist's read transparently survives

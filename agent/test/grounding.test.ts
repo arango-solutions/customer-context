@@ -5,10 +5,13 @@
 // commit without any env. They prove the SINGLE anti-hallucination control:
 // every claim citation _id must be in the set of _ids the tools actually returned,
 // otherwise the envelope is converted to a structured refusal (T-05-11).
+//
+// Phase 8 additions: groundingScore assertions on every enforceGrounding output path
+// (fully grounded → 1.0, partially grounded → ratio, zero citations → 1.0 vacuously).
 
 import { describe, it, expect } from 'vitest';
 import { enforceGrounding, assertReconciliation } from '../src/grounding.js';
-import type { Envelope, Citation } from '../src/envelope.js';
+import type { Citation, PreGroundingEnvelope } from '../src/envelope.js';
 import { EnvelopeSchema } from '../src/envelope.js';
 
 // --- fixtures -------------------------------------------------------------
@@ -34,8 +37,8 @@ const hallucinatedCite: Citation = {
   aql: 'vector+BM25+RRF over Chunks → PART_OF Document',
 };
 
-/** Build a well-formed dual-graph envelope from the supplied citations. */
-function dualGraphEnvelope(): Envelope {
+/** Build a well-formed dual-graph pre-grounding envelope (no groundingScore yet). */
+function dualGraphEnvelope(): PreGroundingEnvelope {
   return {
     answer: 'Meridian usage is green but sentiment is red.',
     refused: false,
@@ -104,8 +107,56 @@ describe('enforceGrounding (D-02 code gate)', () => {
     expect(EnvelopeSchema.safeParse(out).success).toBe(true);
   });
 
+  it('(c2) CR-01 Layer 2: a NON-refused, zero-claim/zero-citation envelope → refused (degenerate plan-preamble guard)', () => {
+    // The exact degenerate shape the streaming-path force-retrieve gap let through:
+    // the planner emitted its plan as the answer with zero tool calls, so no claims,
+    // no citations, returnedIds empty. groundingScore is vacuously 1.0, but this is the
+    // confident-but-unsourced shape the system exists to stop — it MUST become a refusal.
+    const env: PreGroundingEnvelope = {
+      answer: 'To answer this question I will: 1. resolve the account 2. pull usage ...',
+      refused: false,
+      claims: [],
+      citations: [],
+      retrievalPath: [],
+      reasoningTrace: ['planning'],
+    };
+    const returnedIds = new Set<string>();
+
+    const out = enforceGrounding(env, returnedIds);
+
+    expect(out.refused).toBe(true);
+    expect(out.answer).not.toContain('To answer this question I will');
+    expect(out.claims).toHaveLength(0);
+    expect(out.citations).toHaveLength(0);
+    expect(EnvelopeSchema.safeParse(out).success).toBe(true);
+  });
+
+  it('(c3) CR-01 Layer 2: an EXPLICIT refusal (refused:true, zero citations) is preserved UNCHANGED — not double-refused', () => {
+    // The NoObjectGenerated moderation-decline shape: an explicit refusal with empty
+    // claims/citations. The Layer-2 guard must NOT touch this — it stays a passthrough
+    // refusal with the vacuous groundingScore 1.0 and its original refusal answer text.
+    const refusalAnswer =
+      'I cannot answer this question: it is out of scope for the customer-account data.';
+    const env: PreGroundingEnvelope = {
+      answer: refusalAnswer,
+      refused: true,
+      claims: [],
+      citations: [],
+      retrievalPath: [],
+      reasoningTrace: ['The model declined to produce a grounded answer object.'],
+    };
+    const returnedIds = new Set<string>();
+
+    const out = enforceGrounding(env, returnedIds);
+
+    expect(out.refused).toBe(true);
+    expect(out.answer).toBe(refusalAnswer); // unchanged passthrough
+    expect(out.groundingScore).toBe(1.0);
+    expect(EnvelopeSchema.safeParse(out).success).toBe(true);
+  });
+
   it('(d) a structured-only envelope (Q7) passes grounding but assertReconciliation === false', () => {
-    const env: Envelope = {
+    const env: PreGroundingEnvelope = {
       answer: 'Northwind has climbed the product ladder and shows clear ROI.',
       refused: false,
       claims: [
@@ -122,5 +173,106 @@ describe('enforceGrounding (D-02 code gate)', () => {
     expect(out.refused).toBe(false);
     expect(out.citations).toHaveLength(1);
     expect(assertReconciliation(out)).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Phase 8: groundingScore assertions (EVAL-03 / Task 2)
+// These tests prove enforceGrounding injects a deterministic pure-code score
+// on EVERY return path — no model call, no I/O. The score is the fraction of
+// proposed citations whose _id was in returnedIds.
+// ---------------------------------------------------------------------------
+
+describe('enforceGrounding groundingScore (Phase 8 — pure-code grounding ratio)', () => {
+  it('fully grounded envelope (all citations in returnedIds) → groundingScore === 1.0', () => {
+    const env = dualGraphEnvelope();
+    const returnedIds = new Set([structuredCite._id, unstructuredCite._id]);
+
+    const out = enforceGrounding(env, returnedIds);
+
+    expect(typeof out.groundingScore).toBe('number');
+    expect(out.groundingScore).toBe(1.0);
+    expect(out.refused).toBe(false);
+    expect(EnvelopeSchema.safeParse(out).success).toBe(true);
+  });
+
+  it('partially grounded (1 of 2 citations in returnedIds) → groundingScore === 0.5, refused === true', () => {
+    const env = dualGraphEnvelope();
+    // Replace second claim with hallucinated citation
+    env.claims[1] = { text: 'Fabricated claim.', citations: [hallucinatedCite] };
+    env.citations = [structuredCite, hallucinatedCite];
+
+    const returnedIds = new Set([structuredCite._id]); // only one of two returned
+
+    const out = enforceGrounding(env, returnedIds);
+
+    expect(typeof out.groundingScore).toBe('number');
+    expect(out.groundingScore).toBe(0.5);
+    expect(out.refused).toBe(true);
+    expect(EnvelopeSchema.safeParse(out).success).toBe(true);
+  });
+
+  it('zero-citation envelope (e.g. refusal with empty citations) → groundingScore === 1.0 (vacuously grounded)', () => {
+    const env: PreGroundingEnvelope = {
+      answer: 'I cannot answer this question.',
+      refused: true,
+      claims: [],
+      citations: [],
+      retrievalPath: [],
+      reasoningTrace: ['The model declined.'],
+    };
+    const returnedIds = new Set<string>();
+
+    const out = enforceGrounding(env, returnedIds);
+
+    expect(typeof out.groundingScore).toBe('number');
+    expect(out.groundingScore).toBe(1.0);
+    expect(EnvelopeSchema.safeParse(out).success).toBe(true);
+  });
+
+  it('groundingScore is present (not undefined) on a fully-grounded envelope', () => {
+    const env = dualGraphEnvelope();
+    const returnedIds = new Set([structuredCite._id, unstructuredCite._id]);
+
+    const out = enforceGrounding(env, returnedIds);
+
+    expect(out.groundingScore).not.toBeUndefined();
+    expect(out.groundingScore).toBeGreaterThanOrEqual(0);
+    expect(out.groundingScore).toBeLessThanOrEqual(1);
+  });
+
+  it('groundingScore is present (not undefined) on a refused envelope', () => {
+    const env = dualGraphEnvelope();
+    env.claims[1] = { text: 'Fabricated.', citations: [hallucinatedCite] };
+    env.citations = [structuredCite, hallucinatedCite];
+    const returnedIds = new Set([structuredCite._id]);
+
+    const out = enforceGrounding(env, returnedIds);
+
+    expect(out.groundingScore).not.toBeUndefined();
+    expect(out.groundingScore).toBeGreaterThanOrEqual(0);
+    expect(out.groundingScore).toBeLessThanOrEqual(1);
+  });
+
+  it('EnvelopeSchema.safeParse(result).success === true on every returned envelope shape', () => {
+    // Fully grounded
+    const envFull = dualGraphEnvelope();
+    const outFull = enforceGrounding(envFull, new Set([structuredCite._id, unstructuredCite._id]));
+    expect(EnvelopeSchema.safeParse(outFull).success).toBe(true);
+
+    // Partial grounding → refusal
+    const envPartial = dualGraphEnvelope();
+    envPartial.claims[1] = { text: 'Fabricated.', citations: [hallucinatedCite] };
+    envPartial.citations = [structuredCite, hallucinatedCite];
+    const outPartial = enforceGrounding(envPartial, new Set([structuredCite._id]));
+    expect(EnvelopeSchema.safeParse(outPartial).success).toBe(true);
+
+    // Zero-citation → vacuously grounded
+    const envZero: PreGroundingEnvelope = {
+      answer: 'Refused.', refused: true, claims: [], citations: [],
+      retrievalPath: [], reasoningTrace: [],
+    };
+    const outZero = enforceGrounding(envZero, new Set<string>());
+    expect(EnvelopeSchema.safeParse(outZero).success).toBe(true);
   });
 });

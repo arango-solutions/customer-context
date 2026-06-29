@@ -22,12 +22,13 @@
 
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport, type UIMessage, type UIDataTypes } from 'ai';
 import type { Envelope } from 'customer360-agent';
 import type { C360UIDataParts, StreamPhase } from './ui-message';
 import { STREAM_PHASE_ORDER } from './ui-message';
+import { diffEnvelopes, type EnvelopeDiff } from './diff-envelope';
 
 /**
  * Advance the live phase MONOTONICALLY. The planner runs specialists in parallel, so
@@ -54,10 +55,24 @@ export type C360DataParts = C360UIDataParts & UIDataTypes;
 /** The typed UI message for this app: the two custom data parts the stream carries. */
 export type C360UIMessage = UIMessage<unknown, C360DataParts>;
 
+/**
+ * Options for `ask`. SEC-02: `adversarial` is PRESENTATION-ONLY — it is carried into
+ * the request body so the UI can label the mode, but it NEVER branches agent/request
+ * behavior. Defense (plan 13-01 hardening + enforceGrounding) is unconditional; the
+ * route does not forward this flag to the agent (RESEARCH Pattern 3 "Critical").
+ */
+export interface AskOptions {
+  adversarial?: boolean;
+}
+
 /** The surface the dashboard (and Plan 04) consumes. */
 export interface UseAskResult {
-  /** Submit a free-form question (thin wrapper over sendMessage({ text })). */
-  ask: (question: string) => void;
+  /**
+   * Submit a free-form question (thin wrapper over sendMessage({ text })). The optional
+   * `{ adversarial }` flag is presentation-only — it rides in the request body but never
+   * branches behavior (SEC-02).
+   */
+  ask: (question: string, options?: AskOptions) => void;
   /** The current question-box value. */
   input: string;
   /** Set the question-box value — example chips call this to FILL the box. */
@@ -66,6 +81,12 @@ export interface UseAskResult {
   phase: string | undefined;
   /** The terminal-gated grounded answer from the persistent data-envelope part. */
   envelope: Envelope | undefined;
+  /**
+   * CDC-03: the grounded diff vs. the SAME question's previous grounded answer.
+   * null on a first ask (nothing to compare). Computed client-side, strictly
+   * downstream of the data-envelope — never feeds the grounding gate (D-06/D-07).
+   */
+  diff: EnvelopeDiff | null;
   /** The SDK chat status ('submitted' | 'streaming' | 'ready' | 'error'). */
   status: ReturnType<typeof useChat<C360UIMessage>>['status'];
   /** True while a request is in flight (Ask disabled / Stop affordance). */
@@ -87,10 +108,27 @@ export function selectEnvelope(
   return part && 'data' in part ? (part.data as Envelope) : undefined;
 }
 
+/** Normalize a question for the per-question cache (preset chips → exact match). */
+const normalizeQuestion = (q: string): string => q.trim().toLowerCase();
+
 export function useAsk(): UseAskResult {
   const [input, setInput] = useState('');
   // The live phase from the transient data-step parts (never persisted as an answer).
   const [phase, setPhase] = useState<string | undefined>(undefined);
+
+  // CDC-03 (D-06): remember the last grounded envelope PER normalized question, so a
+  // re-ask of the same question can diff against it. The question that produced the
+  // current envelope is captured at ask() time (asks are serialized, so this is
+  // unambiguous). The diff itself (D-07) runs strictly downstream of the
+  // data-envelope and never feeds returnedIds/enforceGrounding.
+  const lastByQuestion = useRef<Map<string, Envelope>>(new Map());
+  const askedQuestionRef = useRef<string>('');
+  const [diff, setDiff] = useState<EnvelopeDiff | null>(null);
+
+  // SEC-02: the current adversarial flag, captured at ask() time so the transport's
+  // (stable) prepareSendMessagesRequest closure can read it. Presentation-only — it
+  // rides in the body and never branches behavior (defense is always on).
+  const adversarialRef = useRef<boolean>(false);
 
   const { messages, sendMessage, status, stop, error } = useChat<C360UIMessage>({
     transport: new DefaultChatTransport({
@@ -103,7 +141,10 @@ export function useAsk(): UseAskResult {
             .filter((p) => p.type === 'text')
             .map((p) => ('text' in p ? p.text : ''))
             .join('') ?? '';
-        return { body: { question } };
+        // SEC-02: carry the presentation-only adversarial flag alongside the question.
+        // The route accepts it (so the body does not 400) but never forwards it to the
+        // agent — defense is unconditional.
+        return { body: { question, adversarial: adversarialRef.current } };
       },
     }),
     onData: (part) => {
@@ -117,14 +158,33 @@ export function useAsk(): UseAskResult {
   });
 
   const ask = useCallback(
-    (question: string) => {
+    (question: string, options?: AskOptions) => {
       const trimmed = question.trim();
       if (!trimmed) return;
+      askedQuestionRef.current = trimmed; // the question this next envelope answers (D-06)
+      // SEC-02: capture the presentation-only flag for the body lift. Defaults false so
+      // a plain ask(q) carries adversarial:false (never branches behavior).
+      adversarialRef.current = options?.adversarial ?? false;
       setPhase('planning'); // optimistic: rail shows life before the first server step
       void sendMessage({ text: trimmed });
     },
     [sendMessage],
   );
+
+  const envelope = selectEnvelope(messages);
+
+  // When a NEW grounded envelope arrives, diff it against the same question's prior
+  // grounded answer (if any) and roll the cache forward so this becomes the next
+  // "before" (D-06/D-07). Fires once per new data-envelope (stable reference per
+  // message); the transient streaming gap (envelope === undefined) is a no-op.
+  useEffect(() => {
+    if (!envelope) return;
+    const q = normalizeQuestion(askedQuestionRef.current);
+    if (!q) return;
+    const before = lastByQuestion.current.get(q);
+    setDiff(before ? diffEnvelopes(before, envelope) : null);
+    lastByQuestion.current.set(q, envelope);
+  }, [envelope]);
 
   const isStreaming = status === 'submitted' || status === 'streaming';
 
@@ -133,7 +193,8 @@ export function useAsk(): UseAskResult {
     input,
     setInput,
     phase,
-    envelope: selectEnvelope(messages),
+    envelope,
+    diff,
     status,
     isStreaming,
     stop,

@@ -35,11 +35,14 @@ describe('ExampleChips', () => {
     expect(featured).toHaveLength(1);
   });
 
-  it('renders all 6 locked example prompts', () => {
+  it('renders all 7 example prompts (6 locked eval prompts + the JOIN demo chip)', () => {
     render(<ExampleChips onPick={() => {}} />);
-    expect(screen.getAllByRole('listitem')).toHaveLength(6);
-    expect(EXAMPLE_PROMPTS).toHaveLength(6);
+    expect(screen.getAllByRole('listitem')).toHaveLength(7);
+    expect(EXAMPLE_PROMPTS).toHaveLength(7);
     expect(EXAMPLE_PROMPTS[0].id).toBe('Q12');
+    // The cross-graph-join demo chip is second (immediately visible, non-featured).
+    expect(EXAMPLE_PROMPTS[1].id).toBe('JOIN');
+    expect(EXAMPLE_PROMPTS[1].featured).toBeUndefined();
   });
 
   it('marks the chip whose prompt equals `value` as selected (visual feedback on pick)', () => {

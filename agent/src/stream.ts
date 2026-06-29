@@ -25,24 +25,18 @@
 // the stream.
 
 import {
-  ToolLoopAgent,
-  stepCountIs,
-  Output,
   createUIMessageStream,
   createUIMessageStreamResponse,
   NoObjectGeneratedError,
 } from 'ai';
-import { openai } from '@ai-sdk/openai';
 import { enforceGrounding } from './grounding.js';
-import { mergeRetrievalPaths } from './retrievalPath.js';
+import { attachNodeLabels } from './nodeLabels.js';
+import { mergeRetrievalPaths, enforceEdgeHonesty } from './retrievalPath.js';
 import {
-  SynthEnvelopeSchema,
   toCanonicalEnvelope,
-  TOOLS,
-  PLANNER_MODEL,
-  PLANNER_SYSTEM_PROMPT,
+  buildToolLoopAgent,
 } from './agent.js';
-import type { Envelope, RetrievalPathFragmentT } from './envelope.js';
+import type { Envelope, PreGroundingEnvelope, RetrievalPathFragmentT } from './envelope.js';
 
 /**
  * Map a finished step's first tool name to one of the six D-01 phase labels.
@@ -123,6 +117,10 @@ export async function assembleGroundedEnvelope(
         ?.retrievalPath;
       if (frag && Array.isArray(frag._ids)) {
         fragments.push(frag);
+        // SC-5 ISOLATION: returnedIds is built ONLY from frag._ids — NEVER from frag.edges.
+        // edges[] carry Phase-11 VIZ-02 provenance data; an edge _id is NOT a citable
+        // grounding anchor. Adding an edge _id here would change grounding verdicts and
+        // break the eval gate (Pitfall 3 / SC-5 — 10-RESEARCH.md §The isolation guarantee).
         for (const id of frag._ids) returnedIds.add(id);
       }
     }
@@ -131,17 +129,28 @@ export async function assembleGroundedEnvelope(
   const synthesized = toCanonicalEnvelope(
     (await result.output) as Parameters<typeof toCanonicalEnvelope>[0],
   );
-  const merged: Envelope = {
+  // merged is PreGroundingEnvelope (no groundingScore yet) — enforceGrounding injects it.
+  // D-04: after merging, enforce edge honesty — drop any fabricated traversed edge whose
+  // _id was not actually returned by the tools' AQL (shared helper, mirrors agent.ts).
+  // SC-5 stays intact: enforceEdgeHonesty builds its own separate edge-id set; it never
+  // adds anything to returnedIds.
+  const merged: PreGroundingEnvelope = {
     ...synthesized,
-    retrievalPath: mergeRetrievalPaths([...synthesized.retrievalPath, ...fragments]),
+    retrievalPath: enforceEdgeHonesty(
+      fragments,
+      mergeRetrievalPaths([...synthesized.retrievalPath, ...fragments]),
+    ),
   };
 
   // TERMINAL grounding gate — the SAME function index.ts::askQuestion uses (D-01a).
-  return enforceGrounding(merged, returnedIds);
+  // attachNodeLabels mirrors index.ts: display-only node naming, applied post-grounding.
+  return attachNodeLabels(enforceGrounding(merged, returnedIds));
 }
 
 /** The structured refusal emitted when the model declines to produce an answer object
- * (NoObjectGeneratedError) — no fabricated sourcing. Mirrors runAgent()'s refusal. */
+ * (NoObjectGeneratedError) — no fabricated sourcing. Mirrors runAgent()'s refusal.
+ * groundingScore: 1.0 — zero-citation refusal = vacuously grounded (no fabricated citations);
+ * required since EnvelopeSchema now mandates groundingScore. */
 const REFUSAL_ENVELOPE: Envelope = {
   answer:
     'I cannot answer this question: it is out of scope for the customer-account ' +
@@ -154,17 +163,18 @@ const REFUSAL_ENVELOPE: Envelope = {
     'The model declined to produce a grounded answer object for this request; ' +
       'no supporting records were retrieved, so the answer is refused (no fabricated sourcing).',
   ],
+  groundingScore: 1.0,
 };
 
-/** Build the same ToolLoopAgent runAgent() builds. */
+/**
+ * Build the SAME ToolLoopAgent runAgent() builds — via the SINGLE shared factory
+ * (agent.ts::buildToolLoopAgent, CR-01) so the streaming path can never drift from the
+ * request/response path. Critically, this is what carries the FORCE-RETRIEVE GUARD
+ * (prepareStep toolChoice:'required' until ≥1 tool runs) onto the live-demo streaming
+ * path: a zero-tool plan-preamble can no longer be emitted as a non-refused answer here.
+ */
 function buildAgent(): StreamLikeAgent {
-  return new ToolLoopAgent({
-    model: openai(PLANNER_MODEL),
-    instructions: PLANNER_SYSTEM_PROMPT,
-    tools: TOOLS,
-    stopWhen: stepCountIs(12),
-    output: Output.object({ schema: SynthEnvelopeSchema }),
-  }) as unknown as StreamLikeAgent;
+  return buildToolLoopAgent() as unknown as StreamLikeAgent;
 }
 
 /**

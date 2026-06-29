@@ -1,0 +1,7 @@
+<!-- module=helio_slack account_id=c2de4d08-b3cf-5958-aae8-4ef84ebb81c9 entity_id=14529156-e768-58f1-933a-47333a1d70e7 citable_url=https://arangodb.com/demo/helio/slack/he_slack_smartgraphs_training_2022q3 -->
+
+[August 2022] Alex Rivera: I wanted to provide an update on our ongoing work with Helio Retail.
+
+[August 2022] Alex Rivera: We are currently focused on enabling the new product features for Helio Retail. Priya Nair and Marcus Webb are collaborating closely to ensure a smooth implementation process and to address any questions that may arise during this phase.
+
+[August 2022] Alex Rivera: I will keep you posted on our progress and any important developments.

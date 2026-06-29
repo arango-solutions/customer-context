@@ -1,0 +1,111 @@
+// web/components/graph-viz/layout.ts
+//
+// PURE, deterministic d3-force layout pass over an engine-neutral VizGraph.
+//
+// Replaces the former dagre LR pass (Phase 11 D3 pivot). d3-force gives the
+// organic "drift and settle" look; this module runs the simulation to completion
+// SYNCHRONOUSLY and returns final {x,y} for each node. GraphViz.tsx uses this for
+// the initial frame (so SSR / unit tests have real geometry) and, when motion is
+// allowed, re-runs an animated simulation on top for the settle effect.
+//
+// Determinism: d3-force seeds initial node positions with a deterministic
+// phyllotaxis spiral and uses NO RNG, so identical input → identical output. We
+// also pin the iteration count instead of relying on alpha decay wall-clock.
+//
+// Pure: no React, no DOM. Safe to call in a unit test or on the server.
+
+import {
+  forceSimulation,
+  forceLink,
+  forceManyBody,
+  forceCollide,
+  forceX,
+  forceY,
+  type SimulationNodeDatum,
+  type SimulationLinkDatum,
+} from 'd3-force';
+
+import type { VizGraph, VizNode, VizEdge } from './buildGraph';
+
+export interface PositionedNode extends VizNode {
+  x: number;
+  y: number;
+}
+
+export interface LayoutResult {
+  nodes: PositionedNode[];
+  edges: VizEdge[];
+  width: number;
+  height: number;
+}
+
+// Simulation node/link datums (d3 mutates x/y/vx/vy onto these).
+type SimNode = SimulationNodeDatum & VizNode;
+type SimLink = SimulationLinkDatum<SimNode> & { kind: VizEdge['kind'] };
+
+const DEFAULT_WIDTH = 760;
+const DEFAULT_HEIGHT = 560;
+const TICKS = 300; // enough for the layout to settle deterministically
+
+/**
+ * Run a d3-force simulation to completion and return positioned nodes.
+ *
+ * @param g    - engine-neutral graph from buildGraph()
+ * @param opts - canvas sizing (width/height the force center targets)
+ */
+export function layout(
+  g: VizGraph,
+  opts: { width?: number; height?: number } = {},
+): LayoutResult {
+  const width = opts.width ?? DEFAULT_WIDTH;
+  const height = opts.height ?? DEFAULT_HEIGHT;
+
+  if (g.nodes.length === 0) {
+    return { nodes: [], edges: g.edges, width, height };
+  }
+
+  // Clone into mutable sim datums (never mutate the caller's nodes).
+  const simNodes: SimNode[] = g.nodes.map((n) => ({ ...n }));
+  const simLinks: SimLink[] = g.edges.map((e) => ({
+    source: e.source,
+    target: e.target,
+    kind: e.kind,
+  }));
+
+  // Origin-banded layout: structured LEFT, the canonical_entities hub CENTER,
+  // unstructured (and the synthetic question anchor, which feeds the chunks) RIGHT.
+  // Reads as two graphs joined through the shared-entity hub; same_as edges fan in
+  // from both sides and visibly cross the gap. No fabricated edges.
+  const bandX = (n: SimNode) =>
+    n.graph === 'structured' ? width * 0.2 : n.graph === 'bridge' ? width * 0.5 : width * 0.8;
+
+  const sim = forceSimulation<SimNode>(simNodes)
+    .force(
+      'link',
+      forceLink<SimNode, SimLink>(simLinks)
+        .id((d) => d.id)
+        .distance(90)
+        .strength(0.6),
+    )
+    // charge + collide = intra-band breathing room; banded forceX = the two columns.
+    .force('charge', forceManyBody<SimNode>().strength(-340))
+    .force('x', forceX<SimNode>(bandX).strength(0.22))
+    .force('y', forceY<SimNode>(height / 2).strength(0.05))
+    .force('collide', forceCollide<SimNode>(50))
+    .stop();
+
+  // Run synchronously to a settled state (deterministic — no RNG, no wall clock).
+  sim.tick(TICKS);
+
+  const nodes: PositionedNode[] = simNodes.map((n) => ({
+    id: n.id,
+    type: n.type,
+    graph: n.graph,
+    collection: n.collection,
+    label: n.label,
+    x: n.x ?? width / 2,
+    y: n.y ?? height / 2,
+  }));
+
+  return { nodes, edges: g.edges, width, height };
+}

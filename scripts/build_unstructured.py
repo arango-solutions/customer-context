@@ -9,8 +9,21 @@ service (service_discovery.json: customer360_autograph_url):
              import-multiple silently no-ops on this cluster, see health360 D-13/D-14)
   Stage 2 — corpus build from file_ids (poll to completed)
   Stage 3 — rag-strategizer analyze + wait for strategy to stabilize
+  Stage 3.5 — delete-first: truncate the 5 Layer-3 derived collections
+            (Documents/Chunks/Entities/Relations/Communities) so a full rebuild
+            writes fresh into empty collections instead of appending onto the prior
+            build (spike UPDATE-PIPELINE.md line 77). Guarded to that allowlist only;
+            NEVER touches the structured graph. Skip with --no-truncate.
   Stage 4 — orchestrate (kickoff; allows one at a time, retries on 409)
   Stage 5 — wait for KG collections (customer360_Documents/Chunks) to populate
+  Stage 6.5 — full DROP + RECREATE of customer360_chunks_search_view so the BM25
+            inverted index re-indexes cleanly against the fresh chunks the
+            delete-first rebuild produced — otherwise stale pre-truncate _ids fail to
+            materialize and every hybrid retrieval path throws. A link-only refresh
+            leaves orphaned segments on lagging DBserver replicas; the full drop
+            discards every backing segment across ALL replicas. Guarded to that one
+            view only (recreated with the proven text_en chunks link); NEVER touches
+            any other view or the structured graph.
   Stage 6 — dim check: a sampled chunk.embedding has length 512 (A2 gate)
   Stage 7 — stamp citable_url onto customer360_Documents (Pitfall 2 fix;
             account_id/entity_id stamping is Plan 03-05's stamp_account_id.py)
@@ -55,6 +68,51 @@ _BUILD_MANIFEST = _REPO_ROOT / "build_manifest.json"
 KG_DOCUMENTS = "customer360_Documents"
 KG_CHUNKS = "customer360_Chunks"
 EXPECTED_DIM = 512
+
+# ArangoSearch BM25 view over Chunks.content. The delete-first Layer-3 truncate
+# (Stage 3.5) clears customer360_Chunks; orchestrate re-inserts fresh chunks with
+# NEW _ids, but this view's inverted index still references the pre-truncate _ids ->
+# BM25 ranks stale _ids that no longer materialize (AQL NotFound [MaterializeNode]),
+# breaking every hybrid retrieval path. Stage 6.5 below FULL-DROPS + RECREATES ONLY
+# this view to force a clean re-index over the fresh chunks across ALL replicas. NEVER
+# touches any other view, link, analyzer, or the structured graph.
+# NOTE (09-03): the BM25 view is one of TWO indexes carrying orphaned segments after a
+# delete-first rebuild; the HNSW *vector* index on customer360_Chunks.embedding
+# (index "vector_cosine", APPROX_NEAR_COSINE) has the same orphaned-segment problem and
+# is ALSO dropped+recreated for the hybrid path to fully self-heal — see Stage 6.6
+# (stage_rebuild_vector_index) below.
+CHUNKS_SEARCH_VIEW = "customer360_chunks_search_view"
+# Proven link config (matches agent/test/hybridSpike.test.ts::ensureChunksView).
+CHUNKS_VIEW_LINK = {"fields": {"content": {"analyzers": ["text_en"]}}, "includeAllFields": False}
+
+# Stage 6.6 — the HNSW vector index on customer360_Chunks.embedding carries the SAME
+# orphaned-segment problem as the BM25 view after a delete-first rebuild: the truncate
+# gives chunks new _ids, but a lagging DBserver replica retains a stale vector-index
+# segment referencing a deleted (pre-truncate) _id. APPROX_NEAR_COSINE over the real
+# query embedding ranks that orphaned _id into its top-k, and the downstream
+# DOCUMENT()/MaterializeNode throws `NotFound [MaterializeNode]` on the pinned replica
+# (observed: `_ltDk106--_` on collection s277302422, server PRMR-b55co4fj). Dropping +
+# recreating the vector index discards every backing segment across ALL replicas and
+# retrains over the current live chunks. (User-authorized 09-03: "Authorize recreate +
+# fold into script".) Scope guard: this stage operates on the ONE vector index on
+# CHUNKS_VECTOR_COLLECTION ONLY; it never touches any other index or the structured graph.
+CHUNKS_VECTOR_COLLECTION = "customer360_Chunks"
+
+# The 5 AutoGraph-derived Layer-3 collections. These are the ONLY collections this
+# script is ever permitted to truncate. The structured hand-modeled graph
+# (Account/Contact/Opportunity/UsageFact/Contract/NPS + edges) is NEVER in this set.
+# Delete-first sidesteps the importer's additive-vs-wipe ambiguity (spike
+# UPDATE-PIPELINE.md line 77): purging Layer-3 before re-orchestrating means it
+# doesn't matter whether the importer appends or replaces — it writes fresh into
+# empty collections. Without this, a full Option-A rebuild APPENDS onto the prior
+# build's docs (244 = 105 stale + 139 new), scrambling Stage-7 attribution.
+KG_LAYER3_COLLECTIONS = (
+    "customer360_Documents",
+    "customer360_Chunks",
+    "customer360_Entities",
+    "customer360_Relations",
+    "customer360_Communities",
+)
 
 
 # ── env / connections ───────────────────────────────────────────────────────
@@ -195,6 +253,41 @@ def stage_strategize(client: AutographClient) -> None:
     _update_build_manifest(strategy_partitions=len(strategies))
 
 
+def stage_truncate_layer3(cfg: dict) -> dict[str, int]:
+    """Delete-first: truncate ONLY the 5 AutoGraph Layer-3 derived collections before
+    orchestrate, so a full rebuild writes fresh into empty collections instead of
+    appending onto a prior build (spike UPDATE-PIPELINE.md line 77).
+
+    Guard: this function operates over the hardcoded KG_LAYER3_COLLECTIONS allowlist
+    ONLY. It can never touch the structured graph. As a defence-in-depth assertion we
+    re-verify every name carries the customer360_ KG prefix and is in the allowlist
+    before issuing a single truncate.
+    """
+    print("[build] Stage 3.5 — delete-first: truncate Layer-3 derived collections ...")
+    # Defence-in-depth: refuse to run if anything outside the explicit allowlist
+    # somehow appears (structured collections have no 'customer360_' KG prefix).
+    for name in KG_LAYER3_COLLECTIONS:
+        if name not in KG_LAYER3_COLLECTIONS or not name.startswith("customer360_"):
+            raise SystemExit(f"[build] FATAL — refusing to truncate non-Layer-3 collection: {name!r}")
+    db = _get_db(cfg)
+    truncated: dict[str, int] = {}
+    for name in KG_LAYER3_COLLECTIONS:
+        if not db.has_collection(name):
+            print(f"[build]   {name}: absent (skip)")
+            truncated[name] = 0
+            continue
+        before = db.collection(name).count()
+        db.collection(name).truncate()
+        after = db.collection(name).count()
+        if after != 0:
+            raise SystemExit(f"[build] FAIL — {name} not empty after truncate (count={after})")
+        print(f"[build]   {name}: truncated {before} -> 0")
+        truncated[name] = before
+    print(f"[build]   Layer-3 cleared — {sum(truncated.values())} stale records removed")
+    _update_build_manifest(layer3_truncated=truncated)
+    return truncated
+
+
 def stage_orchestrate(client: AutographClient) -> None:
     print("[build] Stage 4 — orchestrate (replicas=2, max_retries=3) ...")
     resp, _, _ = client.orchestrate_with_wait(replicas=2, max_retries=3)
@@ -225,6 +318,156 @@ def wait_for_kg(cfg: dict, *, timeout_s: int = 2400, interval_s: int = 30) -> di
         prev = cur
         time.sleep(interval_s)
     raise SystemExit(f"[build] FAIL — KG collections not populated within {timeout_s}s")
+
+
+def _view_exists(db, name: str) -> bool:
+    return any((v.get("name") == name) for v in db.views())
+
+
+def stage_refresh_chunks_view(cfg: dict) -> None:
+    """Stage 6.5 — full DROP + RECREATE of the ArangoSearch chunks view AFTER orchestrate
+    so the BM25 inverted index re-indexes cleanly against the fresh chunks the
+    delete-first rebuild produced.
+
+    Why full drop+recreate (not link-only drop+re-add): the delete-first Layer-3
+    truncate clears customer360_Chunks and orchestrate re-inserts fresh chunks with NEW
+    _ids. A link-only refresh re-indexes the view on the replicas the applier reaches,
+    but a lagging DBserver replica can retain an ORPHANED index segment holding a
+    pre-truncate _id -> intermittent `failed to materialize document ... NotFound
+    [MaterializeNode]` on the query path that pins to that replica. Dropping the WHOLE
+    view discards every backing index segment across ALL replicas; recreate builds a
+    fresh inverted index over the current 139 chunks only. (User-authorized 09-03:
+    "Full view drop + recreate".)
+
+    Scope guard: this stage drops + recreates the single view CHUNKS_SEARCH_VIEW
+    (customer360_chunks_search_view) ONLY, with the captured/proven link config
+    (= agent/test/hybridSpike.test.ts::ensureChunksView: chunks link,
+    fields.content.analyzers=['text_en'], includeAllFields:false; empty primary_sort /
+    stored_values). It never touches any other view, link, analyzer, or the structured
+    graph. If the view is absent (fresh cluster before the spike DDL has run), it skips
+    with a notice — creating the view is the spike/agent's job, not the build's.
+    """
+    print("[build] Stage 6.5 — full DROP + RECREATE ArangoSearch chunks view (clean re-index, clears orphaned segments) ...")
+    db = _get_db(cfg)
+    if not _view_exists(db, CHUNKS_SEARCH_VIEW):
+        print(f"[build]   {CHUNKS_SEARCH_VIEW} absent — skip (created by the spike/agent DDL, not the build)")
+        return
+    props = db.view(CHUNKS_SEARCH_VIEW)
+    links_before = sorted((props.get("links") or {}).keys())
+    print(f"[build]   captured {CHUNKS_SEARCH_VIEW} links: {links_before}")
+    # 1. FULL DROP — discards every backing index segment across ALL replicas.
+    db.delete_view(CHUNKS_SEARCH_VIEW)
+    time.sleep(8)  # settle DDL propagation across coordinators/DBservers
+    if _view_exists(db, CHUNKS_SEARCH_VIEW):
+        raise SystemExit(f"[build] FAIL — {CHUNKS_SEARCH_VIEW} still present after delete")
+    print("[build]   view dropped (all backing segments discarded)")
+    # 2. RECREATE with the proven captured config -> fresh inverted index over current chunks.
+    db.create_arangosearch_view(CHUNKS_SEARCH_VIEW, properties={"links": {KG_CHUNKS: CHUNKS_VIEW_LINK}})
+    time.sleep(8)
+    after = (db.view(CHUNKS_SEARCH_VIEW).get("links") or {})
+    if KG_CHUNKS not in after:
+        raise SystemExit(f"[build] FAIL — {KG_CHUNKS} link missing after recreate: {sorted(after.keys())}")
+    print(f"[build]   view recreated; links: {sorted(after.keys())}")
+    # 3. BM25 probe: materialize >=1 live chunk (a stale index throws NotFound).
+    aql = (
+        "FOR c IN @@view "
+        "  SEARCH ANALYZER(c.content IN TOKENS(@q, 'text_en'), 'text_en') "
+        "  SORT BM25(c) DESC LIMIT 3 RETURN c._id"
+    )
+    live: list[str] = []
+    for attempt in range(12):
+        try:
+            live = [x for x in db.aql.execute(aql, bind_vars={"@view": CHUNKS_SEARCH_VIEW, "q": "renewal escalation churn risk"}) if x]
+            if live:
+                break
+        except Exception as exc:  # noqa: BLE001
+            print(f"[build]   probe attempt {attempt + 1}/12: {type(exc).__name__} (re-index settling)")
+        time.sleep(6)
+    if not live:
+        raise SystemExit("[build] FAIL — chunks view BM25 probe materialized 0 live chunks after recreate")
+    print(f"[build]   view re-indexed — BM25 materialized {len(live)} live chunk(s)")
+    _update_build_manifest(chunks_view_recreated=True, chunks_view_live_probe=len(live))
+
+
+def stage_rebuild_vector_index(cfg: dict) -> None:
+    """Stage 6.6 — capture-then-DROP+RECREATE the HNSW vector index on
+    customer360_Chunks.embedding AFTER orchestrate so the delete-first rebuild's fresh
+    chunk _ids re-train cleanly, instead of leaving the index pointing at pre-truncate
+    _ids on a lagging DBserver replica.
+
+    Why (same failure class as Stage 6.5, different index): the delete-first Layer-3
+    truncate clears customer360_Chunks; orchestrate re-inserts fresh chunks with NEW
+    _ids. A lagging replica can retain an ORPHANED vector-index segment holding a
+    pre-truncate _id. APPROX_NEAR_COSINE over the real query embedding ranks that
+    deleted _id into its top-k, and the downstream materialize throws `failed to
+    materialize document ... NotFound [MaterializeNode]` on the query path that pins to
+    that replica (observed 09-03: `_ltDk106--_` / collection s277302422 /
+    PRMR-b55co4fj). Dropping the WHOLE index discards every backing segment across ALL
+    replicas; recreating with the captured params retrains over the current live chunks
+    only. (User-authorized 09-03: "Authorize recreate + fold into script".)
+
+    Faithful recreate: this captures the LIVE index params (dimension/metric/nLists/
+    trainingIterations/defaultNProbe) and recreates with exactly those — it does NOT
+    hardcode a params subset, so it stays correct if the index is ever re-tuned.
+
+    Scope guard: operates on the SINGLE vector index on CHUNKS_VECTOR_COLLECTION
+    (customer360_Chunks) ONLY. It never touches any other index, the BM25 view, or the
+    structured graph. If no vector index is present (fresh cluster before the spike DDL),
+    it skips with a notice — creating the index is the spike/agent's job, not the build's.
+    """
+    print("[build] Stage 6.6 — DROP + RECREATE HNSW vector index (clean retrain, clears orphaned segments) ...")
+    db = _get_db(cfg)
+    col = db.collection(CHUNKS_VECTOR_COLLECTION)
+    existing = None
+    for idx in col.indexes():
+        if idx.get("type") == "vector":
+            existing = idx
+            break
+    if existing is None:
+        print(f"[build]   no vector index on {CHUNKS_VECTOR_COLLECTION} — skip (created by the spike/agent DDL, not the build)")
+        return
+    # Scope guard: this index must be on the chunks embedding field only.
+    if existing.get("fields") != ["embedding"]:
+        raise SystemExit(f"[build] FATAL — refusing to rebuild unexpected vector index fields: {existing.get('fields')!r}")
+    p = existing.get("params") or {}
+    name = existing.get("name", "vector_cosine")
+    print(f"[build]   CAPTURED vector index id={existing.get('id')} name={name} params={p}")
+    recreate = {
+        "type": "vector",
+        "name": name,
+        "fields": ["embedding"],
+        "params": {
+            "dimension": p["dimension"],
+            "metric": p["metric"],
+            "nLists": p["nLists"],
+            "trainingIterations": p["trainingIterations"],
+            "defaultNProbe": p["defaultNProbe"],
+        },
+        "inBackground": existing.get("in_background", True),
+    }
+    # 1. DROP — discards every backing segment across ALL replicas.
+    col.delete_index(existing["id"])
+    print(f"[build]   dropped vector index id={existing['id']} (all backing segments discarded)")
+    time.sleep(10)
+    # 2. RECREATE with the faithful captured params -> retrains over the current chunks.
+    res = col.add_index(recreate)
+    print(f"[build]   recreated vector index id={res.get('id')} params={res.get('params')}")
+    # 3. Wait for retrain to reach training_state=ready (a fresh index starts 'unusable').
+    deadline = time.monotonic() + 600
+    state = None
+    while time.monotonic() < deadline:
+        time.sleep(8)
+        db = _get_db(cfg)
+        for idx in db.collection(CHUNKS_VECTOR_COLLECTION).indexes():
+            if idx.get("type") == "vector":
+                state = idx.get("training_state")
+        print(f"[build]   vector index training_state={state}")
+        if state == "ready":
+            break
+    if state != "ready":
+        raise SystemExit(f"[build] FAIL — vector index did not reach training_state=ready (last={state})")
+    print("[build]   vector index retrained; orphaned segments cleared.")
+    _update_build_manifest(vector_index_recreated=True)
 
 
 def stage_dim_check(cfg: dict) -> int:
@@ -278,6 +521,11 @@ def main() -> int:
     ap.add_argument("--modules", nargs="*", help="restrict to specific modules")
     ap.add_argument("--skip-orchestrate", action="store_true", help="stop after strategizer")
     ap.add_argument("--skip-stamp", action="store_true", help="skip citable_url stamp")
+    ap.add_argument(
+        "--no-truncate",
+        action="store_true",
+        help="skip the delete-first Layer-3 truncate (default: truncate before orchestrate for a clean rebuild)",
+    )
     args = ap.parse_args()
 
     cfg = _arango_cfg()
@@ -305,8 +553,26 @@ def main() -> int:
         print("[build] --skip-orchestrate set — stopping after strategizer")
         return 0
 
+    # Delete-first: clear stale Layer-3 BEFORE orchestrate so the rebuild is genuinely
+    # clean (the importer appends; without this, prior-build docs persist). Skippable
+    # via --no-truncate only for diagnostic resumes that must preserve existing Layer-3.
+    if not args.no_truncate:
+        stage_truncate_layer3(cfg)
+    else:
+        print("[build] --no-truncate set — skipping Layer-3 delete-first (existing docs preserved)")
+
     stage_orchestrate(client)
     counts = wait_for_kg(cfg)
+    # Stage 6.5 — the delete-first rebuild gave the chunks NEW _ids; the BM25 view's
+    # inverted index still references the pre-truncate _ids. Full DROP+RECREATE the view
+    # to re-index cleanly across ALL replicas (a link-only refresh leaves orphaned
+    # segments on a lagging replica -> NotFound on stale _ids on the pinned query path).
+    stage_refresh_chunks_view(cfg)
+    # Stage 6.6 — the delete-first rebuild also left the HNSW vector index with an
+    # orphaned segment on a lagging replica (APPROX_NEAR_COSINE ranks a deleted _id into
+    # top-k -> MaterializeNode NotFound on the pinned query path). DROP+RECREATE the
+    # vector index to retrain cleanly across ALL replicas — the vector twin of Stage 6.5.
+    stage_rebuild_vector_index(cfg)
     dim = stage_dim_check(cfg)
     # Stage 7 — content-derived attribution repair (NOT manifest-keyed-by-file_name).
     # AutoGraph desyncs Document.file_name from content on this service (a permutation),

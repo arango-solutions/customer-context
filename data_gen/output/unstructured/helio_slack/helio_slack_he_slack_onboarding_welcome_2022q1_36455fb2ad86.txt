@@ -1,0 +1,7 @@
+<!-- module=helio_slack account_id=c2de4d08-b3cf-5958-aae8-4ef84ebb81c9 entity_id=46944c37-cd7e-5505-9aac-81c01ba3b99c citable_url=https://arangodb.com/demo/helio/slack/he_slack_onboarding_welcome_2022q1 -->
+
+[February 2022] Alex Rivera: I wanted to provide an update on the onboarding progress for Helio Retail.
+
+[February 2022] Alex Rivera: Priya Nair and Marcus Webb have been actively engaged in the onboarding process, ensuring that all necessary steps are being completed in a timely manner. They are currently working on finalizing the integration of our platform with Helio Retail's systems, which is a key milestone in the onboarding journey.
+
+[February 2022] Alex Rivera: I will keep you posted on any further developments as we move forward.

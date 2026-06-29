@@ -350,6 +350,127 @@
     "spine_events": [],
     "event_date": "2024-01-30"
   },
+  "helio_slack_he_slack_contraction_2024q1_d94d48ea4a23.txt": {
+    "module": "helio_slack",
+    "account_id": "c2de4d08-b3cf-5958-aae8-4ef84ebb81c9",
+    "entity_id": "f0468a23-4dc6-5045-8f9c-ae945024c906",
+    "citable_url": "https://arangodb.com/demo/helio/slack/he_slack_contraction_2024q1",
+    "role": "signal",
+    "questions_served": [
+      "Q13"
+    ],
+    "spine_events": [
+      "he_usage_2024_q1",
+      "he_contract_downgrade_2024"
+    ],
+    "event_date": "2024-02-20"
+  },
+  "helio_slack_he_slack_remediation_2024q2_0061a86477a3.txt": {
+    "module": "helio_slack",
+    "account_id": "c2de4d08-b3cf-5958-aae8-4ef84ebb81c9",
+    "entity_id": "41ac1bd9-010b-5626-bd18-200e79ce1135",
+    "citable_url": "https://arangodb.com/demo/helio/slack/he_slack_remediation_2024q2",
+    "role": "signal",
+    "questions_served": [
+      "Q14"
+    ],
+    "spine_events": [
+      "he_opp_renewal_2025_at_risk"
+    ],
+    "event_date": "2024-05-15"
+  },
+  "helio_slack_he_slack_near_miss_growth_2022q3_dd8047b10eb4.txt": {
+    "module": "helio_slack",
+    "account_id": "c2de4d08-b3cf-5958-aae8-4ef84ebb81c9",
+    "entity_id": "ced187fa-2302-5379-b3ba-8851c3131cde",
+    "citable_url": "https://arangodb.com/demo/helio/slack/he_slack_near_miss_growth_2022q3",
+    "role": "near-miss",
+    "questions_served": [
+      "Q13"
+    ],
+    "spine_events": [],
+    "event_date": "2022-08-12"
+  },
+  "helio_slack_he_slack_onboarding_welcome_2022q1_36455fb2ad86.txt": {
+    "module": "helio_slack",
+    "account_id": "c2de4d08-b3cf-5958-aae8-4ef84ebb81c9",
+    "entity_id": "46944c37-cd7e-5505-9aac-81c01ba3b99c",
+    "citable_url": "https://arangodb.com/demo/helio/slack/he_slack_onboarding_welcome_2022q1",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2022-02-01"
+  },
+  "helio_slack_he_slack_deployment_checklist_2022q1_bf3685611e82.txt": {
+    "module": "helio_slack",
+    "account_id": "c2de4d08-b3cf-5958-aae8-4ef84ebb81c9",
+    "entity_id": "6f17b347-f379-5ad2-8458-c804c8c9df52",
+    "citable_url": "https://arangodb.com/demo/helio/slack/he_slack_deployment_checklist_2022q1",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2022-02-18"
+  },
+  "helio_slack_he_slack_recommendation_graph_kickoff_2022q2_0014851a4946.txt": {
+    "module": "helio_slack",
+    "account_id": "c2de4d08-b3cf-5958-aae8-4ef84ebb81c9",
+    "entity_id": "c96ab392-d6f9-5efc-8fa8-9ac47250df8f",
+    "citable_url": "https://arangodb.com/demo/helio/slack/he_slack_recommendation_graph_kickoff_2022q2",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2022-05-09"
+  },
+  "helio_slack_he_slack_smartgraphs_training_2022q3_1db5743fb648.txt": {
+    "module": "helio_slack",
+    "account_id": "c2de4d08-b3cf-5958-aae8-4ef84ebb81c9",
+    "entity_id": "14529156-e768-58f1-933a-47333a1d70e7",
+    "citable_url": "https://arangodb.com/demo/helio/slack/he_slack_smartgraphs_training_2022q3",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2022-08-22"
+  },
+  "helio_slack_he_slack_product_changelog_v3_9_2022q4_5266d830695c.txt": {
+    "module": "helio_slack",
+    "account_id": "c2de4d08-b3cf-5958-aae8-4ef84ebb81c9",
+    "entity_id": "3c36bcf6-9d88-552c-ab1b-35ea3544cfb9",
+    "citable_url": "https://arangodb.com/demo/helio/slack/he_slack_product_changelog_v3_9_2022q4",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2022-11-14"
+  },
+  "helio_slack_he_slack_peak_season_readiness_2023q1_0a81f046aac9.txt": {
+    "module": "helio_slack",
+    "account_id": "c2de4d08-b3cf-5958-aae8-4ef84ebb81c9",
+    "entity_id": "6ca804f4-adf8-590f-a3a7-1c39bb76294c",
+    "citable_url": "https://arangodb.com/demo/helio/slack/he_slack_peak_season_readiness_2023q1",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2023-03-06"
+  },
+  "helio_slack_he_slack_support_case_resolved_2023q2_4fd91c93e4a7.txt": {
+    "module": "helio_slack",
+    "account_id": "c2de4d08-b3cf-5958-aae8-4ef84ebb81c9",
+    "entity_id": "edc4ca9d-ab2f-53ee-b977-110bcefa9f86",
+    "citable_url": "https://arangodb.com/demo/helio/slack/he_slack_support_case_resolved_2023q2",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2023-06-19"
+  },
+  "helio_slack_he_slack_routine_health_check_2023q3_ff76333ff4db.txt": {
+    "module": "helio_slack",
+    "account_id": "c2de4d08-b3cf-5958-aae8-4ef84ebb81c9",
+    "entity_id": "33da53c4-c9e1-5c45-86c4-271ff7d5189c",
+    "citable_url": "https://arangodb.com/demo/helio/slack/he_slack_routine_health_check_2023q3",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2023-08-28"
+  },
   "northwind_email_nw_email_genai_intent_2025q1_3e4644a86876.txt": {
     "module": "northwind_email",
     "account_id": "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",
@@ -626,6 +747,103 @@
     "questions_served": [],
     "spine_events": [],
     "event_date": "2024-05-22"
+  },
+  "helio_email_he_email_downgrade_rationale_2024q1_0cd05cea93f4.txt": {
+    "module": "helio_email",
+    "account_id": "c2de4d08-b3cf-5958-aae8-4ef84ebb81c9",
+    "entity_id": "ac8b604b-2fef-5961-85c9-e6fc80614dbe",
+    "citable_url": "https://arangodb.com/demo/helio/email/he_email_downgrade_rationale_2024q1",
+    "role": "signal",
+    "questions_served": [
+      "Q13"
+    ],
+    "spine_events": [
+      "he_contract_downgrade_2024",
+      "he_contact_marcus_webb"
+    ],
+    "event_date": "2024-02-28"
+  },
+  "helio_email_he_email_near_miss_expansion_2023q1_05c5f5c22bf8.txt": {
+    "module": "helio_email",
+    "account_id": "c2de4d08-b3cf-5958-aae8-4ef84ebb81c9",
+    "entity_id": "3ff194ec-ede3-54b4-ab99-5ff577091a8f",
+    "citable_url": "https://arangodb.com/demo/helio/email/he_email_near_miss_expansion_2023q1",
+    "role": "near-miss",
+    "questions_served": [
+      "Q13"
+    ],
+    "spine_events": [],
+    "event_date": "2023-01-18"
+  },
+  "helio_email_he_email_welcome_onboarding_2022q1_99dd9e535efa.txt": {
+    "module": "helio_email",
+    "account_id": "c2de4d08-b3cf-5958-aae8-4ef84ebb81c9",
+    "entity_id": "8be5f979-a678-50d5-a166-4c1db7542fd7",
+    "citable_url": "https://arangodb.com/demo/helio/email/he_email_welcome_onboarding_2022q1",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2022-01-20"
+  },
+  "helio_email_he_email_quarterly_check_in_2022q2_86ee8fd19a08.txt": {
+    "module": "helio_email",
+    "account_id": "c2de4d08-b3cf-5958-aae8-4ef84ebb81c9",
+    "entity_id": "db9c7b53-aeb7-5ed2-9008-72cc8d20c01d",
+    "citable_url": "https://arangodb.com/demo/helio/email/he_email_quarterly_check_in_2022q2",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2022-05-05"
+  },
+  "helio_email_he_email_license_confirmation_2022q3_d01f5342a629.txt": {
+    "module": "helio_email",
+    "account_id": "c2de4d08-b3cf-5958-aae8-4ef84ebb81c9",
+    "entity_id": "c7fbd5d7-207a-5260-8cdc-a3db6a390146",
+    "citable_url": "https://arangodb.com/demo/helio/email/he_email_license_confirmation_2022q3",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2022-08-08"
+  },
+  "helio_email_he_email_product_update_webinar_2022q4_52c593db8e5b.txt": {
+    "module": "helio_email",
+    "account_id": "c2de4d08-b3cf-5958-aae8-4ef84ebb81c9",
+    "entity_id": "21530e26-d364-595e-877d-3352a402889f",
+    "citable_url": "https://arangodb.com/demo/helio/email/he_email_product_update_webinar_2022q4",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2022-10-28"
+  },
+  "helio_email_he_email_peak_adoption_recap_2023q1_480e0d0d99db.txt": {
+    "module": "helio_email",
+    "account_id": "c2de4d08-b3cf-5958-aae8-4ef84ebb81c9",
+    "entity_id": "1ed7569d-1677-5c9a-944d-c590ecbcd67d",
+    "citable_url": "https://arangodb.com/demo/helio/email/he_email_peak_adoption_recap_2023q1",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2023-02-27"
+  },
+  "helio_email_he_email_support_ticket_ack_2023q2_44c710048414.txt": {
+    "module": "helio_email",
+    "account_id": "c2de4d08-b3cf-5958-aae8-4ef84ebb81c9",
+    "entity_id": "82a1296f-dfcf-5a3e-bc36-1957e0af92ae",
+    "citable_url": "https://arangodb.com/demo/helio/email/he_email_support_ticket_ack_2023q2",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2023-06-12"
+  },
+  "helio_email_he_email_routine_checkin_2023q3_c85e1705b949.txt": {
+    "module": "helio_email",
+    "account_id": "c2de4d08-b3cf-5958-aae8-4ef84ebb81c9",
+    "entity_id": "3c894586-f0fe-5400-89e4-a2256be63f69",
+    "citable_url": "https://arangodb.com/demo/helio/email/he_email_routine_checkin_2023q3",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2023-09-14"
   },
   "northwind_docs_nw_docs_success_plan_2024_1830839c4aa6.md": {
     "module": "northwind_docs",
@@ -926,6 +1144,130 @@
     "spine_events": [],
     "event_date": "2024-07-09"
   },
+  "helio_docs_he_docs_qbr_decline_2024q1_99ca37e7a240.md": {
+    "module": "helio_docs",
+    "account_id": "c2de4d08-b3cf-5958-aae8-4ef84ebb81c9",
+    "entity_id": "7a460190-74bd-509b-b85b-0a300f3fae55",
+    "citable_url": "https://arangodb.com/demo/helio/docs/he_docs_qbr_decline_2024q1",
+    "role": "signal",
+    "questions_served": [
+      "Q13"
+    ],
+    "spine_events": [
+      "he_usage_2023_q4",
+      "he_nps_2024_q1"
+    ],
+    "event_date": "2024-01-25"
+  },
+  "helio_docs_he_docs_save_plan_2024q2_7bec343b309f.md": {
+    "module": "helio_docs",
+    "account_id": "c2de4d08-b3cf-5958-aae8-4ef84ebb81c9",
+    "entity_id": "ecdc6564-c507-59fa-9b6f-42a43e8eb6a0",
+    "citable_url": "https://arangodb.com/demo/helio/docs/he_docs_save_plan_2024q2",
+    "role": "signal",
+    "questions_served": [
+      "Q14"
+    ],
+    "spine_events": [
+      "he_opp_renewal_2025_at_risk",
+      "he_usage_2024_q2"
+    ],
+    "event_date": "2024-05-10"
+  },
+  "helio_docs_he_docs_near_miss_peak_qbr_2023q1_e23553676ab3.md": {
+    "module": "helio_docs",
+    "account_id": "c2de4d08-b3cf-5958-aae8-4ef84ebb81c9",
+    "entity_id": "dc8b4a34-f4a2-5b5d-aca5-4db032e60345",
+    "citable_url": "https://arangodb.com/demo/helio/docs/he_docs_near_miss_peak_qbr_2023q1",
+    "role": "near-miss",
+    "questions_served": [
+      "Q13"
+    ],
+    "spine_events": [],
+    "event_date": "2023-02-10"
+  },
+  "helio_docs_he_docs_near_miss_routine_plan_2022q4_d5c599fc2e83.md": {
+    "module": "helio_docs",
+    "account_id": "c2de4d08-b3cf-5958-aae8-4ef84ebb81c9",
+    "entity_id": "72aef150-2f06-5f21-aa19-a6add8dc602f",
+    "citable_url": "https://arangodb.com/demo/helio/docs/he_docs_near_miss_routine_plan_2022q4",
+    "role": "near-miss",
+    "questions_served": [
+      "Q14"
+    ],
+    "spine_events": [],
+    "event_date": "2022-11-08"
+  },
+  "helio_docs_he_docs_onboarding_runbook_2022q1_79ac0d6d8b83.md": {
+    "module": "helio_docs",
+    "account_id": "c2de4d08-b3cf-5958-aae8-4ef84ebb81c9",
+    "entity_id": "050f1d8c-3ff2-5ad1-a078-c0890eeb9a6e",
+    "citable_url": "https://arangodb.com/demo/helio/docs/he_docs_onboarding_runbook_2022q1",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2022-02-10"
+  },
+  "helio_docs_he_docs_recommendation_use_case_guide_2022q2_ea835068a514.md": {
+    "module": "helio_docs",
+    "account_id": "c2de4d08-b3cf-5958-aae8-4ef84ebb81c9",
+    "entity_id": "f555c110-ef84-5f3b-9c7d-ddfa1501bb10",
+    "citable_url": "https://arangodb.com/demo/helio/docs/he_docs_recommendation_use_case_guide_2022q2",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2022-05-25"
+  },
+  "helio_docs_he_docs_architecture_review_2022q3_9dbe394781da.md": {
+    "module": "helio_docs",
+    "account_id": "c2de4d08-b3cf-5958-aae8-4ef84ebb81c9",
+    "entity_id": "5f141d75-208d-5ab9-bef3-e7b4c0f7d8bb",
+    "citable_url": "https://arangodb.com/demo/helio/docs/he_docs_architecture_review_2022q3",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2022-09-05"
+  },
+  "helio_docs_he_docs_security_audit_notes_2022q4_c3293d975854.md": {
+    "module": "helio_docs",
+    "account_id": "c2de4d08-b3cf-5958-aae8-4ef84ebb81c9",
+    "entity_id": "42cfc015-01ed-592c-bf03-0551f73a84a0",
+    "citable_url": "https://arangodb.com/demo/helio/docs/he_docs_security_audit_notes_2022q4",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2022-11-18"
+  },
+  "helio_docs_he_docs_peak_performance_benchmarks_2023q1_61821678b8d4.md": {
+    "module": "helio_docs",
+    "account_id": "c2de4d08-b3cf-5958-aae8-4ef84ebb81c9",
+    "entity_id": "578437c7-f70c-5af2-ad35-68e65b4aa0b1",
+    "citable_url": "https://arangodb.com/demo/helio/docs/he_docs_peak_performance_benchmarks_2023q1",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2023-03-18"
+  },
+  "helio_docs_he_docs_cluster_sizing_notes_2023q2_3c7e35b25e59.md": {
+    "module": "helio_docs",
+    "account_id": "c2de4d08-b3cf-5958-aae8-4ef84ebb81c9",
+    "entity_id": "fa24a257-f5a8-5c45-9a48-be27cabc713c",
+    "citable_url": "https://arangodb.com/demo/helio/docs/he_docs_cluster_sizing_notes_2023q2",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2023-06-08"
+  },
+  "helio_docs_he_docs_routine_runbook_update_2023q3_8855fb916272.md": {
+    "module": "helio_docs",
+    "account_id": "c2de4d08-b3cf-5958-aae8-4ef84ebb81c9",
+    "entity_id": "9acd4521-812a-59b7-890f-e01397fce30d",
+    "citable_url": "https://arangodb.com/demo/helio/docs/he_docs_routine_runbook_update_2023q3",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2023-09-01"
+  },
   "northwind_pdf_nw_pdf_roi_report_2021_dd5597cafcce.pdf": {
     "module": "northwind_pdf",
     "account_id": "0d5b5863-d3da-51e3-b117-ddbfa7ba2d16",
@@ -1104,60 +1446,96 @@
     "spine_events": [],
     "event_date": "2024-06-05"
   },
-  "meridian_docs_me_coref_hard_001_199ee6cf74f2.txt": {
-    "module": "meridian_docs",
-    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
-    "entity_id": "a52ba718-8cca-511f-8003-83207fa26cc1",
-    "citable_url": "https://arangodb.com/demo/meridian/docs/me_coref_hard_001",
-    "role": "noise",
-    "questions_served": [],
-    "coref_hard": true,
-    "ground_truth_mentions": {
-      "JO": "633f43bd-5cbd-579e-9105-2ded0f2e7c76",
-      "Okafer": "633f43bd-5cbd-579e-9105-2ded0f2e7c76",
-      "the director": "633f43bd-5cbd-579e-9105-2ded0f2e7c76"
-    }
+  "helio_pdf_he_pdf_churn_risk_2024q2_3514b489bed7.pdf": {
+    "module": "helio_pdf",
+    "account_id": "c2de4d08-b3cf-5958-aae8-4ef84ebb81c9",
+    "entity_id": "4a7d0a03-6ea6-5893-ad51-e9c49158e01e",
+    "citable_url": "https://arangodb.com/demo/helio/pdf/he_pdf_churn_risk_2024q2",
+    "role": "signal",
+    "questions_served": [
+      "Q13"
+    ],
+    "spine_events": [
+      "he_usage_2024_q2",
+      "he_nps_2024_q2",
+      "he_opp_renewal_2025_at_risk"
+    ],
+    "event_date": "2024-05-01"
   },
-  "meridian_docs_me_coref_hard_002_65bfaa775222.txt": {
-    "module": "meridian_docs",
-    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
-    "entity_id": "a1acf134-59e0-59fb-bca9-8511be1633d7",
-    "citable_url": "https://arangodb.com/demo/meridian/docs/me_coref_hard_002",
+  "helio_pdf_he_pdf_roi_report_2022_1bfa3e1e18d0.pdf": {
+    "module": "helio_pdf",
+    "account_id": "c2de4d08-b3cf-5958-aae8-4ef84ebb81c9",
+    "entity_id": "557dfecf-99a8-5e14-aa42-f1499735b553",
+    "citable_url": "https://arangodb.com/demo/helio/pdf/he_pdf_roi_report_2022",
     "role": "noise",
     "questions_served": [],
-    "coref_hard": true,
-    "ground_truth_mentions": {
-      "Director Okafor": "633f43bd-5cbd-579e-9105-2ded0f2e7c76",
-      "Ockafar": "633f43bd-5cbd-579e-9105-2ded0f2e7c76",
-      "the engineering lead": "633f43bd-5cbd-579e-9105-2ded0f2e7c76"
-    }
+    "spine_events": [],
+    "event_date": "2022-12-20"
   },
-  "meridian_docs_me_coref_hard_003_43d41dfa8883.txt": {
-    "module": "meridian_docs",
-    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
-    "entity_id": "7b57f77c-da8f-5a3d-a4f8-55be3fd8079f",
-    "citable_url": "https://arangodb.com/demo/meridian/docs/me_coref_hard_003",
+  "helio_pdf_he_pdf_ebr_deck_2022q3_positive_449812c3d6d1.pdf": {
+    "module": "helio_pdf",
+    "account_id": "c2de4d08-b3cf-5958-aae8-4ef84ebb81c9",
+    "entity_id": "71b7ea92-80ed-5feb-a134-d7f933a1b232",
+    "citable_url": "https://arangodb.com/demo/helio/pdf/he_pdf_ebr_deck_2022q3_positive",
     "role": "noise",
     "questions_served": [],
-    "coref_hard": true,
-    "ground_truth_mentions": {
-      "TB": "135970e6-29ec-5bcb-8cd1-887973aa326d",
-      "Brookes": "135970e6-29ec-5bcb-8cd1-887973aa326d",
-      "the engineering manager": "135970e6-29ec-5bcb-8cd1-887973aa326d"
-    }
+    "spine_events": [],
+    "event_date": "2022-09-15"
   },
-  "meridian_docs_me_coref_hard_004_e8c8853085a8.txt": {
-    "module": "meridian_docs",
-    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
-    "entity_id": "373ebf4c-64f4-5d99-a26b-982ece3eb2d9",
-    "citable_url": "https://arangodb.com/demo/meridian/docs/me_coref_hard_004",
+  "helio_pdf_he_pdf_contract_enterprise_2022_signed_4380b14ec4a7.pdf": {
+    "module": "helio_pdf",
+    "account_id": "c2de4d08-b3cf-5958-aae8-4ef84ebb81c9",
+    "entity_id": "3bc33367-46e6-5b62-a0ae-92d379a460e1",
+    "citable_url": "https://arangodb.com/demo/helio/pdf/he_pdf_contract_enterprise_2022_signed",
     "role": "noise",
     "questions_served": [],
-    "coref_hard": true,
-    "ground_truth_mentions": {
-      "PV": "ead03ac6-14ab-5dd9-8bf8-794c507ff628",
-      "Vaance": "ead03ac6-14ab-5dd9-8bf8-794c507ff628",
-      "the CFO": "ead03ac6-14ab-5dd9-8bf8-794c507ff628"
-    }
+    "spine_events": [],
+    "event_date": "2022-01-15"
+  },
+  "helio_pdf_he_pdf_peak_usage_report_2023q1_7aaf327ba6b0.pdf": {
+    "module": "helio_pdf",
+    "account_id": "c2de4d08-b3cf-5958-aae8-4ef84ebb81c9",
+    "entity_id": "68ca31f1-bea5-5bb2-bfdf-0bd81a5fdc26",
+    "citable_url": "https://arangodb.com/demo/helio/pdf/he_pdf_peak_usage_report_2023q1",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2023-03-28"
+  },
+  "helio_pdf_he_pdf_ebr_deck_2023q1_positive_c9727274b59a.pdf": {
+    "module": "helio_pdf",
+    "account_id": "c2de4d08-b3cf-5958-aae8-4ef84ebb81c9",
+    "entity_id": "a6906d08-9558-5858-9117-6e4fcc1999d7",
+    "citable_url": "https://arangodb.com/demo/helio/pdf/he_pdf_ebr_deck_2023q1_positive",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2023-02-20"
+  },
+  "helio_pdf_he_pdf_roi_report_2023_8222c3c5a740.pdf": {
+    "module": "helio_pdf",
+    "account_id": "c2de4d08-b3cf-5958-aae8-4ef84ebb81c9",
+    "entity_id": "e730ff82-fa6f-5a2a-b5e2-116590dfdf76",
+    "citable_url": "https://arangodb.com/demo/helio/pdf/he_pdf_roi_report_2023",
+    "role": "noise",
+    "questions_served": [],
+    "spine_events": [],
+    "event_date": "2023-07-12"
+  },
+  "escalation_001.txt": {
+    "module": "meridian_slack_escalation",
+    "account_id": "9eff6d7b-7311-5525-be75-5b82a855ece7",
+    "entity_id": "633f43bd-5cbd-579e-9105-2ded0f2e7c76",
+    "citable_url": "https://arangodb.com/demo/meridian/slack/me_slack_escalation_renewal_risk_2025q2",
+    "role": "signal",
+    "questions_served": [
+      "Q12"
+    ],
+    "spine_events": [
+      "me_contact_james_okafor",
+      "me_contact_taylor_brooks",
+      "me_contact_patricia_vance"
+    ],
+    "event_date": "2025-04-15"
   }
 }
